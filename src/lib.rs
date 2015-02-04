@@ -156,8 +156,8 @@ pub trait WriterBytesExt: Writer + Sized {
 
 impl<W: Writer> WriterBytesExt for W {}
 
-#[allow(missing_copy_implementations)] pub struct BigEndian;
-#[allow(missing_copy_implementations)] pub struct LittleEndian;
+#[allow(missing_copy_implementations)] pub enum BigEndian {}
+#[allow(missing_copy_implementations)] pub enum LittleEndian {}
 
 impl ByteOrder for BigEndian {
     fn read_u16(bs: &[u8]) -> u16 {
