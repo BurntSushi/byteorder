@@ -12,3 +12,6 @@ license = "Unlicense"
 
 [lib]
 name = "byteorder"
+
+[dev-dependencies]
+quickcheck = "*"
