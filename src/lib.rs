@@ -396,8 +396,9 @@ impl ByteOrder for LittleEndian {
 #[cfg(test)]
 mod test {
     extern crate quickcheck;
+    extern crate rand;
 
-    use std::rand::thread_rng;
+    use test::rand::thread_rng;
     use test::quickcheck::{QuickCheck, StdGen, Testable};
 
     fn qc_sized<A: Testable>(f: A, size: u64) {
