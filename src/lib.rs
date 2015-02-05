@@ -306,13 +306,13 @@ impl<W: Writer> WriterBytesExt for W {}
 ///
 /// Note that this type has no value constructor. It is used purely at the
 /// type level.
-#[allow(missing_copy_implementations)] pub struct BigEndian;
+#[allow(missing_copy_implementations)] pub enum BigEndian {}
 
 /// Defines little-endian serialization.
 ///
 /// Note that this type has no value constructor. It is used purely at the
 /// type level.
-#[allow(missing_copy_implementations)] pub struct LittleEndian;
+#[allow(missing_copy_implementations)] pub enum LittleEndian {}
 
 macro_rules! read_num_bytes {
     ($ty:ty, $size:expr, $src:expr, $which:ident) => ({
