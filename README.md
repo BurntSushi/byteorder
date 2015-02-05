@@ -5,14 +5,12 @@ methods defined on the standard library `Reader` and `Writer` traits.
 Work in progress.
 
 
-TODO
-====
+### TODO
 1. `f32` and `f64` support. (trivial)
 2. Flesh out the README. (Install, examples, links to docs, limitations.)
 
 
-Ideas?
-======
+### Ideas?
 Use the `rustc-serialize` infrastructure, but it is known to be Not Fast. So
 I'm skeptical of how useful it would be. Basically, it would let you say
 something like: `let n: u32 = rdr.decode::<BigEndian>()` as opposed to
