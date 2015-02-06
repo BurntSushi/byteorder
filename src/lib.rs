@@ -75,9 +75,9 @@ macro_rules! lg {
 /// ```rust
 /// use byteorder::{ByteOrder, LittleEndian};
 ///
-/// let buf = &mut [0; 4];
-/// <LittleEndian as ByteOrder>::write_u32(buf, 1_000_000);
-/// assert_eq!(1_000_000, <LittleEndian as ByteOrder>::read_u32(buf));
+/// let mut buf = [0; 4];
+/// <LittleEndian as ByteOrder>::write_u32(&mut buf, 1_000_000);
+/// assert_eq!(1_000_000, <LittleEndian as ByteOrder>::read_u32(&buf));
 /// ```
 ///
 /// Write and read `i16` numbers in big endian order:
@@ -85,9 +85,9 @@ macro_rules! lg {
 /// ```rust
 /// use byteorder::{ByteOrder, BigEndian};
 ///
-/// let buf = &mut [0; 2];
-/// <BigEndian as ByteOrder>::write_i16(buf, -50_000);
-/// assert_eq!(-50_000, <BigEndian as ByteOrder>::read_i16(buf));
+/// let mut buf = [0; 2];
+/// <BigEndian as ByteOrder>::write_i16(&mut buf, -50_000);
+/// assert_eq!(-50_000, <BigEndian as ByteOrder>::read_i16(&buf));
 /// ```
 pub trait ByteOrder {
     /// Reads an unsigned 16 bit integer from `buf`.
@@ -215,8 +215,8 @@ pub trait ReaderBytesExt: Reader + Sized {
     /// Note that since this reads a single byte, no byte order conversions
     /// are used. It is included for completeness.
     fn read_u8(&mut self) -> IoResult<u8> {
-        let mut buf = &mut [0; 1];
-        try!(read_full(self, buf));
+        let mut buf = [0; 1];
+        try!(read_full(self, &mut buf));
         Ok(buf[0])
     }
 
@@ -225,67 +225,67 @@ pub trait ReaderBytesExt: Reader + Sized {
     /// Note that since this reads a single byte, no byte order conversions
     /// are used. It is included for completeness.
     fn read_i8(&mut self) -> IoResult<i8> {
-        let mut buf = &mut [0; 1];
-        try!(read_full(self, buf));
+        let mut buf = [0; 1];
+        try!(read_full(self, &mut buf));
         Ok(buf[0] as i8)
     }
 
     /// Reads an unsigned 16 bit integer from the underlying reader.
     fn read_u16<T: ByteOrder>(&mut self) -> IoResult<u16> {
-        let mut buf = &mut [0; 2];
-        try!(read_full(self, buf));
-        Ok(<T as ByteOrder>::read_u16(buf))
+        let mut buf = [0; 2];
+        try!(read_full(self, &mut buf));
+        Ok(<T as ByteOrder>::read_u16(&buf))
     }
 
     /// Reads a signed 16 bit integer from the underlying reader.
     fn read_i16<T: ByteOrder>(&mut self) -> IoResult<i16> {
-        let mut buf = &mut [0; 2];
-        try!(read_full(self, buf));
-        Ok(<T as ByteOrder>::read_i16(buf))
+        let mut buf = [0; 2];
+        try!(read_full(self, &mut buf));
+        Ok(<T as ByteOrder>::read_i16(&buf))
     }
 
     /// Reads an unsigned 32 bit integer from the underlying reader.
     fn read_u32<T: ByteOrder>(&mut self) -> IoResult<u32> {
-        let mut buf = &mut [0; 4];
-        try!(read_full(self, buf));
-        Ok(<T as ByteOrder>::read_u32(buf))
+        let mut buf = [0; 4];
+        try!(read_full(self, &mut buf));
+        Ok(<T as ByteOrder>::read_u32(&buf))
     }
 
     /// Reads a signed 32 bit integer from the underlying reader.
     fn read_i32<T: ByteOrder>(&mut self) -> IoResult<i32> {
-        let mut buf = &mut [0; 4];
-        try!(read_full(self, buf));
-        Ok(<T as ByteOrder>::read_i32(buf))
+        let mut buf = [0; 4];
+        try!(read_full(self, &mut buf));
+        Ok(<T as ByteOrder>::read_i32(&buf))
     }
 
     /// Reads an unsigned 64 bit integer from the underlying reader.
     fn read_u64<T: ByteOrder>(&mut self) -> IoResult<u64> {
-        let mut buf = &mut [0; 8];
-        try!(read_full(self, buf));
-        Ok(<T as ByteOrder>::read_u64(buf))
+        let mut buf = [0; 8];
+        try!(read_full(self, &mut buf));
+        Ok(<T as ByteOrder>::read_u64(&buf))
     }
 
     /// Reads a signed 64 bit integer from the underlying reader.
     fn read_i64<T: ByteOrder>(&mut self) -> IoResult<i64> {
-        let mut buf = &mut [0; 8];
-        try!(read_full(self, buf));
-        Ok(<T as ByteOrder>::read_i64(buf))
+        let mut buf = [0; 8];
+        try!(read_full(self, &mut buf));
+        Ok(<T as ByteOrder>::read_i64(&buf))
     }
 
     /// Reads a IEEE754 single-precision (4 bytes) floating point number from
     /// the underlying reader.
     fn read_f32<T: ByteOrder>(&mut self) -> IoResult<f32> {
-        let mut buf = &mut [0; 4];
-        try!(read_full(self, buf));
-        Ok(<T as ByteOrder>::read_f32(buf))
+        let mut buf = [0; 4];
+        try!(read_full(self, &mut buf));
+        Ok(<T as ByteOrder>::read_f32(&buf))
     }
 
     /// Reads a IEEE754 double-precision (8 bytes) floating point number from
     /// the underlying reader.
     fn read_f64<T: ByteOrder>(&mut self) -> IoResult<f64> {
-        let mut buf = &mut [0; 8];
-        try!(read_full(self, buf));
-        Ok(<T as ByteOrder>::read_f64(buf))
+        let mut buf = [0; 8];
+        try!(read_full(self, &mut buf));
+        Ok(<T as ByteOrder>::read_f64(&buf))
     }
 }
 
@@ -338,60 +338,60 @@ pub trait WriterBytesExt: Writer + Sized {
 
     /// Writes an unsigned 16 bit integer to the underlying writer.
     fn write_u16<T: ByteOrder>(&mut self, n: u16) -> IoResult<()> {
-        let mut buf = &mut [0; 2];
-        <T as ByteOrder>::write_u16(buf, n);
-        self.write_all(buf)
+        let mut buf = [0; 2];
+        <T as ByteOrder>::write_u16(&mut buf, n);
+        self.write_all(&buf)
     }
 
     /// Writes a signed 16 bit integer to the underlying writer.
     fn write_i16<T: ByteOrder>(&mut self, n: i16) -> IoResult<()> {
-        let mut buf = &mut [0; 2];
-        <T as ByteOrder>::write_i16(buf, n);
-        self.write_all(buf)
+        let mut buf = [0; 2];
+        <T as ByteOrder>::write_i16(&mut buf, n);
+        self.write_all(&buf)
     }
 
     /// Writes an unsigned 32 bit integer to the underlying writer.
     fn write_u32<T: ByteOrder>(&mut self, n: u32) -> IoResult<()> {
-        let mut buf = &mut [0; 4];
-        <T as ByteOrder>::write_u32(buf, n);
-        self.write_all(buf)
+        let mut buf = [0; 4];
+        <T as ByteOrder>::write_u32(&mut buf, n);
+        self.write_all(&buf)
     }
 
     /// Writes a signed 32 bit integer to the underlying writer.
     fn write_i32<T: ByteOrder>(&mut self, n: i32) -> IoResult<()> {
-        let mut buf = &mut [0; 4];
-        <T as ByteOrder>::write_i32(buf, n);
-        self.write_all(buf)
+        let mut buf = [0; 4];
+        <T as ByteOrder>::write_i32(&mut buf, n);
+        self.write_all(&buf)
     }
 
     /// Writes an unsigned 64 bit integer to the underlying writer.
     fn write_u64<T: ByteOrder>(&mut self, n: u64) -> IoResult<()> {
-        let mut buf = &mut [0; 8];
-        <T as ByteOrder>::write_u64(buf, n);
-        self.write_all(buf)
+        let mut buf = [0; 8];
+        <T as ByteOrder>::write_u64(&mut buf, n);
+        self.write_all(&buf)
     }
 
     /// Writes a signed 64 bit integer to the underlying writer.
     fn write_i64<T: ByteOrder>(&mut self, n: i64) -> IoResult<()> {
-        let mut buf = &mut [0; 8];
-        <T as ByteOrder>::write_i64(buf, n);
-        self.write_all(buf)
+        let mut buf = [0; 8];
+        <T as ByteOrder>::write_i64(&mut buf, n);
+        self.write_all(&buf)
     }
 
     /// Writes a IEEE754 single-precision (4 bytes) floating point number to
     /// the underlying writer.
     fn write_f32<T: ByteOrder>(&mut self, n: f32) -> IoResult<()> {
-        let mut buf = &mut [0; 4];
-        <T as ByteOrder>::write_f32(buf, n);
-        self.write_all(buf)
+        let mut buf = [0; 4];
+        <T as ByteOrder>::write_f32(&mut buf, n);
+        self.write_all(&buf)
     }
 
     /// Writes a IEEE754 double-precision (8 bytes) floating point number to
     /// the underlying writer.
     fn write_f64<T: ByteOrder>(&mut self, n: f64) -> IoResult<()> {
-        let mut buf = &mut [0; 8];
-        <T as ByteOrder>::write_f64(buf, n);
-        self.write_all(buf)
+        let mut buf = [0; 8];
+        <T as ByteOrder>::write_f64(&mut buf, n);
+        self.write_all(&buf)
     }
 }
 
@@ -518,9 +518,9 @@ mod test {
                 #[test]
                 fn big_endian() {
                     fn prop(n: $ty_int) -> bool {
-                        let buf = &mut [0; 8];
-                        <BigEndian as ByteOrder>::$write(buf, n);
-                        n == <BigEndian as ByteOrder>::$read(buf)
+                        let mut buf = [0; 8];
+                        <BigEndian as ByteOrder>::$write(&mut buf, n);
+                        n == <BigEndian as ByteOrder>::$read(&mut buf)
                     }
                     qc_sized(prop as fn($ty_int) -> bool,
                              $ty_int::$max as u64 - 1);
@@ -529,9 +529,9 @@ mod test {
                 #[test]
                 fn little_endian() {
                     fn prop(n: $ty_int) -> bool {
-                        let buf = &mut [0; 8];
-                        <LittleEndian as ByteOrder>::$write(buf, n);
-                        n == <LittleEndian as ByteOrder>::$read(buf)
+                        let mut buf = [0; 8];
+                        <LittleEndian as ByteOrder>::$write(&mut buf, n);
+                        n == <LittleEndian as ByteOrder>::$read(&mut buf)
                     }
                     qc_sized(prop as fn($ty_int) -> bool,
                              $ty_int::$max as u64 - 1);
