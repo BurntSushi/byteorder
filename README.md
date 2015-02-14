@@ -25,22 +25,22 @@ updated.  Add is to your `Cargo.toml` like so:
 byteorder = "*"
 ```
 
-If you want to augment existing `Reader` and `Writer` types, then import the
+If you want to augment existing `Read` and `Write` types, then import the
 extension methods like so:
 
 ```rust
 extern crate byteorder;
 
-use byteorder::{ReaderBytesExt, WriterBytesExt, BigEndian, LittleEndian};
+use byteorder::{ReadBytesExt, WriteBytesExt, BigEndian, LittleEndian};
 ```
 
 For example:
 
 ```rust
-use std::old_io::MemReader;
+use std::io::Cursor;
 use byteorder::{BigEndian, ReaderBytesExt};
 
-let mut rdr = MemReader::new(vec![2, 5, 3, 0]);
+let mut rdr = Cursor::new(vec![2, 5, 3, 0]);
 // Note that we use type parameters to indicate which kind of byte order
 // we want!
 assert_eq!(517, rdr.read_u16::<BigEndian>().unwrap());
