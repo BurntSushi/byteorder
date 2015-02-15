@@ -59,6 +59,11 @@ macro_rules! lg {
     });
 }
 
+fn extend_sign(val: u64, nbytes: usize) -> i64 {
+    let shift  = (8 - nbytes) * 8;
+    (val << shift) as i64 >> shift
+}
+
 /// ByteOrder describes types that can serialize integers as bytes.
 ///
 /// Note that `Self` does not appear anywhere in this trait's definition!
@@ -105,6 +110,11 @@ pub trait ByteOrder {
     /// Task failure occurs when `buf.len() < 8`.
     fn read_u64(buf: &[u8]) -> u64;
 
+    /// Reads an unsigned n-bytes integer from `buf`.
+    ///
+    /// Task failure occurs when `nbytes < 1` or `nbytes > 8` or `buf.len() < nbytes`
+    fn read_uint(buf: &[u8], nbytes: usize) -> u64;
+
     /// Writes an unsigned 16 bit integer `n` to `buf`.
     ///
     /// Task failure occurs when `buf.len() < 2`.
@@ -139,6 +149,13 @@ pub trait ByteOrder {
     /// Task failure occurs when `buf.len() < 8`.
     fn read_i64(buf: &[u8]) -> i64 {
         <Self as ByteOrder>::read_u64(buf) as i64
+    }
+
+    /// Reads a signed n-bytes integer from `buf`.
+    ///
+    /// Task failure occurs when `nbytes < 1` or `nbytes > 8` or `buf.len() < nbytes`
+    fn read_int(buf: &[u8], nbytes: usize) -> i64 {
+        extend_sign(<Self as ByteOrder>::read_uint(buf, nbytes), nbytes)
     }
 
     /// Reads a IEEE754 single-precision (4 bytes) floating point number.
@@ -270,6 +287,20 @@ pub trait ReaderBytesExt: Reader + Sized {
         let mut buf = [0; 8];
         try!(read_full(self, &mut buf));
         Ok(<T as ByteOrder>::read_i64(&buf))
+    }
+
+    /// Reads an unsigned n-bytes integer from the underlying reader.
+    fn read_uint<T: ByteOrder>(&mut self, nbytes: usize) -> IoResult<u64> {
+        let mut buf = [0; 8];
+        try!(read_full(self, &mut buf[0..nbytes]));
+        Ok(<T as ByteOrder>::read_uint(&buf, nbytes))
+    }
+
+    /// Reads a signed n-bytes integer from the underlying reader.
+    fn read_int<T: ByteOrder>(&mut self, nbytes: usize) -> IoResult<i64> {
+        let mut buf = [0; 8];
+        try!(read_full(self, &mut buf[0..nbytes]));
+        Ok(<T as ByteOrder>::read_int(&buf, nbytes))
     }
 
     /// Reads a IEEE754 single-precision (4 bytes) floating point number from
@@ -424,6 +455,31 @@ macro_rules! read_num_bytes {
             (*(ptr_out as *const $ty)).$which()
         }
     });
+    ($ty:ty, $size:expr, le $bytes:expr, $src:expr, $which:ident) => ({
+        use std::num::Int;
+        use std::ptr::copy_nonoverlapping_memory;
+
+        assert!($bytes > 0 && $bytes < 9 && $bytes <= $src.len());
+        let mut out = [0u8; $size];
+        let ptr_out = out.as_mut_ptr();
+        unsafe {
+            copy_nonoverlapping_memory(ptr_out, $src.as_ptr(), $bytes);
+            (*(ptr_out as *const $ty)).$which()
+        }
+    });
+    ($ty:ty, $size:expr, be $bytes:expr, $src:expr, $which:ident) => ({
+        use std::num::Int;
+        use std::ptr::copy_nonoverlapping_memory;
+
+        assert!($bytes > 0 && $bytes < 9 && $bytes <= $src.len());
+        let mut out = [0u8; $size];
+        let ptr_out = out.as_mut_ptr();
+        unsafe {
+            copy_nonoverlapping_memory(ptr_out.offset((8 - $bytes) as isize),
+                                       $src.as_ptr(), $bytes);
+            (*(ptr_out as *const $ty)).$which()
+        }
+    });
 }
 
 macro_rules! write_num_bytes {
@@ -452,6 +508,10 @@ impl ByteOrder for BigEndian {
         read_num_bytes!(u64, 8, buf, to_be)
     }
 
+    fn read_uint(buf: &[u8], nbytes: usize) -> u64 {
+        read_num_bytes!(u64, 8, be nbytes, buf, to_be)
+    }
+
     fn write_u16(buf: &mut [u8], n: u16) {
         write_num_bytes!(u16, 2, n, buf, to_be);
     }
@@ -476,6 +536,10 @@ impl ByteOrder for LittleEndian {
 
     fn read_u64(buf: &[u8]) -> u64 {
         read_num_bytes!(u64, 8, buf, to_le)
+    }
+
+    fn read_uint(buf: &[u8], nbytes: usize) -> u64 {
+        read_num_bytes!(u64, 8, le nbytes, buf, to_le)
     }
 
     fn write_u16(buf: &mut [u8], n: u16) {
@@ -508,6 +572,36 @@ mod test {
     }
 
     macro_rules! qc_byte_order {
+        ($name:ident, $ty_int:ident, $max:ident,
+         $bytes:expr, $read:ident, $write:ident) => (
+            mod $name {
+                use std::$ty_int;
+                use {BigEndian, ByteOrder, LittleEndian};
+                use super::qc_sized;
+
+                #[test]
+                fn big_endian() {
+                    let max = $ty_int::$max as u64 - 1 >> (8 * (8 - $bytes));
+                    fn prop(n: $ty_int) -> bool {
+                        let mut buf = [0; 8];
+                        <BigEndian as ByteOrder>::$write(&mut buf, n);
+                        n == <BigEndian as ByteOrder>::$read(&mut buf[8 - $bytes..], $bytes)
+                    }
+                    qc_sized(prop as fn($ty_int) -> bool, max as u64 - 1);
+                }
+
+                #[test]
+                fn little_endian() {
+                    let max = $ty_int::$max as u64 - 1 >> (8 * (8 - $bytes));
+                    fn prop(n: $ty_int) -> bool {
+                        let mut buf = [0; 8];
+                        <LittleEndian as ByteOrder>::$write(&mut buf, n);
+                        n == <LittleEndian as ByteOrder>::$read(&mut buf, $bytes)
+                    }
+                    qc_sized(prop as fn($ty_int) -> bool, max as u64 - 1);
+                }
+            }
+        );
         ($name:ident, $ty_int:ident, $max:ident,
          $read:ident, $write:ident) => (
             mod $name {
@@ -549,7 +643,60 @@ mod test {
     qc_byte_order!(prop_f32, f32, MAX_VALUE, read_f32, write_f32);
     qc_byte_order!(prop_f64, f64, MAX_VALUE, read_f64, write_f64);
 
+    qc_byte_order!(prop_uint_1, u64, MAX, 1, read_uint, write_u64);
+    qc_byte_order!(prop_uint_2, u64, MAX, 2, read_uint, write_u64);
+    qc_byte_order!(prop_uint_3, u64, MAX, 3, read_uint, write_u64);
+    qc_byte_order!(prop_uint_4, u64, MAX, 4, read_uint, write_u64);
+    qc_byte_order!(prop_uint_5, u64, MAX, 5, read_uint, write_u64);
+    qc_byte_order!(prop_uint_6, u64, MAX, 6, read_uint, write_u64);
+    qc_byte_order!(prop_uint_7, u64, MAX, 7, read_uint, write_u64);
+    qc_byte_order!(prop_uint_8, u64, MAX, 8, read_uint, write_u64);
+
+    qc_byte_order!(prop_int_1, i64, MAX, 1, read_int, write_i64);
+    qc_byte_order!(prop_int_2, i64, MAX, 2, read_int, write_i64);
+    qc_byte_order!(prop_int_3, i64, MAX, 3, read_int, write_i64);
+    qc_byte_order!(prop_int_4, i64, MAX, 4, read_int, write_i64);
+    qc_byte_order!(prop_int_5, i64, MAX, 5, read_int, write_i64);
+    qc_byte_order!(prop_int_6, i64, MAX, 6, read_int, write_i64);
+    qc_byte_order!(prop_int_7, i64, MAX, 7, read_int, write_i64);
+    qc_byte_order!(prop_int_8, i64, MAX, 8, read_int, write_i64);
+
     macro_rules! qc_bytes_ext {
+        ($name:ident, $ty_int:ident, $max:ident,
+         $bytes:expr, $read:ident, $write:ident) => (
+            mod $name {
+                use std::old_io::MemReader;
+                use std::$ty_int;
+                use {ReaderBytesExt, WriterBytesExt, BigEndian, LittleEndian};
+                use super::qc_sized;
+
+                #[test]
+                fn big_endian() {
+                    let max = $ty_int::$max as u64 - 1 >> (8 * (8 - $bytes));
+                    fn prop(n: $ty_int) -> bool {
+                        let mut wtr = vec![];
+                        wtr.$write::<BigEndian>(n).unwrap();
+                        let mut rdr = Vec::new();
+                        rdr.push_all(&wtr[8-$bytes..]);
+                        let mut rdr = MemReader::new(rdr);
+                        n == rdr.$read::<BigEndian>($bytes).unwrap()
+                    }
+                    qc_sized(prop as fn($ty_int) -> bool, max);
+                }
+
+                #[test]
+                fn little_endian() {
+                    let max = $ty_int::$max as u64 - 1 >> (8 * (8 - $bytes));
+                    fn prop(n: $ty_int) -> bool {
+                        let mut wtr = vec![];
+                        wtr.$write::<LittleEndian>(n).unwrap();
+                        let mut rdr = MemReader::new(wtr);
+                        n == rdr.$read::<LittleEndian>($bytes).unwrap()
+                    }
+                    qc_sized(prop as fn($ty_int) -> bool, max);
+                }
+            }
+        );
         ($name:ident, $ty_int:ident,
          $max:ident, $read:ident, $write:ident) => (
             mod $name {
@@ -594,6 +741,24 @@ mod test {
     qc_bytes_ext!(prop_ext_f32, f32, MAX_VALUE, read_f32, write_f32);
     qc_bytes_ext!(prop_ext_f64, f64, MAX_VALUE, read_f64, write_f64);
 
+    qc_bytes_ext!(prop_ext_uint_1, u64, MAX, 1, read_uint, write_u64);
+    qc_bytes_ext!(prop_ext_uint_2, u64, MAX, 2, read_uint, write_u64);
+    qc_bytes_ext!(prop_ext_uint_3, u64, MAX, 3, read_uint, write_u64);
+    qc_bytes_ext!(prop_ext_uint_4, u64, MAX, 4, read_uint, write_u64);
+    qc_bytes_ext!(prop_ext_uint_5, u64, MAX, 5, read_uint, write_u64);
+    qc_bytes_ext!(prop_ext_uint_6, u64, MAX, 6, read_uint, write_u64);
+    qc_bytes_ext!(prop_ext_uint_7, u64, MAX, 7, read_uint, write_u64);
+    qc_bytes_ext!(prop_ext_uint_8, u64, MAX, 8, read_uint, write_u64);
+
+    qc_bytes_ext!(prop_ext_int_1, i64, MAX, 1, read_int, write_i64);
+    qc_bytes_ext!(prop_ext_int_2, i64, MAX, 2, read_int, write_i64);
+    qc_bytes_ext!(prop_ext_int_3, i64, MAX, 3, read_int, write_i64);
+    qc_bytes_ext!(prop_ext_int_4, i64, MAX, 4, read_int, write_i64);
+    qc_bytes_ext!(prop_ext_int_5, i64, MAX, 5, read_int, write_i64);
+    qc_bytes_ext!(prop_ext_int_6, i64, MAX, 6, read_int, write_i64);
+    qc_bytes_ext!(prop_ext_int_7, i64, MAX, 7, read_int, write_i64);
+    qc_bytes_ext!(prop_ext_int_8, i64, MAX, 8, read_int, write_i64);
+
     // Test that all of the byte conversion functions panic when given a
     // buffer that is too small.
     //
@@ -634,6 +799,25 @@ mod test {
                 }
             }
         );
+        ($name:ident, $maximally_small:expr, $read:ident) => (
+            mod $name {
+                use {BigEndian, ByteOrder, LittleEndian};
+
+                #[test]
+                #[should_fail]
+                fn read_big_endian() {
+                    let buf = [0; $maximally_small];
+                    <BigEndian as ByteOrder>::$read(&buf, $maximally_small + 1);
+                }
+
+                #[test]
+                #[should_fail]
+                fn read_little_endian() {
+                    let buf = [0; $maximally_small];
+                    <LittleEndian as ByteOrder>::$read(&buf, $maximally_small + 1);
+                }
+            }
+        );
     }
 
     too_small!(small_u16, 1, 0, read_u16, write_u16);
@@ -644,6 +828,22 @@ mod test {
     too_small!(small_i64, 7, 0, read_i64, write_i64);
     too_small!(small_f32, 3, 0.0, read_f32, write_f32);
     too_small!(small_f64, 7, 0.0, read_f64, write_f64);
+
+    too_small!(small_uint_1, 1, read_uint);
+    too_small!(small_uint_2, 2, read_uint);
+    too_small!(small_uint_3, 3, read_uint);
+    too_small!(small_uint_4, 4, read_uint);
+    too_small!(small_uint_5, 5, read_uint);
+    too_small!(small_uint_6, 6, read_uint);
+    too_small!(small_uint_7, 7, read_uint);
+
+    too_small!(small_int_1, 1, read_int);
+    too_small!(small_int_2, 2, read_int);
+    too_small!(small_int_3, 3, read_int);
+    too_small!(small_int_4, 4, read_int);
+    too_small!(small_int_5, 5, read_int);
+    too_small!(small_int_6, 6, read_int);
+    too_small!(small_int_7, 7, read_int);
 }
 
 #[cfg(test)]
@@ -651,6 +851,35 @@ mod bench {
     extern crate test;
 
     macro_rules! bench_num {
+        ($name:ident, $read:ident, $bytes:expr, $data:expr) => (
+            mod $name {
+                use {ByteOrder, BigEndian, LittleEndian};
+                use super::test::Bencher;
+                use super::test::black_box as bb;
+
+                const NITER: usize = 100_000;
+
+                #[bench]
+                fn read_big_endian(b: &mut Bencher) {
+                    let buf = $data;
+                    b.iter(|| {
+                        for _ in 0..NITER {
+                            bb(<BigEndian as ByteOrder>::$read(&buf, $bytes));
+                        }
+                    });
+                }
+
+                #[bench]
+                fn read_little_endian(b: &mut Bencher) {
+                    let buf = $data;
+                    b.iter(|| {
+                        for _ in 0..NITER {
+                            bb(<LittleEndian as ByteOrder>::$read(&buf, $bytes));
+                        }
+                    });
+                }
+            }
+        );
         ($ty:ident, $max:ident,
          $read:ident, $write:ident, $size:expr, $data:expr) => (
             mod $ty {
@@ -716,4 +945,22 @@ mod bench {
     bench_num!(f32, MAX_VALUE, read_f32, write_f32, 4, [1, 2, 3, 4]);
     bench_num!(f64, MAX_VALUE, read_f64, write_f64, 8,
                [1, 2, 3, 4, 5, 6, 7, 8]);
+
+    bench_num!(uint_1, read_uint, 1, [1]);
+    bench_num!(uint_2, read_uint, 2, [1, 2]);
+    bench_num!(uint_3, read_uint, 3, [1, 2, 3]);
+    bench_num!(uint_4, read_uint, 4, [1, 2, 3, 4]);
+    bench_num!(uint_5, read_uint, 5, [1, 2, 3, 4, 5]);
+    bench_num!(uint_6, read_uint, 6, [1, 2, 3, 4, 5, 6]);
+    bench_num!(uint_7, read_uint, 7, [1, 2, 3, 4, 5, 6, 7]);
+    bench_num!(uint_8, read_uint, 8, [1, 2, 3, 4, 5, 6, 7, 8]);
+
+    bench_num!(int_1, read_int, 1, [1]);
+    bench_num!(int_2, read_int, 2, [1, 2]);
+    bench_num!(int_3, read_int, 3, [1, 2, 3]);
+    bench_num!(int_4, read_int, 4, [1, 2, 3, 4]);
+    bench_num!(int_5, read_int, 5, [1, 2, 3, 4, 5]);
+    bench_num!(int_6, read_int, 6, [1, 2, 3, 4, 5, 6]);
+    bench_num!(int_7, read_int, 7, [1, 2, 3, 4, 5, 6, 7]);
+    bench_num!(int_8, read_int, 8, [1, 2, 3, 4, 5, 6, 7, 8]);
 }
