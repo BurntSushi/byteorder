@@ -640,8 +640,8 @@ mod test {
     qc_byte_order!(prop_i32, i32, MAX, read_i32, write_i32);
     qc_byte_order!(prop_u64, u64, MAX, read_u64, write_u64);
     qc_byte_order!(prop_i64, i64, MAX, read_i64, write_i64);
-    qc_byte_order!(prop_f32, f32, MAX_VALUE, read_f32, write_f32);
-    qc_byte_order!(prop_f64, f64, MAX_VALUE, read_f64, write_f64);
+    qc_byte_order!(prop_f32, f32, MAX, read_f32, write_f32);
+    qc_byte_order!(prop_f64, f64, MAX, read_f64, write_f64);
 
     qc_byte_order!(prop_uint_1, u64, MAX, 1, read_uint, write_u64);
     qc_byte_order!(prop_uint_2, u64, MAX, 2, read_uint, write_u64);
@@ -738,8 +738,8 @@ mod test {
     qc_bytes_ext!(prop_ext_i32, i32, MAX, read_i32, write_i32);
     qc_bytes_ext!(prop_ext_u64, u64, MAX, read_u64, write_u64);
     qc_bytes_ext!(prop_ext_i64, i64, MAX, read_i64, write_i64);
-    qc_bytes_ext!(prop_ext_f32, f32, MAX_VALUE, read_f32, write_f32);
-    qc_bytes_ext!(prop_ext_f64, f64, MAX_VALUE, read_f64, write_f64);
+    qc_bytes_ext!(prop_ext_f32, f32, MAX, read_f32, write_f32);
+    qc_bytes_ext!(prop_ext_f64, f64, MAX, read_f64, write_f64);
 
     qc_bytes_ext!(prop_ext_uint_1, u64, MAX, 1, read_uint, write_u64);
     qc_bytes_ext!(prop_ext_uint_2, u64, MAX, 2, read_uint, write_u64);
@@ -942,8 +942,8 @@ mod bench {
     bench_num!(i32, MAX, read_i32, write_i32, 4, [1, 2, 3, 4]);
     bench_num!(u64, MAX, read_u64, write_u64, 8, [1, 2, 3, 4, 5, 6, 7, 8]);
     bench_num!(i64, MAX, read_i64, write_i64, 8, [1, 2, 3, 4, 5, 6, 7, 8]);
-    bench_num!(f32, MAX_VALUE, read_f32, write_f32, 4, [1, 2, 3, 4]);
-    bench_num!(f64, MAX_VALUE, read_f64, write_f64, 8,
+    bench_num!(f32, MAX, read_f32, write_f32, 4, [1, 2, 3, 4]);
+    bench_num!(f64, MAX, read_f64, write_f64, 8,
                [1, 2, 3, 4, 5, 6, 7, 8]);
 
     bench_num!(uint_1, read_uint, 1, [1]);
