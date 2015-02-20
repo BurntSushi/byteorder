@@ -78,7 +78,7 @@ use std::mem::transmute;
 /// <BigEndian as ByteOrder>::write_i16(&mut buf, -50_000);
 /// assert_eq!(-50_000, <BigEndian as ByteOrder>::read_i16(&buf));
 /// ```
-pub trait ByteOrder {
+pub trait ByteOrder : std::marker::MarkerTrait {
     /// Reads an unsigned 16 bit integer from `buf`.
     ///
     /// Task failure occurs when `buf.len() < 2`.
