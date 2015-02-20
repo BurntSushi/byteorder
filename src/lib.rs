@@ -45,7 +45,7 @@ assert_eq!(wtr, vec![5, 2, 0, 3]);
 #![deny(missing_docs)]
 
 #![allow(unused_features)] // for `rand` while testing
-#![feature(core, io, test)]
+#![feature(core, io, test, old_io)]
 
 use std::old_io::IoResult;
 use std::mem::transmute;
