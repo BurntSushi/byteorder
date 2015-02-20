@@ -325,7 +325,7 @@ pub trait ReaderBytesExt: Reader + Sized {
 impl<R: Reader> ReaderBytesExt for R {}
 
 fn read_full<R: Reader>(rdr: &mut R, buf: &mut [u8]) -> IoResult<()> {
-    let mut n = 0us;
+    let mut n = 0usize;
     while n < buf.len() {
         n += try!(rdr.read(&mut buf[n..]));
     }
