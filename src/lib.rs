@@ -45,7 +45,7 @@ assert_eq!(wtr, vec![5, 2, 0, 3]);
 #![deny(missing_docs)]
 
 #![allow(unused_features)] // for `rand` while testing
-#![feature(core, io, test)]
+#![feature(core, io, test, old_io)]
 
 use std::old_io::IoResult;
 use std::mem::transmute;
@@ -94,7 +94,7 @@ fn extend_sign(val: u64, nbytes: usize) -> i64 {
 /// <BigEndian as ByteOrder>::write_i16(&mut buf, -50_000);
 /// assert_eq!(-50_000, <BigEndian as ByteOrder>::read_i16(&buf));
 /// ```
-pub trait ByteOrder {
+pub trait ByteOrder : std::marker::MarkerTrait {
     /// Reads an unsigned 16 bit integer from `buf`.
     ///
     /// Task failure occurs when `buf.len() < 2`.
@@ -325,7 +325,7 @@ pub trait ReaderBytesExt: Reader + Sized {
 impl<R: Reader> ReaderBytesExt for R {}
 
 fn read_full<R: Reader>(rdr: &mut R, buf: &mut [u8]) -> IoResult<()> {
-    let mut n = 0us;
+    let mut n = 0usize;
     while n < buf.len() {
         n += try!(rdr.read(&mut buf[n..]));
     }
