@@ -2,35 +2,37 @@
 This crate provides convenience methods for encoding and decoding numbers
 in either big-endian or little-endian order.
 
-**Future plans:** Currently, this crate works with `std::old_io`. Once the
-new `std::io` crate is done, this crate will migrate to it.
-
 The organization of the crate is pretty simple. A trait, `ByteOrder`, specifies
 byte conversion methods for each type of number in Rust (sans numbers that have
 a platform dependent size like `usize` and `isize`). Two types, `BigEndian`
-and `LittleEndian` implement these methods. Finally, `ReaderBytesExt` and
-`WriterBytesExt` provide convenience methods available to all types that
+and `LittleEndian` implement these methods. Finally, `ReadBytesExt` and
+`WriteBytesExt` provide convenience methods available to all types that
 implement `Reader` and `Writer`.
+
+**Future plans:** Currently, this crate works with `std::old_io` via the
+`ReaderBytesExt` and `WriterBytesExt` traits; however, you should prefer the
+`ReadBytesExt` and `WriteBytesExt` traits, which work with the new `std::io`
+module. I will keep the `std::old_io` traits here for as long as reasonable.
 
 # Examples
 
-Read unsigned 16 bit big-endian integers from a `Reader`:
+Read unsigned 16 bit big-endian integers from a `Read` type:
 
 ```rust
-use std::old_io::MemReader;
-use byteorder::{BigEndian, ReaderBytesExt};
+use std::io::Cursor;
+use byteorder::{BigEndian, ReadBytesExt};
 
-let mut rdr = MemReader::new(vec![2, 5, 3, 0]);
+let mut rdr = Cursor::new(vec![2, 5, 3, 0]);
 // Note that we use type parameters to indicate which kind of byte order
 // we want!
 assert_eq!(517, rdr.read_u16::<BigEndian>().unwrap());
 assert_eq!(768, rdr.read_u16::<BigEndian>().unwrap());
 ```
 
-Write unsigned 16 bit little-endian integers to a `Writer`:
+Write unsigned 16 bit little-endian integers to a `Write` type:
 
 ```rust
-use byteorder::{LittleEndian, WriterBytesExt};
+use byteorder::{LittleEndian, WriteBytesExt};
 
 let mut wtr = vec![];
 wtr.write_u16::<LittleEndian>(517).unwrap();
@@ -47,17 +49,15 @@ assert_eq!(wtr, vec![5, 2, 0, 3]);
 #![allow(unused_features)] // for `rand` while testing
 #![feature(core, io, test, old_io)]
 
-use std::old_io::IoResult;
 use std::mem::transmute;
 
-// A trivial logging macro. No reason to pull in `log`, which has become
-// difficult to use in tests.
-macro_rules! lg {
-    ($($arg:tt)*) => ({
-        let _ = ::std::old_io::stderr().write_str(&*format!($($arg)*));
-        let _ = ::std::old_io::stderr().write_str("\n");
-    });
-}
+pub use new::ReadBytesExt;
+pub use new::WriteBytesExt;
+pub use old::ReaderBytesExt;
+pub use old::WriterBytesExt;
+
+mod new;
+mod old;
 
 fn extend_sign(val: u64, nbytes: usize) -> i64 {
     let shift  = (8 - nbytes) * 8;
@@ -207,228 +207,6 @@ pub trait ByteOrder : std::marker::MarkerTrait {
         <Self as ByteOrder>::write_u64(buf, unsafe { transmute(n) })
     }
 }
-
-/// Extends `Reader` with methods for reading numbers.
-///
-/// Most of the methods defined here have an unconstrained type parameter that
-/// must be explicitly instantiated. Typically, it is instantiated with either
-/// the `BigEndian` or `LittleEndian` types defined in this crate.
-///
-/// # Examples
-///
-/// Read unsigned 16 bit big-endian integers from a `Reader`:
-///
-/// ```rust
-/// use std::old_io::MemReader;
-/// use byteorder::{BigEndian, ReaderBytesExt};
-///
-/// let mut rdr = MemReader::new(vec![2, 5, 3, 0]);
-/// assert_eq!(517, rdr.read_u16::<BigEndian>().unwrap());
-/// assert_eq!(768, rdr.read_u16::<BigEndian>().unwrap());
-/// ```
-pub trait ReaderBytesExt: Reader + Sized {
-    /// Reads an unsigned 8 bit integer from the underlying reader.
-    ///
-    /// Note that since this reads a single byte, no byte order conversions
-    /// are used. It is included for completeness.
-    fn read_u8(&mut self) -> IoResult<u8> {
-        let mut buf = [0; 1];
-        try!(read_full(self, &mut buf));
-        Ok(buf[0])
-    }
-
-    /// Reads a signed 8 bit integer from the underlying reader.
-    ///
-    /// Note that since this reads a single byte, no byte order conversions
-    /// are used. It is included for completeness.
-    fn read_i8(&mut self) -> IoResult<i8> {
-        let mut buf = [0; 1];
-        try!(read_full(self, &mut buf));
-        Ok(buf[0] as i8)
-    }
-
-    /// Reads an unsigned 16 bit integer from the underlying reader.
-    fn read_u16<T: ByteOrder>(&mut self) -> IoResult<u16> {
-        let mut buf = [0; 2];
-        try!(read_full(self, &mut buf));
-        Ok(<T as ByteOrder>::read_u16(&buf))
-    }
-
-    /// Reads a signed 16 bit integer from the underlying reader.
-    fn read_i16<T: ByteOrder>(&mut self) -> IoResult<i16> {
-        let mut buf = [0; 2];
-        try!(read_full(self, &mut buf));
-        Ok(<T as ByteOrder>::read_i16(&buf))
-    }
-
-    /// Reads an unsigned 32 bit integer from the underlying reader.
-    fn read_u32<T: ByteOrder>(&mut self) -> IoResult<u32> {
-        let mut buf = [0; 4];
-        try!(read_full(self, &mut buf));
-        Ok(<T as ByteOrder>::read_u32(&buf))
-    }
-
-    /// Reads a signed 32 bit integer from the underlying reader.
-    fn read_i32<T: ByteOrder>(&mut self) -> IoResult<i32> {
-        let mut buf = [0; 4];
-        try!(read_full(self, &mut buf));
-        Ok(<T as ByteOrder>::read_i32(&buf))
-    }
-
-    /// Reads an unsigned 64 bit integer from the underlying reader.
-    fn read_u64<T: ByteOrder>(&mut self) -> IoResult<u64> {
-        let mut buf = [0; 8];
-        try!(read_full(self, &mut buf));
-        Ok(<T as ByteOrder>::read_u64(&buf))
-    }
-
-    /// Reads a signed 64 bit integer from the underlying reader.
-    fn read_i64<T: ByteOrder>(&mut self) -> IoResult<i64> {
-        let mut buf = [0; 8];
-        try!(read_full(self, &mut buf));
-        Ok(<T as ByteOrder>::read_i64(&buf))
-    }
-
-    /// Reads an unsigned n-bytes integer from the underlying reader.
-    fn read_uint<T: ByteOrder>(&mut self, nbytes: usize) -> IoResult<u64> {
-        let mut buf = [0; 8];
-        try!(read_full(self, &mut buf[0..nbytes]));
-        Ok(<T as ByteOrder>::read_uint(&buf, nbytes))
-    }
-
-    /// Reads a signed n-bytes integer from the underlying reader.
-    fn read_int<T: ByteOrder>(&mut self, nbytes: usize) -> IoResult<i64> {
-        let mut buf = [0; 8];
-        try!(read_full(self, &mut buf[0..nbytes]));
-        Ok(<T as ByteOrder>::read_int(&buf, nbytes))
-    }
-
-    /// Reads a IEEE754 single-precision (4 bytes) floating point number from
-    /// the underlying reader.
-    fn read_f32<T: ByteOrder>(&mut self) -> IoResult<f32> {
-        let mut buf = [0; 4];
-        try!(read_full(self, &mut buf));
-        Ok(<T as ByteOrder>::read_f32(&buf))
-    }
-
-    /// Reads a IEEE754 double-precision (8 bytes) floating point number from
-    /// the underlying reader.
-    fn read_f64<T: ByteOrder>(&mut self) -> IoResult<f64> {
-        let mut buf = [0; 8];
-        try!(read_full(self, &mut buf));
-        Ok(<T as ByteOrder>::read_f64(&buf))
-    }
-}
-
-/// All types that implement `Reader` get methods defined in `ReaderBytesExt`
-/// for free.
-impl<R: Reader> ReaderBytesExt for R {}
-
-fn read_full<R: Reader>(rdr: &mut R, buf: &mut [u8]) -> IoResult<()> {
-    let mut n = 0usize;
-    while n < buf.len() {
-        n += try!(rdr.read(&mut buf[n..]));
-    }
-    Ok(())
-}
-
-/// Extends `Writer` with methods for writing numbers.
-///
-/// Most of the methods defined here have an unconstrained type parameter that
-/// must be explicitly instantiated. Typically, it is instantiated with either
-/// the `BigEndian` or `LittleEndian` types defined in this crate.
-///
-/// # Examples
-///
-/// Write unsigned 16 bit big-endian integers to a `Writer`:
-///
-/// ```rust
-/// use byteorder::{BigEndian, WriterBytesExt};
-///
-/// let mut wtr = vec![];
-/// wtr.write_u16::<BigEndian>(517).unwrap();
-/// wtr.write_u16::<BigEndian>(768).unwrap();
-/// assert_eq!(wtr, vec![2, 5, 3, 0]);
-/// ```
-pub trait WriterBytesExt: Writer + Sized {
-    /// Writes an unsigned 8 bit integer to the underlying writer.
-    ///
-    /// Note that since this writes a single byte, no byte order conversions
-    /// are used. It is included for completeness.
-    fn write_u8(&mut self, n: u8) -> IoResult<()> {
-        self.write_all(&[n])
-    }
-
-    /// Writes a signed 8 bit integer to the underlying writer.
-    ///
-    /// Note that since this writes a single byte, no byte order conversions
-    /// are used. It is included for completeness.
-    fn write_i8(&mut self, n: i8) -> IoResult<()> {
-        self.write_all(&[n as u8])
-    }
-
-    /// Writes an unsigned 16 bit integer to the underlying writer.
-    fn write_u16<T: ByteOrder>(&mut self, n: u16) -> IoResult<()> {
-        let mut buf = [0; 2];
-        <T as ByteOrder>::write_u16(&mut buf, n);
-        self.write_all(&buf)
-    }
-
-    /// Writes a signed 16 bit integer to the underlying writer.
-    fn write_i16<T: ByteOrder>(&mut self, n: i16) -> IoResult<()> {
-        let mut buf = [0; 2];
-        <T as ByteOrder>::write_i16(&mut buf, n);
-        self.write_all(&buf)
-    }
-
-    /// Writes an unsigned 32 bit integer to the underlying writer.
-    fn write_u32<T: ByteOrder>(&mut self, n: u32) -> IoResult<()> {
-        let mut buf = [0; 4];
-        <T as ByteOrder>::write_u32(&mut buf, n);
-        self.write_all(&buf)
-    }
-
-    /// Writes a signed 32 bit integer to the underlying writer.
-    fn write_i32<T: ByteOrder>(&mut self, n: i32) -> IoResult<()> {
-        let mut buf = [0; 4];
-        <T as ByteOrder>::write_i32(&mut buf, n);
-        self.write_all(&buf)
-    }
-
-    /// Writes an unsigned 64 bit integer to the underlying writer.
-    fn write_u64<T: ByteOrder>(&mut self, n: u64) -> IoResult<()> {
-        let mut buf = [0; 8];
-        <T as ByteOrder>::write_u64(&mut buf, n);
-        self.write_all(&buf)
-    }
-
-    /// Writes a signed 64 bit integer to the underlying writer.
-    fn write_i64<T: ByteOrder>(&mut self, n: i64) -> IoResult<()> {
-        let mut buf = [0; 8];
-        <T as ByteOrder>::write_i64(&mut buf, n);
-        self.write_all(&buf)
-    }
-
-    /// Writes a IEEE754 single-precision (4 bytes) floating point number to
-    /// the underlying writer.
-    fn write_f32<T: ByteOrder>(&mut self, n: f32) -> IoResult<()> {
-        let mut buf = [0; 4];
-        <T as ByteOrder>::write_f32(&mut buf, n);
-        self.write_all(&buf)
-    }
-
-    /// Writes a IEEE754 double-precision (8 bytes) floating point number to
-    /// the underlying writer.
-    fn write_f64<T: ByteOrder>(&mut self, n: f64) -> IoResult<()> {
-        let mut buf = [0; 8];
-        <T as ByteOrder>::write_f64(&mut buf, n);
-        self.write_all(&buf)
-    }
-}
-
-/// All types that implement `Writer` get methods defined in `WriterBytesExt`
-/// for free.
-impl<W: Writer> WriterBytesExt for W {}
 
 /// Defines big-endian serialization.
 ///
@@ -665,9 +443,9 @@ mod test {
         ($name:ident, $ty_int:ident, $max:ident,
          $bytes:expr, $read:ident, $write:ident) => (
             mod $name {
-                use std::old_io::MemReader;
+                use std::io::Cursor;
                 use std::$ty_int;
-                use {ReaderBytesExt, WriterBytesExt, BigEndian, LittleEndian};
+                use {ReadBytesExt, WriteBytesExt, BigEndian, LittleEndian};
                 use super::qc_sized;
 
                 #[test]
@@ -678,7 +456,7 @@ mod test {
                         wtr.$write::<BigEndian>(n).unwrap();
                         let mut rdr = Vec::new();
                         rdr.push_all(&wtr[8-$bytes..]);
-                        let mut rdr = MemReader::new(rdr);
+                        let mut rdr = Cursor::new(rdr);
                         n == rdr.$read::<BigEndian>($bytes).unwrap()
                     }
                     qc_sized(prop as fn($ty_int) -> bool, max);
@@ -690,7 +468,7 @@ mod test {
                     fn prop(n: $ty_int) -> bool {
                         let mut wtr = vec![];
                         wtr.$write::<LittleEndian>(n).unwrap();
-                        let mut rdr = MemReader::new(wtr);
+                        let mut rdr = Cursor::new(wtr);
                         n == rdr.$read::<LittleEndian>($bytes).unwrap()
                     }
                     qc_sized(prop as fn($ty_int) -> bool, max);
@@ -700,9 +478,9 @@ mod test {
         ($name:ident, $ty_int:ident,
          $max:ident, $read:ident, $write:ident) => (
             mod $name {
-                use std::old_io::MemReader;
+                use std::io::Cursor;
                 use std::$ty_int;
-                use {ReaderBytesExt, WriterBytesExt, BigEndian, LittleEndian};
+                use {ReadBytesExt, WriteBytesExt, BigEndian, LittleEndian};
                 use super::qc_sized;
 
                 #[test]
@@ -710,7 +488,7 @@ mod test {
                     fn prop(n: $ty_int) -> bool {
                         let mut wtr = vec![];
                         wtr.$write::<BigEndian>(n).unwrap();
-                        let mut rdr = MemReader::new(wtr);
+                        let mut rdr = Cursor::new(wtr);
                         n == rdr.$read::<BigEndian>().unwrap()
                     }
                     qc_sized(prop as fn($ty_int) -> bool,
@@ -722,7 +500,7 @@ mod test {
                     fn prop(n: $ty_int) -> bool {
                         let mut wtr = vec![];
                         wtr.$write::<LittleEndian>(n).unwrap();
-                        let mut rdr = MemReader::new(wtr);
+                        let mut rdr = Cursor::new(wtr);
                         n == rdr.$read::<LittleEndian>().unwrap()
                     }
                     qc_sized(prop as fn($ty_int) -> bool,
