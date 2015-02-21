@@ -2,7 +2,7 @@ use std::old_io::IoResult;
 
 use ByteOrder;
 
-/// Extends `Reader` with methods for reading numbers.
+/// Extends `Reader` with methods for reading numbers. (For `std::old_io`.)
 ///
 /// Most of the methods defined here have an unconstrained type parameter that
 /// must be explicitly instantiated. Typically, it is instantiated with either
@@ -126,7 +126,7 @@ fn read_full<R: Reader>(rdr: &mut R, buf: &mut [u8]) -> IoResult<()> {
     Ok(())
 }
 
-/// Extends `Writer` with methods for writing numbers.
+/// Extends `Writer` with methods for writing numbers. (For `std::old_io`.)
 ///
 /// Most of the methods defined here have an unconstrained type parameter that
 /// must be explicitly instantiated. Typically, it is instantiated with either

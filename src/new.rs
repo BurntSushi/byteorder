@@ -2,7 +2,7 @@ use std::io;
 
 use ByteOrder;
 
-/// Extends `Read` with methods for reading numbers.
+/// Extends `Read` with methods for reading numbers. (For `std::io`.)
 ///
 /// Most of the methods defined here have an unconstrained type parameter that
 /// must be explicitly instantiated. Typically, it is instantiated with either
@@ -126,7 +126,7 @@ fn read_full<R: io::Read>(rdr: &mut R, buf: &mut [u8]) -> io::Result<()> {
     Ok(())
 }
 
-/// Extends `Write` with methods for writing numbers.
+/// Extends `Write` with methods for writing numbers. (For `std::io`.)
 ///
 /// Most of the methods defined here have an unconstrained type parameter that
 /// must be explicitly instantiated. Typically, it is instantiated with either
