@@ -51,10 +51,8 @@ assert_eq!(wtr, vec![5, 2, 0, 3]);
 
 use std::mem::transmute;
 
-pub use new::ReadBytesExt;
-pub use new::WriteBytesExt;
-pub use old::ReaderBytesExt;
-pub use old::WriterBytesExt;
+pub use new::{ReadBytesExt, WriteBytesExt, Error, Result};
+pub use old::{ReaderBytesExt, WriterBytesExt};
 
 mod new;
 mod old;
