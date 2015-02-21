@@ -36,6 +36,9 @@ extern crate byteorder;
 use byteorder::{ReaderBytesExt, WriterBytesExt, BigEndian, LittleEndian};
 ```
 
+Or use the `ReadBytesExt`/`WriteBytesExt` traits if you're using the new
+`std::io` module.
+
 For example:
 
 ```rust
