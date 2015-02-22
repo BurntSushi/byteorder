@@ -7,7 +7,7 @@ byte conversion methods for each type of number in Rust (sans numbers that have
 a platform dependent size like `usize` and `isize`). Two types, `BigEndian`
 and `LittleEndian` implement these methods. Finally, `ReadBytesExt` and
 `WriteBytesExt` provide convenience methods available to all types that
-implement `Reader` and `Writer`.
+implement `Read` and `Write`.
 
 **Future plans:** Currently, this crate works with `std::old_io` via the
 `ReaderBytesExt` and `WriterBytesExt` traits; however, you should prefer the
