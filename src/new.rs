@@ -30,6 +30,16 @@ impl error::FromError<io::Error> for Error {
     fn from_error(err: io::Error) -> Error { Error::Io(err) }
 }
 
+impl error::FromError<Error> for io::Error {
+    fn from_error(err: Error) -> io::Error {
+        match err {
+            Error::Io(err) => err,
+            Error::UnexpectedEOF => io::Error::new(io::ErrorKind::Other,
+                                                   "unexpected EOF", None)
+        }
+    }
+}
+
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
