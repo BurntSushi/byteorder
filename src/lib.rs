@@ -49,6 +49,7 @@ assert_eq!(wtr, vec![5, 2, 0, 3]);
 #![allow(unused_features)] // for `rand` while testing
 #![feature(core, io, test, old_io)]
 
+extern crate bswap;
 use std::mem::transmute;
 
 pub use new::{ReadBytesExt, WriteBytesExt, Error, Result};
@@ -218,116 +219,63 @@ pub trait ByteOrder : std::marker::MarkerTrait {
 /// type level.
 #[allow(missing_copy_implementations)] pub enum LittleEndian {}
 
-macro_rules! read_num_bytes {
-    ($ty:ty, $size:expr, $src:expr, $which:ident) => ({
-        use std::num::Int;
-        use std::ptr::copy_nonoverlapping_memory;
-
-        assert!($src.len() >= $size); // critical for memory safety!
-        let mut out = [0u8; $size];
-        let ptr_out = out.as_mut_ptr();
-        unsafe {
-            copy_nonoverlapping_memory(ptr_out, $src.as_ptr(), $size);
-            (*(ptr_out as *const $ty)).$which()
-        }
-    });
-    ($ty:ty, $size:expr, le $bytes:expr, $src:expr, $which:ident) => ({
-        use std::num::Int;
-        use std::ptr::copy_nonoverlapping_memory;
-
-        assert!($bytes > 0 && $bytes < 9 && $bytes <= $src.len());
-        let mut out = [0u8; $size];
-        let ptr_out = out.as_mut_ptr();
-        unsafe {
-            copy_nonoverlapping_memory(ptr_out, $src.as_ptr(), $bytes);
-            (*(ptr_out as *const $ty)).$which()
-        }
-    });
-    ($ty:ty, $size:expr, be $bytes:expr, $src:expr, $which:ident) => ({
-        use std::num::Int;
-        use std::ptr::copy_nonoverlapping_memory;
-
-        assert!($bytes > 0 && $bytes < 9 && $bytes <= $src.len());
-        let mut out = [0u8; $size];
-        let ptr_out = out.as_mut_ptr();
-        unsafe {
-            copy_nonoverlapping_memory(ptr_out.offset((8 - $bytes) as isize),
-                                       $src.as_ptr(), $bytes);
-            (*(ptr_out as *const $ty)).$which()
-        }
-    });
-}
-
-macro_rules! write_num_bytes {
-    ($ty:ty, $size:expr, $n:expr, $dst:expr, $which:ident) => ({
-        use std::num::Int;
-        use std::ptr::copy_nonoverlapping_memory;
-
-        assert!($dst.len() >= $size); // critical for memory safety!
-        unsafe {
-            let bytes = (&transmute::<_, [u8; $size]>($n.$which())).as_ptr();
-            copy_nonoverlapping_memory($dst.as_mut_ptr(), bytes, $size);
-        }
-    });
-}
-
 impl ByteOrder for BigEndian {
     fn read_u16(buf: &[u8]) -> u16 {
-        read_num_bytes!(u16, 2, buf, to_be)
+        bswap::beu16::decode(buf)
     }
 
     fn read_u32(buf: &[u8]) -> u32 {
-        read_num_bytes!(u32, 4, buf, to_be)
+        bswap::beu32::decode(buf)
     }
 
     fn read_u64(buf: &[u8]) -> u64 {
-        read_num_bytes!(u64, 8, buf, to_be)
+        bswap::beu64::decode(buf)
     }
 
     fn read_uint(buf: &[u8], nbytes: usize) -> u64 {
-        read_num_bytes!(u64, 8, be nbytes, buf, to_be)
+        bswap::beusize::decode(buf, nbytes)
     }
 
     fn write_u16(buf: &mut [u8], n: u16) {
-        write_num_bytes!(u16, 2, n, buf, to_be);
+        bswap::beu16::encode(buf, n);
     }
 
     fn write_u32(buf: &mut [u8], n: u32) {
-        write_num_bytes!(u32, 4, n, buf, to_be);
+        bswap::beu32::encode(buf, n);
     }
 
     fn write_u64(buf: &mut [u8], n: u64) {
-        write_num_bytes!(u64, 8, n, buf, to_be);
+        bswap::beu64::encode(buf, n);
     }
 }
 
 impl ByteOrder for LittleEndian {
     fn read_u16(buf: &[u8]) -> u16 {
-        read_num_bytes!(u16, 2, buf, to_le)
+        bswap::leu16::decode(buf)
     }
 
     fn read_u32(buf: &[u8]) -> u32 {
-        read_num_bytes!(u32, 4, buf, to_le)
+        bswap::leu32::decode(buf)
     }
 
     fn read_u64(buf: &[u8]) -> u64 {
-        read_num_bytes!(u64, 8, buf, to_le)
+        bswap::leu64::decode(buf)
     }
 
     fn read_uint(buf: &[u8], nbytes: usize) -> u64 {
-        read_num_bytes!(u64, 8, le nbytes, buf, to_le)
+        bswap::leusize::decode(buf, nbytes)
     }
 
     fn write_u16(buf: &mut [u8], n: u16) {
-        write_num_bytes!(u16, 2, n, buf, to_le);
+        bswap::leu16::encode(buf, n);
     }
 
     fn write_u32(buf: &mut [u8], n: u32) {
-        write_num_bytes!(u32, 4, n, buf, to_le);
+        bswap::leu32::encode(buf, n);
     }
 
     fn write_u64(buf: &mut [u8], n: u64) {
-        write_num_bytes!(u64, 8, n, buf, to_le);
+        bswap::leu64::encode(buf, n);
     }
 }
 
