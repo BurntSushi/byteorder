@@ -265,8 +265,9 @@ macro_rules! write_num_bytes {
 
         assert!($dst.len() >= $size); // critical for memory safety!
         unsafe {
-            let bytes = (&transmute::<_, [u8; $size]>($n.$which())).as_ptr();
-            copy_nonoverlapping_memory($dst.as_mut_ptr(), bytes, $size);
+            // n.b. https://github.com/rust-lang/rust/issues/22776
+            let bytes = transmute::<_, [u8; $size]>($n.$which());
+            copy_nonoverlapping_memory($dst.as_mut_ptr(), (&bytes).as_ptr(), $size);
         }
     });
 }
