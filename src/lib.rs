@@ -50,6 +50,8 @@ assert_eq!(wtr, vec![5, 2, 0, 3]);
 #![feature(core, io, test, old_io)]
 
 use std::mem::transmute;
+use std::num::Int;
+use std::ptr::copy_nonoverlapping;
 
 pub use new::{ReadBytesExt, WriteBytesExt, Error, Result};
 pub use old::{ReaderBytesExt, WriterBytesExt};
@@ -220,38 +222,29 @@ pub trait ByteOrder : std::marker::MarkerTrait {
 
 macro_rules! read_num_bytes {
     ($ty:ty, $size:expr, $src:expr, $which:ident) => ({
-        use std::num::Int;
-        use std::ptr::copy_nonoverlapping_memory;
-
         assert!($src.len() >= $size); // critical for memory safety!
         let mut out = [0u8; $size];
         let ptr_out = out.as_mut_ptr();
         unsafe {
-            copy_nonoverlapping_memory(ptr_out, $src.as_ptr(), $size);
+            copy_nonoverlapping(ptr_out, $src.as_ptr(), $size);
             (*(ptr_out as *const $ty)).$which()
         }
     });
     ($ty:ty, $size:expr, le $bytes:expr, $src:expr, $which:ident) => ({
-        use std::num::Int;
-        use std::ptr::copy_nonoverlapping_memory;
-
         assert!($bytes > 0 && $bytes < 9 && $bytes <= $src.len());
         let mut out = [0u8; $size];
         let ptr_out = out.as_mut_ptr();
         unsafe {
-            copy_nonoverlapping_memory(ptr_out, $src.as_ptr(), $bytes);
+            copy_nonoverlapping(ptr_out, $src.as_ptr(), $bytes);
             (*(ptr_out as *const $ty)).$which()
         }
     });
     ($ty:ty, $size:expr, be $bytes:expr, $src:expr, $which:ident) => ({
-        use std::num::Int;
-        use std::ptr::copy_nonoverlapping_memory;
-
         assert!($bytes > 0 && $bytes < 9 && $bytes <= $src.len());
         let mut out = [0u8; $size];
         let ptr_out = out.as_mut_ptr();
         unsafe {
-            copy_nonoverlapping_memory(ptr_out.offset((8 - $bytes) as isize),
+            copy_nonoverlapping(ptr_out.offset((8 - $bytes) as isize),
                                        $src.as_ptr(), $bytes);
             (*(ptr_out as *const $ty)).$which()
         }
@@ -260,13 +253,10 @@ macro_rules! read_num_bytes {
 
 macro_rules! write_num_bytes {
     ($ty:ty, $size:expr, $n:expr, $dst:expr, $which:ident) => ({
-        use std::num::Int;
-        use std::ptr::copy_nonoverlapping_memory;
-
         assert!($dst.len() >= $size); // critical for memory safety!
         unsafe {
             let bytes = (&transmute::<_, [u8; $size]>($n.$which())).as_ptr();
-            copy_nonoverlapping_memory($dst.as_mut_ptr(), bytes, $size);
+            copy_nonoverlapping($dst.as_mut_ptr(), bytes, $size);
         }
     });
 }
