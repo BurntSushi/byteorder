@@ -149,15 +149,15 @@ pub trait ReadBytesExt: io::Read + Sized {
     /// Reads an unsigned n-bytes integer from the underlying reader.
     fn read_uint<T: ByteOrder>(&mut self, nbytes: usize) -> Result<u64> {
         let mut buf = [0; 8];
-        try!(read_full(self, &mut buf[0..nbytes]));
-        Ok(<T as ByteOrder>::read_uint(&buf, nbytes))
+        try!(read_full(self, &mut buf[..nbytes]));
+        Ok(<T as ByteOrder>::read_uint(&buf[..nbytes], nbytes))
     }
 
     /// Reads a signed n-bytes integer from the underlying reader.
     fn read_int<T: ByteOrder>(&mut self, nbytes: usize) -> Result<i64> {
         let mut buf = [0; 8];
-        try!(read_full(self, &mut buf[0..nbytes]));
-        Ok(<T as ByteOrder>::read_int(&buf, nbytes))
+        try!(read_full(self, &mut buf[..nbytes]));
+        Ok(<T as ByteOrder>::read_int(&buf[..nbytes], nbytes))
     }
 
     /// Reads a IEEE754 single-precision (4 bytes) floating point number from

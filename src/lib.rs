@@ -320,7 +320,7 @@ mod test {
                     fn prop(n: $ty_int) -> bool {
                         let mut buf = [0; 8];
                         <LittleEndian as ByteOrder>::$write(&mut buf, n);
-                        n == <LittleEndian as ByteOrder>::$read(&mut buf, $bytes)
+                        n == <LittleEndian as ByteOrder>::$read(&mut buf[..$bytes], $bytes)
                     }
                     qc_sized(prop as fn($ty_int) -> bool, max as u64 - 1);
                 }
@@ -330,15 +330,17 @@ mod test {
          $read:ident, $write:ident) => (
             mod $name {
                 use std::$ty_int;
+                use std::mem::size_of;
                 use {BigEndian, ByteOrder, LittleEndian};
                 use super::qc_sized;
 
                 #[test]
                 fn big_endian() {
                     fn prop(n: $ty_int) -> bool {
+                        let bytes = size_of::<$ty_int>();
                         let mut buf = [0; 8];
-                        <BigEndian as ByteOrder>::$write(&mut buf, n);
-                        n == <BigEndian as ByteOrder>::$read(&mut buf)
+                        <BigEndian as ByteOrder>::$write(&mut buf[8 - bytes..], n);
+                        n == <BigEndian as ByteOrder>::$read(&mut buf[8 - bytes..])
                     }
                     qc_sized(prop as fn($ty_int) -> bool,
                              $ty_int::$max as u64 - 1);
@@ -347,9 +349,10 @@ mod test {
                 #[test]
                 fn little_endian() {
                     fn prop(n: $ty_int) -> bool {
+                        let bytes = size_of::<$ty_int>();
                         let mut buf = [0; 8];
-                        <LittleEndian as ByteOrder>::$write(&mut buf, n);
-                        n == <LittleEndian as ByteOrder>::$read(&mut buf)
+                        <LittleEndian as ByteOrder>::$write(&mut buf[..bytes], n);
+                        n == <LittleEndian as ByteOrder>::$read(&mut buf[..bytes])
                     }
                     qc_sized(prop as fn($ty_int) -> bool,
                              $ty_int::$max as u64 - 1);
@@ -401,7 +404,7 @@ mod test {
                         let mut wtr = vec![];
                         wtr.$write::<BigEndian>(n).unwrap();
                         let mut rdr = Vec::new();
-                        rdr.push_all(&wtr[8-$bytes..]);
+                        rdr.push_all(&wtr[8 - $bytes..]);
                         let mut rdr = Cursor::new(rdr);
                         n == rdr.$read::<BigEndian>($bytes).unwrap()
                     }
