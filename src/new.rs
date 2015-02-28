@@ -83,7 +83,7 @@ impl error::Error for Error {
 /// assert_eq!(517, rdr.read_u16::<BigEndian>().unwrap());
 /// assert_eq!(768, rdr.read_u16::<BigEndian>().unwrap());
 /// ```
-pub trait ReadBytesExt: io::Read + Sized {
+pub trait ReadBytesExt: io::Read {
     /// Reads an unsigned 8 bit integer from the underlying reader.
     ///
     /// Note that since this reads a single byte, no byte order conversions
@@ -181,7 +181,7 @@ pub trait ReadBytesExt: io::Read + Sized {
 /// for free.
 impl<R: io::Read> ReadBytesExt for R {}
 
-fn read_full<R: io::Read>(rdr: &mut R, buf: &mut [u8]) -> Result<()> {
+fn read_full<R: io::Read + ?Sized>(rdr: &mut R, buf: &mut [u8]) -> Result<()> {
     let mut nread = 0usize;
     while nread < buf.len() {
         match try!(rdr.read(&mut buf[nread..])) {
@@ -192,7 +192,7 @@ fn read_full<R: io::Read>(rdr: &mut R, buf: &mut [u8]) -> Result<()> {
     Ok(())
 }
 
-fn write_all<W: io::Write>(wtr: &mut W, buf: &[u8]) -> Result<()> {
+fn write_all<W: io::Write + ?Sized>(wtr: &mut W, buf: &[u8]) -> Result<()> {
     wtr.write_all(buf).map_err(error::FromError::from_error)
 }
 
@@ -214,7 +214,7 @@ fn write_all<W: io::Write>(wtr: &mut W, buf: &[u8]) -> Result<()> {
 /// wtr.write_u16::<BigEndian>(768).unwrap();
 /// assert_eq!(wtr, vec![2, 5, 3, 0]);
 /// ```
-pub trait WriteBytesExt: io::Write + Sized {
+pub trait WriteBytesExt: io::Write {
     /// Writes an unsigned 8 bit integer to the underlying writer.
     ///
     /// Note that since this writes a single byte, no byte order conversions
