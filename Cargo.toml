@@ -13,8 +13,8 @@ license = "Unlicense"
 [lib]
 name = "byteorder"
 
-[dependencies.bswap]
-git = "https://github.com/andydude/rust-bswap"
+[dependencies]
+bswap = "*"
 
 [dev-dependencies]
 quickcheck = "*"
