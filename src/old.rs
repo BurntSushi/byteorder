@@ -20,7 +20,7 @@ use ByteOrder;
 /// assert_eq!(517, rdr.read_u16::<BigEndian>().unwrap());
 /// assert_eq!(768, rdr.read_u16::<BigEndian>().unwrap());
 /// ```
-pub trait ReaderBytesExt: Reader + Sized {
+pub trait ReaderBytesExt: Reader {
     /// Reads an unsigned 8 bit integer from the underlying reader.
     ///
     /// Note that since this reads a single byte, no byte order conversions
@@ -118,7 +118,7 @@ pub trait ReaderBytesExt: Reader + Sized {
 /// for free.
 impl<R: Reader> ReaderBytesExt for R {}
 
-fn read_full<R: Reader>(rdr: &mut R, buf: &mut [u8]) -> IoResult<()> {
+fn read_full<R: Reader + ?Sized>(rdr: &mut R, buf: &mut [u8]) -> IoResult<()> {
     let mut n = 0usize;
     while n < buf.len() {
         n += try!(rdr.read(&mut buf[n..]));
@@ -144,7 +144,7 @@ fn read_full<R: Reader>(rdr: &mut R, buf: &mut [u8]) -> IoResult<()> {
 /// wtr.write_u16::<BigEndian>(768).unwrap();
 /// assert_eq!(wtr, vec![2, 5, 3, 0]);
 /// ```
-pub trait WriterBytesExt: Writer + Sized {
+pub trait WriterBytesExt: Writer {
     /// Writes an unsigned 8 bit integer to the underlying writer.
     ///
     /// Note that since this writes a single byte, no byte order conversions
