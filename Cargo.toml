@@ -16,6 +16,9 @@ name = "byteorder"
 [profile.test]
 debug = false
 
+[dependencies]
+bswap = "*"
+
 [dev-dependencies]
 quickcheck = "*"
 rand = "*"
