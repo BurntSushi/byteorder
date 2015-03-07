@@ -184,9 +184,11 @@ impl<R: io::Read> ReadBytesExt for R {}
 fn read_full<R: io::Read + ?Sized>(rdr: &mut R, buf: &mut [u8]) -> Result<()> {
     let mut nread = 0usize;
     while nread < buf.len() {
-        match try!(rdr.read(&mut buf[nread..])) {
-            0 => return Err(Error::UnexpectedEOF),
-            n => nread += n,
+        match rdr.read(&mut buf[nread..]) {
+            Ok(0) => return Err(Error::UnexpectedEOF),
+            Ok(n) => nread += n,
+            Err(ref e) if e.kind() == io::ErrorKind::Interrupted => {},
+            Err(e) => return Err(error::FromError::from_error(e))
         }
     }
     Ok(())
