@@ -404,7 +404,7 @@ mod test {
                         let mut wtr = vec![];
                         wtr.$write::<BigEndian>(n).unwrap();
                         let mut rdr = Vec::new();
-                        rdr.push_all(&wtr[8 - $bytes..]);
+                        rdr.extend(wtr[8 - $bytes..].iter().map(|&x|x));
                         let mut rdr = Cursor::new(rdr);
                         n == rdr.$read::<BigEndian>($bytes).unwrap()
                     }
