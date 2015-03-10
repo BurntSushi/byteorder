@@ -111,7 +111,8 @@ pub trait ByteOrder : std::marker::MarkerTrait {
 
     /// Reads an unsigned n-bytes integer from `buf`.
     ///
-    /// Task failure occurs when `nbytes < 1` or `nbytes > 8` or `buf.len() < nbytes`
+    /// Task failure occurs when `nbytes < 1` or `nbytes > 8` or
+    /// `buf.len() < nbytes`
     fn read_uint(buf: &[u8], nbytes: usize) -> u64;
 
     /// Writes an unsigned 16 bit integer `n` to `buf`.
@@ -152,7 +153,8 @@ pub trait ByteOrder : std::marker::MarkerTrait {
 
     /// Reads a signed n-bytes integer from `buf`.
     ///
-    /// Task failure occurs when `nbytes < 1` or `nbytes > 8` or `buf.len() < nbytes`
+    /// Task failure occurs when `nbytes < 1` or `nbytes > 8` or
+    /// `buf.len() < nbytes`
     fn read_int(buf: &[u8], nbytes: usize) -> i64 {
         extend_sign(<Self as ByteOrder>::read_uint(buf, nbytes), nbytes)
     }
@@ -309,7 +311,8 @@ mod test {
                     fn prop(n: $ty_int) -> bool {
                         let mut buf = [0; 8];
                         <BigEndian as ByteOrder>::$write(&mut buf, n);
-                        n == <BigEndian as ByteOrder>::$read(&mut buf[8 - $bytes..], $bytes)
+                        n == <BigEndian as ByteOrder>::$read(
+                            &mut buf[8 - $bytes..], $bytes)
                     }
                     qc_sized(prop as fn($ty_int) -> bool, max as u64 - 1);
                 }
@@ -320,7 +323,8 @@ mod test {
                     fn prop(n: $ty_int) -> bool {
                         let mut buf = [0; 8];
                         <LittleEndian as ByteOrder>::$write(&mut buf, n);
-                        n == <LittleEndian as ByteOrder>::$read(&mut buf[..$bytes], $bytes)
+                        n == <LittleEndian as ByteOrder>::$read(
+                            &mut buf[..$bytes], $bytes)
                     }
                     qc_sized(prop as fn($ty_int) -> bool, max as u64 - 1);
                 }
@@ -339,8 +343,10 @@ mod test {
                     fn prop(n: $ty_int) -> bool {
                         let bytes = size_of::<$ty_int>();
                         let mut buf = [0; 8];
-                        <BigEndian as ByteOrder>::$write(&mut buf[8 - bytes..], n);
-                        n == <BigEndian as ByteOrder>::$read(&mut buf[8 - bytes..])
+                        <BigEndian as ByteOrder>::$write(
+                            &mut buf[8 - bytes..], n);
+                        n == <BigEndian as ByteOrder>::$read(
+                            &mut buf[8 - bytes..])
                     }
                     qc_sized(prop as fn($ty_int) -> bool,
                              $ty_int::$max as u64 - 1);
@@ -351,8 +357,10 @@ mod test {
                     fn prop(n: $ty_int) -> bool {
                         let bytes = size_of::<$ty_int>();
                         let mut buf = [0; 8];
-                        <LittleEndian as ByteOrder>::$write(&mut buf[..bytes], n);
-                        n == <LittleEndian as ByteOrder>::$read(&mut buf[..bytes])
+                        <LittleEndian as ByteOrder>::$write(
+                            &mut buf[..bytes], n);
+                        n == <LittleEndian as ByteOrder>::$read(
+                            &mut buf[..bytes])
                     }
                     qc_sized(prop as fn($ty_int) -> bool,
                              $ty_int::$max as u64 - 1);
@@ -498,28 +506,28 @@ mod test {
                 use {BigEndian, ByteOrder, LittleEndian};
 
                 #[test]
-                #[should_fail]
+                #[should_panic]
                 fn read_big_endian() {
                     let buf = [0; $maximally_small];
                     <BigEndian as ByteOrder>::$read(&buf);
                 }
 
                 #[test]
-                #[should_fail]
+                #[should_panic]
                 fn read_little_endian() {
                     let buf = [0; $maximally_small];
                     <LittleEndian as ByteOrder>::$read(&buf);
                 }
 
                 #[test]
-                #[should_fail]
+                #[should_panic]
                 fn write_big_endian() {
                     let mut buf = [0; $maximally_small];
                     <BigEndian as ByteOrder>::$write(&mut buf, $zero);
                 }
 
                 #[test]
-                #[should_fail]
+                #[should_panic]
                 fn write_little_endian() {
                     let mut buf = [0; $maximally_small];
                     <LittleEndian as ByteOrder>::$write(&mut buf, $zero);
@@ -531,17 +539,19 @@ mod test {
                 use {BigEndian, ByteOrder, LittleEndian};
 
                 #[test]
-                #[should_fail]
+                #[should_panic]
                 fn read_big_endian() {
                     let buf = [0; $maximally_small];
-                    <BigEndian as ByteOrder>::$read(&buf, $maximally_small + 1);
+                    <BigEndian as ByteOrder>::$read(&buf,
+                                                    $maximally_small + 1);
                 }
 
                 #[test]
-                #[should_fail]
+                #[should_panic]
                 fn read_little_endian() {
                     let buf = [0; $maximally_small];
-                    <LittleEndian as ByteOrder>::$read(&buf, $maximally_small + 1);
+                    <LittleEndian as ByteOrder>::$read(&buf,
+                                                       $maximally_small + 1);
                 }
             }
         );
@@ -591,7 +601,8 @@ mod bench {
                     let buf = $data;
                     b.iter(|| {
                         for _ in 0..NITER {
-                            bb(<BigEndian as ByteOrder>::$read(&buf, $bytes));
+                            bb(<BigEndian as ByteOrder>::$read(&buf,
+                                                               $bytes));
                         }
                     });
                 }
@@ -601,7 +612,8 @@ mod bench {
                     let buf = $data;
                     b.iter(|| {
                         for _ in 0..NITER {
-                            bb(<LittleEndian as ByteOrder>::$read(&buf, $bytes));
+                            bb(<LittleEndian as ByteOrder>::$read(&buf,
+                                                                  $bytes));
                         }
                     });
                 }
