@@ -9,11 +9,6 @@ and `LittleEndian` implement these methods. Finally, `ReadBytesExt` and
 `WriteBytesExt` provide convenience methods available to all types that
 implement `Read` and `Write`.
 
-**Future plans:** Currently, this crate works with `std::old_io` via the
-`ReaderBytesExt` and `WriterBytesExt` traits; however, you should prefer the
-`ReadBytesExt` and `WriteBytesExt` traits, which work with the new `std::io`
-module. I will keep the `std::old_io` traits here for as long as reasonable.
-
 # Examples
 
 Read unsigned 16 bit big-endian integers from a `Read` type:
@@ -46,17 +41,15 @@ assert_eq!(wtr, vec![5, 2, 0, 3]);
 
 #![deny(missing_docs)]
 
-#![allow(unused_features)] // for `rand` while testing
-#![feature(core, io, test, old_io)]
+#![feature(core, io)]
+#![cfg_attr(test, feature(test))]
 
 extern crate bswap;
 use std::mem::transmute;
 
 pub use new::{ReadBytesExt, WriteBytesExt, Error, Result};
-pub use old::{ReaderBytesExt, WriterBytesExt};
 
 mod new;
-mod old;
 
 fn extend_sign(val: u64, nbytes: usize) -> i64 {
     let shift  = (8 - nbytes) * 8;

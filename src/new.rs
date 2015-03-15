@@ -53,7 +53,7 @@ impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
             Error::UnexpectedEOF => "Unexpected end of file.",
-            Error::Io(ref err) => err.description(),
+            Error::Io(ref err) => error::Error::description(err),
         }
     }
 
