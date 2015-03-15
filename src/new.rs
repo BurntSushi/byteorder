@@ -179,7 +179,7 @@ pub trait ReadBytesExt: io::Read {
 
 /// All types that implement `Read` get methods defined in `ReadBytesExt`
 /// for free.
-impl<R: io::Read> ReadBytesExt for R {}
+impl<R: io::Read + ?Sized> ReadBytesExt for R {}
 
 fn read_full<R: io::Read + ?Sized>(rdr: &mut R, buf: &mut [u8]) -> Result<()> {
     let mut nread = 0usize;
@@ -294,4 +294,4 @@ pub trait WriteBytesExt: io::Write {
 
 /// All types that implement `Write` get methods defined in `WriteBytesExt`
 /// for free.
-impl<W: io::Write> WriteBytesExt for W {}
+impl<W: io::Write + ?Sized> WriteBytesExt for W {}
