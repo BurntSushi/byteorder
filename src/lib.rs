@@ -214,6 +214,20 @@ pub trait ByteOrder : std::marker::MarkerTrait {
 /// type level.
 #[allow(missing_copy_implementations)] pub enum LittleEndian {}
 
+/// Defines system native-endian serialization.
+///
+/// Note that this type has no value constructor. It is used purely at the
+/// type level.
+#[cfg(target_endian = "little")]
+pub type NativeEndian = LittleEndian;
+
+/// Defines system native-endian serialization.
+///
+/// Note that this type has no value constructor. It is used purely at the
+/// type level.
+#[cfg(target_endian = "big")]
+pub type NativeEndian = BigEndian;
+
 impl ByteOrder for BigEndian {
     fn read_u16(buf: &[u8]) -> u16 {
         bswap::beu16::decode(buf)
@@ -295,7 +309,7 @@ mod test {
          $bytes:expr, $read:ident, $write:ident) => (
             mod $name {
                 use std::$ty_int;
-                use {BigEndian, ByteOrder, LittleEndian};
+                use {BigEndian, ByteOrder, NativeEndian, LittleEndian};
                 use super::qc_sized;
 
                 #[test]
@@ -321,6 +335,18 @@ mod test {
                     }
                     qc_sized(prop as fn($ty_int) -> bool, max as u64 - 1);
                 }
+
+                #[test]
+                fn native_endian() {
+                    let max = $ty_int::$max as u64 - 1 >> (8 * (8 - $bytes));
+                    fn prop(n: $ty_int) -> bool {
+                        let mut buf = [0; 8];
+                        <NativeEndian as ByteOrder>::$write(&mut buf, n);
+                        n == <NativeEndian as ByteOrder>::$read(
+                            &mut buf[..$bytes], $bytes)
+                    }
+                    qc_sized(prop as fn($ty_int) -> bool, max as u64 - 1);
+                }
             }
         );
         ($name:ident, $ty_int:ident, $max:ident,
@@ -328,7 +354,7 @@ mod test {
             mod $name {
                 use std::$ty_int;
                 use std::mem::size_of;
-                use {BigEndian, ByteOrder, LittleEndian};
+                use {BigEndian, ByteOrder, NativeEndian, LittleEndian};
                 use super::qc_sized;
 
                 #[test]
@@ -353,6 +379,20 @@ mod test {
                         <LittleEndian as ByteOrder>::$write(
                             &mut buf[..bytes], n);
                         n == <LittleEndian as ByteOrder>::$read(
+                            &mut buf[..bytes])
+                    }
+                    qc_sized(prop as fn($ty_int) -> bool,
+                             $ty_int::$max as u64 - 1);
+                }
+
+                #[test]
+                fn native_endian() {
+                    fn prop(n: $ty_int) -> bool {
+                        let bytes = size_of::<$ty_int>();
+                        let mut buf = [0; 8];
+                        <NativeEndian as ByteOrder>::$write(
+                            &mut buf[..bytes], n);
+                        n == <NativeEndian as ByteOrder>::$read(
                             &mut buf[..bytes])
                     }
                     qc_sized(prop as fn($ty_int) -> bool,
@@ -395,7 +435,7 @@ mod test {
             mod $name {
                 use std::io::Cursor;
                 use std::$ty_int;
-                use {ReadBytesExt, WriteBytesExt, BigEndian, LittleEndian};
+                use {ReadBytesExt, WriteBytesExt, BigEndian, NativeEndian, LittleEndian};
                 use super::qc_sized;
 
                 #[test]
@@ -423,6 +463,18 @@ mod test {
                     }
                     qc_sized(prop as fn($ty_int) -> bool, max);
                 }
+
+                #[test]
+                fn native_endian() {
+                    let max = $ty_int::$max as u64 - 1 >> (8 * (8 - $bytes));
+                    fn prop(n: $ty_int) -> bool {
+                        let mut wtr = vec![];
+                        wtr.$write::<NativeEndian>(n).unwrap();
+                        let mut rdr = Cursor::new(wtr);
+                        n == rdr.$read::<NativeEndian>($bytes).unwrap()
+                    }
+                    qc_sized(prop as fn($ty_int) -> bool, max);
+                }
             }
         );
         ($name:ident, $ty_int:ident,
@@ -430,7 +482,7 @@ mod test {
             mod $name {
                 use std::io::Cursor;
                 use std::$ty_int;
-                use {ReadBytesExt, WriteBytesExt, BigEndian, LittleEndian};
+                use {ReadBytesExt, WriteBytesExt, BigEndian, NativeEndian, LittleEndian};
                 use super::qc_sized;
 
                 #[test]
@@ -452,6 +504,18 @@ mod test {
                         wtr.$write::<LittleEndian>(n).unwrap();
                         let mut rdr = Cursor::new(wtr);
                         n == rdr.$read::<LittleEndian>().unwrap()
+                    }
+                    qc_sized(prop as fn($ty_int) -> bool,
+                             $ty_int::$max as u64 - 1);
+                }
+
+                #[test]
+                fn native_endian() {
+                    fn prop(n: $ty_int) -> bool {
+                        let mut wtr = vec![];
+                        wtr.$write::<NativeEndian>(n).unwrap();
+                        let mut rdr = Cursor::new(wtr);
+                        n == rdr.$read::<NativeEndian>().unwrap()
                     }
                     qc_sized(prop as fn($ty_int) -> bool,
                              $ty_int::$max as u64 - 1);
@@ -496,7 +560,7 @@ mod test {
         ($name:ident, $maximally_small:expr, $zero:expr,
          $read:ident, $write:ident) => (
             mod $name {
-                use {BigEndian, ByteOrder, LittleEndian};
+                use {BigEndian, ByteOrder, NativeEndian, LittleEndian};
 
                 #[test]
                 #[should_panic]
@@ -514,6 +578,13 @@ mod test {
 
                 #[test]
                 #[should_panic]
+                fn read_native_endian() {
+                    let buf = [0; $maximally_small];
+                    <NativeEndian as ByteOrder>::$read(&buf);
+                }
+
+                #[test]
+                #[should_panic]
                 fn write_big_endian() {
                     let mut buf = [0; $maximally_small];
                     <BigEndian as ByteOrder>::$write(&mut buf, $zero);
@@ -525,11 +596,18 @@ mod test {
                     let mut buf = [0; $maximally_small];
                     <LittleEndian as ByteOrder>::$write(&mut buf, $zero);
                 }
+
+                #[test]
+                #[should_panic]
+                fn write_native_endian() {
+                    let mut buf = [0; $maximally_small];
+                    <NativeEndian as ByteOrder>::$write(&mut buf, $zero);
+                }
             }
         );
         ($name:ident, $maximally_small:expr, $read:ident) => (
             mod $name {
-                use {BigEndian, ByteOrder, LittleEndian};
+                use {BigEndian, ByteOrder, NativeEndian, LittleEndian};
 
                 #[test]
                 #[should_panic]
@@ -544,6 +622,14 @@ mod test {
                 fn read_little_endian() {
                     let buf = [0; $maximally_small];
                     <LittleEndian as ByteOrder>::$read(&buf,
+                                                       $maximally_small + 1);
+                }
+
+                #[test]
+                #[should_panic]
+                fn read_native_endian() {
+                    let buf = [0; $maximally_small];
+                    <NativeEndian as ByteOrder>::$read(&buf,
                                                        $maximally_small + 1);
                 }
             }
@@ -583,7 +669,7 @@ mod bench {
     macro_rules! bench_num {
         ($name:ident, $read:ident, $bytes:expr, $data:expr) => (
             mod $name {
-                use {ByteOrder, BigEndian, LittleEndian};
+                use {ByteOrder, BigEndian, NativeEndian, LittleEndian};
                 use super::test::Bencher;
                 use super::test::black_box as bb;
 
@@ -610,13 +696,24 @@ mod bench {
                         }
                     });
                 }
+
+                #[bench]
+                fn read_native_endian(b: &mut Bencher) {
+                    let buf = $data;
+                    b.iter(|| {
+                        for _ in 0..NITER {
+                            bb(<NativeEndian as ByteOrder>::$read(&buf,
+                                                                  $bytes));
+                        }
+                    });
+                }
             }
         );
         ($ty:ident, $max:ident,
          $read:ident, $write:ident, $size:expr, $data:expr) => (
             mod $ty {
                 use std::$ty;
-                use {ByteOrder, BigEndian, LittleEndian};
+                use {ByteOrder, BigEndian, NativeEndian, LittleEndian};
                 use super::test::Bencher;
                 use super::test::black_box as bb;
 
@@ -643,6 +740,16 @@ mod bench {
                 }
 
                 #[bench]
+                fn read_native_endian(b: &mut Bencher) {
+                    let buf = $data;
+                    b.iter(|| {
+                        for _ in 0..NITER {
+                            bb(<NativeEndian as ByteOrder>::$read(&buf));
+                        }
+                    });
+                }
+
+                #[bench]
                 fn write_big_endian(b: &mut Bencher) {
                     let mut buf = $data;
                     let n = $ty::$max;
@@ -660,6 +767,18 @@ mod bench {
                     b.iter(|| {
                         for _ in 0..NITER {
                             bb(<LittleEndian as ByteOrder>::$write(&mut buf,
+                                                                   n));
+                        }
+                    });
+                }
+
+                #[bench]
+                fn write_native_endian(b: &mut Bencher) {
+                    let mut buf = $data;
+                    let n = $ty::$max;
+                    b.iter(|| {
+                        for _ in 0..NITER {
+                            bb(<NativeEndian as ByteOrder>::$write(&mut buf,
                                                                    n));
                         }
                     });
