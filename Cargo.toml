@@ -13,9 +13,6 @@ license = "Unlicense"
 [lib]
 name = "byteorder"
 
-[dependencies]
-bswap = "*"
-
 [dev-dependencies]
 quickcheck = "*"
 rand = "*"
