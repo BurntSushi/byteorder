@@ -15,7 +15,7 @@ pub type Result<T> = result::Result<T, Error>;
 ///
 /// Note that this error is also used for the `write` methods to keep things
 /// consistent.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Debug)]
 pub enum Error {
     /// An unexpected EOF.
     ///
@@ -26,16 +26,16 @@ pub enum Error {
     Io(io::Error),
 }
 
-impl error::FromError<io::Error> for Error {
-    fn from_error(err: io::Error) -> Error { Error::Io(err) }
+impl From<io::Error> for Error {
+    fn from(err: io::Error) -> Error { Error::Io(err) }
 }
 
-impl error::FromError<Error> for io::Error {
-    fn from_error(err: Error) -> io::Error {
+impl From<Error> for io::Error {
+    fn from(err: Error) -> io::Error {
         match err {
             Error::Io(err) => err,
             Error::UnexpectedEOF => io::Error::new(io::ErrorKind::Other,
-                                                   "unexpected EOF", None)
+                                                   "unexpected EOF")
         }
     }
 }
@@ -188,14 +188,14 @@ fn read_full<R: io::Read + ?Sized>(rdr: &mut R, buf: &mut [u8]) -> Result<()> {
             Ok(0) => return Err(Error::UnexpectedEOF),
             Ok(n) => nread += n,
             Err(ref e) if e.kind() == io::ErrorKind::Interrupted => {},
-            Err(e) => return Err(error::FromError::from_error(e))
+            Err(e) => return Err(From::from(e))
         }
     }
     Ok(())
 }
 
 fn write_all<W: io::Write + ?Sized>(wtr: &mut W, buf: &[u8]) -> Result<()> {
-    wtr.write_all(buf).map_err(error::FromError::from_error)
+    wtr.write_all(buf).map_err(From::from)
 }
 
 /// Extends `Write` with methods for writing numbers. (For `std::io`.)

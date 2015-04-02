@@ -41,7 +41,6 @@ assert_eq!(wtr, vec![5, 2, 0, 3]);
 
 #![deny(missing_docs)]
 
-#![feature(io)]
 #![cfg_attr(test, feature(test))]
 
 use std::mem::transmute;
