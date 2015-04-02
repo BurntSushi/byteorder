@@ -15,7 +15,7 @@ pub type Result<T> = result::Result<T, Error>;
 ///
 /// Note that this error is also used for the `write` methods to keep things
 /// consistent.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Debug)]
 pub enum Error {
     /// An unexpected EOF.
     ///
@@ -35,7 +35,7 @@ impl From<Error> for io::Error {
         match err {
             Error::Io(err) => err,
             Error::UnexpectedEOF => io::Error::new(io::ErrorKind::Other,
-                                                   "unexpected EOF", None)
+                                                   "unexpected EOF")
         }
     }
 }
