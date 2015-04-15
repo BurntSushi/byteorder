@@ -33,7 +33,7 @@ extension methods like so:
 ```rust
 extern crate byteorder;
 
-use byteorder::{ReaderBytesExt, WriterBytesExt, BigEndian, LittleEndian};
+use byteorder::{ReadBytesExt, WriteBytesExt, BigEndian, LittleEndian};
 ```
 
 Or use the `ReadBytesExt`/`WriteBytesExt` traits if you're using the new
@@ -43,7 +43,7 @@ For example:
 
 ```rust
 use std::old_io::MemReader;
-use byteorder::{BigEndian, ReaderBytesExt};
+use byteorder::{BigEndian, ReadBytesExt};
 
 let mut rdr = MemReader::new(vec![2, 5, 3, 0]);
 // Note that we use type parameters to indicate which kind of byte order
