@@ -6,7 +6,7 @@ methods defined on the standard library `Reader` and `Writer` traits.
 
 [![Build status](https://api.travis-ci.org/BurntSushi/byteorder.png)](https://travis-ci.org/BurntSushi/byteorder)
 
-Licensed under the [UNLICENSE](http://unlicense.org).
+Dual-licensed under MIT or the [UNLICENSE](http://unlicense.org).
 
 
 ### Documentation
