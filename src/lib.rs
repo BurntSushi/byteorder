@@ -84,7 +84,7 @@ fn extend_sign(val: u64, nbytes: usize) -> i64 {
 /// <BigEndian as ByteOrder>::write_i16(&mut buf, -50_000);
 /// assert_eq!(-50_000, <BigEndian as ByteOrder>::read_i16(&buf));
 /// ```
-pub trait ByteOrder : std::marker::MarkerTrait {
+pub trait ByteOrder {
     /// Reads an unsigned 16 bit integer from `buf`.
     ///
     /// Task failure occurs when `buf.len() < 2`.
@@ -269,8 +269,9 @@ macro_rules! write_num_bytes {
 
         assert!($dst.len() >= $size); // critical for memory safety!
         unsafe {
-            let bytes = (&transmute::<_, [u8; $size]>($n.$which())).as_ptr();
-            copy_nonoverlapping(bytes, $dst.as_mut_ptr(), $size);
+            // N.B. https://github.com/rust-lang/rust/issues/22776
+            let bytes = transmute::<_, [u8; $size]>($n.$which());
+            copy_nonoverlapping((&bytes).as_ptr(), $dst.as_mut_ptr(), $size);
         }
     });
 }
