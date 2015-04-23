@@ -226,6 +226,12 @@ pub type NativeEndian = LittleEndian;
 #[cfg(target_endian = "big")]
 pub type NativeEndian = BigEndian;
 
+/// Defines network-endian serialization.
+///
+/// Note that this type has no value constructor. It is used purely at the
+/// type level.
+pub type NetworkEndian = BigEndian;
+
 macro_rules! read_num_bytes {
     ($ty:ty, $size:expr, $src:expr, $which:ident) => ({
         use std::ptr::copy_nonoverlapping;
