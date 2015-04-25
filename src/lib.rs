@@ -58,7 +58,7 @@ fn extend_sign(val: u64, nbytes: usize) -> i64 {
 ///
 /// Note that `Self` does not appear anywhere in this trait's definition!
 /// Therefore, in order to use it, you'll need to use syntax like
-/// `<T as ByteOrder>::read_u16(&[0, 1])` where `T` implements `ByteOrder`.
+/// `T::read_u16(&[0, 1])` where `T` implements `ByteOrder`.
 ///
 /// This crate provides two types that implement `ByteOrder`: `BigEndian`
 /// and `LittleEndian`.
@@ -71,8 +71,8 @@ fn extend_sign(val: u64, nbytes: usize) -> i64 {
 /// use byteorder::{ByteOrder, LittleEndian};
 ///
 /// let mut buf = [0; 4];
-/// <LittleEndian as ByteOrder>::write_u32(&mut buf, 1_000_000);
-/// assert_eq!(1_000_000, <LittleEndian as ByteOrder>::read_u32(&buf));
+/// LittleEndian::write_u32(&mut buf, 1_000_000);
+/// assert_eq!(1_000_000, LittleEndian::read_u32(&buf));
 /// ```
 ///
 /// Write and read `i16` numbers in big endian order:
@@ -81,8 +81,8 @@ fn extend_sign(val: u64, nbytes: usize) -> i64 {
 /// use byteorder::{ByteOrder, BigEndian};
 ///
 /// let mut buf = [0; 2];
-/// <BigEndian as ByteOrder>::write_i16(&mut buf, -50_000);
-/// assert_eq!(-50_000, <BigEndian as ByteOrder>::read_i16(&buf));
+/// BigEndian::write_i16(&mut buf, -50_000);
+/// assert_eq!(-50_000, BigEndian::read_i16(&buf));
 /// ```
 pub trait ByteOrder {
     /// Reads an unsigned 16 bit integer from `buf`.
@@ -125,21 +125,21 @@ pub trait ByteOrder {
     ///
     /// Task failure occurs when `buf.len() < 2`.
     fn read_i16(buf: &[u8]) -> i16 {
-        <Self as ByteOrder>::read_u16(buf) as i16
+        Self::read_u16(buf) as i16
     }
 
     /// Reads a signed 32 bit integer from `buf`.
     ///
     /// Task failure occurs when `buf.len() < 4`.
     fn read_i32(buf: &[u8]) -> i32 {
-        <Self as ByteOrder>::read_u32(buf) as i32
+        Self::read_u32(buf) as i32
     }
 
     /// Reads a signed 64 bit integer from `buf`.
     ///
     /// Task failure occurs when `buf.len() < 8`.
     fn read_i64(buf: &[u8]) -> i64 {
-        <Self as ByteOrder>::read_u64(buf) as i64
+        Self::read_u64(buf) as i64
     }
 
     /// Reads a signed n-bytes integer from `buf`.
@@ -147,56 +147,56 @@ pub trait ByteOrder {
     /// Task failure occurs when `nbytes < 1` or `nbytes > 8` or
     /// `buf.len() < nbytes`
     fn read_int(buf: &[u8], nbytes: usize) -> i64 {
-        extend_sign(<Self as ByteOrder>::read_uint(buf, nbytes), nbytes)
+        extend_sign(Self::read_uint(buf, nbytes), nbytes)
     }
 
     /// Reads a IEEE754 single-precision (4 bytes) floating point number.
     ///
     /// Task failure occurs when `buf.len() < 4`.
     fn read_f32(buf: &[u8]) -> f32 {
-        unsafe { transmute(<Self as ByteOrder>::read_u32(buf)) }
+        unsafe { transmute(Self::read_u32(buf)) }
     }
 
     /// Reads a IEEE754 double-precision (8 bytes) floating point number.
     ///
     /// Task failure occurs when `buf.len() < 8`.
     fn read_f64(buf: &[u8]) -> f64 {
-        unsafe { transmute(<Self as ByteOrder>::read_u64(buf)) }
+        unsafe { transmute(Self::read_u64(buf)) }
     }
 
     /// Writes a signed 16 bit integer `n` to `buf`.
     ///
     /// Task failure occurs when `buf.len() < 2`.
     fn write_i16(buf: &mut [u8], n: i16) {
-        <Self as ByteOrder>::write_u16(buf, n as u16)
+        Self::write_u16(buf, n as u16)
     }
 
     /// Writes a signed 32 bit integer `n` to `buf`.
     ///
     /// Task failure occurs when `buf.len() < 4`.
     fn write_i32(buf: &mut [u8], n: i32) {
-        <Self as ByteOrder>::write_u32(buf, n as u32)
+        Self::write_u32(buf, n as u32)
     }
 
     /// Writes a signed 64 bit integer `n` to `buf`.
     ///
     /// Task failure occurs when `buf.len() < 8`.
     fn write_i64(buf: &mut [u8], n: i64) {
-        <Self as ByteOrder>::write_u64(buf, n as u64)
+        Self::write_u64(buf, n as u64)
     }
 
     /// Writes a IEEE754 single-precision (4 bytes) floating point number.
     ///
     /// Task failure occurs when `buf.len() < 4`.
     fn write_f32(buf: &mut [u8], n: f32) {
-        <Self as ByteOrder>::write_u32(buf, unsafe { transmute(n) })
+        Self::write_u32(buf, unsafe { transmute(n) })
     }
 
     /// Writes a IEEE754 double-precision (8 bytes) floating point number.
     ///
     /// Task failure occurs when `buf.len() < 8`.
     fn write_f64(buf: &mut [u8], n: f64) {
-        <Self as ByteOrder>::write_u64(buf, unsafe { transmute(n) })
+        Self::write_u64(buf, unsafe { transmute(n) })
     }
 }
 
@@ -228,14 +228,9 @@ pub type NativeEndian = BigEndian;
 
 macro_rules! read_num_bytes {
     ($ty:ty, $size:expr, $src:expr, $which:ident) => ({
-        use std::ptr::copy_nonoverlapping;
-
         assert!($src.len() >= $size); // critical for memory safety!
-        let mut out = [0u8; $size];
-        let ptr_out = out.as_mut_ptr();
         unsafe {
-            copy_nonoverlapping($src.as_ptr(), ptr_out, $size);
-            (*(ptr_out as *const $ty)).$which()
+            (*($src.as_ptr() as *const $ty)).$which()
         }
     });
     ($ty:ty, $size:expr, le $bytes:expr, $src:expr, $which:ident) => ({
@@ -367,9 +362,8 @@ mod test {
                     let max = ($max - 1) >> (8 * (8 - $bytes));
                     fn prop(n: $ty_int) -> bool {
                         let mut buf = [0; 8];
-                        <BigEndian as ByteOrder>::$write(&mut buf, n);
-                        n == <BigEndian as ByteOrder>::$read(
-                            &mut buf[8 - $bytes..], $bytes)
+                        BigEndian::$write(&mut buf, n);
+                        n == BigEndian::$read(&mut buf[8 - $bytes..], $bytes)
                     }
                     qc_sized(prop as fn($ty_int) -> bool, max);
                 }
@@ -379,9 +373,8 @@ mod test {
                     let max = ($max - 1) >> (8 * (8 - $bytes));
                     fn prop(n: $ty_int) -> bool {
                         let mut buf = [0; 8];
-                        <LittleEndian as ByteOrder>::$write(&mut buf, n);
-                        n == <LittleEndian as ByteOrder>::$read(
-                            &mut buf[..$bytes], $bytes)
+                        LittleEndian::$write(&mut buf, n);
+                        n == LittleEndian::$read(&mut buf[..$bytes], $bytes)
                     }
                     qc_sized(prop as fn($ty_int) -> bool, max);
                 }
@@ -391,9 +384,8 @@ mod test {
                     let max = ($max - 1) >> (8 * (8 - $bytes));
                     fn prop(n: $ty_int) -> bool {
                         let mut buf = [0; 8];
-                        <NativeEndian as ByteOrder>::$write(&mut buf, n);
-                        n == <NativeEndian as ByteOrder>::$read(
-                            &mut buf[..$bytes], $bytes)
+                        NativeEndian::$write(&mut buf, n);
+                        n == NativeEndian::$read(&mut buf[..$bytes], $bytes)
                     }
                     qc_sized(prop as fn($ty_int) -> bool, max);
                 }
@@ -411,10 +403,8 @@ mod test {
                     fn prop(n: $ty_int) -> bool {
                         let bytes = size_of::<$ty_int>();
                         let mut buf = [0; 8];
-                        <BigEndian as ByteOrder>::$write(
-                            &mut buf[8 - bytes..], n);
-                        n == <BigEndian as ByteOrder>::$read(
-                            &mut buf[8 - bytes..])
+                        BigEndian::$write(&mut buf[8 - bytes..], n);
+                        n == BigEndian::$read(&mut buf[8 - bytes..])
                     }
                     qc_sized(prop as fn($ty_int) -> bool, $max - 1);
                 }
@@ -424,10 +414,8 @@ mod test {
                     fn prop(n: $ty_int) -> bool {
                         let bytes = size_of::<$ty_int>();
                         let mut buf = [0; 8];
-                        <LittleEndian as ByteOrder>::$write(
-                            &mut buf[..bytes], n);
-                        n == <LittleEndian as ByteOrder>::$read(
-                            &mut buf[..bytes])
+                        LittleEndian::$write(&mut buf[..bytes], n);
+                        n == LittleEndian::$read(&mut buf[..bytes])
                     }
                     qc_sized(prop as fn($ty_int) -> bool, $max - 1);
                 }
@@ -437,10 +425,8 @@ mod test {
                     fn prop(n: $ty_int) -> bool {
                         let bytes = size_of::<$ty_int>();
                         let mut buf = [0; 8];
-                        <NativeEndian as ByteOrder>::$write(
-                            &mut buf[..bytes], n);
-                        n == <NativeEndian as ByteOrder>::$read(
-                            &mut buf[..bytes])
+                        NativeEndian::$write(&mut buf[..bytes], n);
+                        n == NativeEndian::$read(&mut buf[..bytes])
                     }
                     qc_sized(prop as fn($ty_int) -> bool, $max - 1);
                 }
@@ -612,42 +598,42 @@ mod test {
                 #[should_panic]
                 fn read_big_endian() {
                     let buf = [0; $maximally_small];
-                    <BigEndian as ByteOrder>::$read(&buf);
+                    BigEndian::$read(&buf);
                 }
 
                 #[test]
                 #[should_panic]
                 fn read_little_endian() {
                     let buf = [0; $maximally_small];
-                    <LittleEndian as ByteOrder>::$read(&buf);
+                    LittleEndian::$read(&buf);
                 }
 
                 #[test]
                 #[should_panic]
                 fn read_native_endian() {
                     let buf = [0; $maximally_small];
-                    <NativeEndian as ByteOrder>::$read(&buf);
+                    NativeEndian::$read(&buf);
                 }
 
                 #[test]
                 #[should_panic]
                 fn write_big_endian() {
                     let mut buf = [0; $maximally_small];
-                    <BigEndian as ByteOrder>::$write(&mut buf, $zero);
+                    BigEndian::$write(&mut buf, $zero);
                 }
 
                 #[test]
                 #[should_panic]
                 fn write_little_endian() {
                     let mut buf = [0; $maximally_small];
-                    <LittleEndian as ByteOrder>::$write(&mut buf, $zero);
+                    LittleEndian::$write(&mut buf, $zero);
                 }
 
                 #[test]
                 #[should_panic]
                 fn write_native_endian() {
                     let mut buf = [0; $maximally_small];
-                    <NativeEndian as ByteOrder>::$write(&mut buf, $zero);
+                    NativeEndian::$write(&mut buf, $zero);
                 }
             }
         );
@@ -659,24 +645,21 @@ mod test {
                 #[should_panic]
                 fn read_big_endian() {
                     let buf = [0; $maximally_small];
-                    <BigEndian as ByteOrder>::$read(&buf,
-                                                    $maximally_small + 1);
+                    BigEndian::$read(&buf, $maximally_small + 1);
                 }
 
                 #[test]
                 #[should_panic]
                 fn read_little_endian() {
                     let buf = [0; $maximally_small];
-                    <LittleEndian as ByteOrder>::$read(&buf,
-                                                       $maximally_small + 1);
+                    LittleEndian::$read(&buf, $maximally_small + 1);
                 }
 
                 #[test]
                 #[should_panic]
                 fn read_native_endian() {
                     let buf = [0; $maximally_small];
-                    <NativeEndian as ByteOrder>::$read(&buf,
-                                                       $maximally_small + 1);
+                    NativeEndian::$read(&buf, $maximally_small + 1);
                 }
             }
         );
@@ -706,6 +689,13 @@ mod test {
     too_small!(small_int_5, 5, read_int);
     too_small!(small_int_6, 6, read_int);
     too_small!(small_int_7, 7, read_int);
+
+    #[test]
+    fn uint_bigger_buffer() {
+        use {ByteOrder, LittleEndian};
+        let n = LittleEndian::read_uint(&[1, 2, 3, 4, 5, 6, 7, 8], 5);
+        assert_eq!(n, 0x0504030201);
+    }
 }
 
 #[cfg(test)]
@@ -726,8 +716,7 @@ mod bench {
                     let buf = $data;
                     b.iter(|| {
                         for _ in 0..NITER {
-                            bb(<BigEndian as ByteOrder>::$read(&buf,
-                                                               $bytes));
+                            bb(BigEndian::$read(&buf, $bytes));
                         }
                     });
                 }
@@ -737,8 +726,7 @@ mod bench {
                     let buf = $data;
                     b.iter(|| {
                         for _ in 0..NITER {
-                            bb(<LittleEndian as ByteOrder>::$read(&buf,
-                                                                  $bytes));
+                            bb(LittleEndian::$read(&buf, $bytes));
                         }
                     });
                 }
@@ -748,8 +736,7 @@ mod bench {
                     let buf = $data;
                     b.iter(|| {
                         for _ in 0..NITER {
-                            bb(<NativeEndian as ByteOrder>::$read(&buf,
-                                                                  $bytes));
+                            bb(NativeEndian::$read(&buf, $bytes));
                         }
                     });
                 }
@@ -770,7 +757,7 @@ mod bench {
                     let buf = $data;
                     b.iter(|| {
                         for _ in 0..NITER {
-                            bb(<BigEndian as ByteOrder>::$read(&buf));
+                            bb(BigEndian::$read(&buf));
                         }
                     });
                 }
@@ -780,7 +767,7 @@ mod bench {
                     let buf = $data;
                     b.iter(|| {
                         for _ in 0..NITER {
-                            bb(<LittleEndian as ByteOrder>::$read(&buf));
+                            bb(LittleEndian::$read(&buf));
                         }
                     });
                 }
@@ -790,7 +777,7 @@ mod bench {
                     let buf = $data;
                     b.iter(|| {
                         for _ in 0..NITER {
-                            bb(<NativeEndian as ByteOrder>::$read(&buf));
+                            bb(NativeEndian::$read(&buf));
                         }
                     });
                 }
@@ -801,7 +788,7 @@ mod bench {
                     let n = $ty::$max;
                     b.iter(|| {
                         for _ in 0..NITER {
-                            bb(<BigEndian as ByteOrder>::$write(&mut buf, n));
+                            bb(BigEndian::$write(&mut buf, n));
                         }
                     });
                 }
@@ -812,8 +799,7 @@ mod bench {
                     let n = $ty::$max;
                     b.iter(|| {
                         for _ in 0..NITER {
-                            bb(<LittleEndian as ByteOrder>::$write(&mut buf,
-                                                                   n));
+                            bb(LittleEndian::$write(&mut buf, n));
                         }
                     });
                 }
@@ -824,8 +810,7 @@ mod bench {
                     let n = $ty::$max;
                     b.iter(|| {
                         for _ in 0..NITER {
-                            bb(<NativeEndian as ByteOrder>::$write(&mut buf,
-                                                                   n));
+                            bb(NativeEndian::$write(&mut buf, n));
                         }
                     });
                 }
