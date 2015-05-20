@@ -7,7 +7,7 @@ documentation = "http://burntsushi.net/rustdoc/byteorder/"
 homepage = "https://github.com/BurntSushi/byteorder"
 repository = "https://github.com/BurntSushi/byteorder"
 readme = "README.md"
-keywords = ["byte", "endian", "big-endian", "little-endian"]
+keywords = ["byte", "endian", "big-endian", "little-endian", "binary"]
 license = "Unlicense/MIT"
 
 [lib]
