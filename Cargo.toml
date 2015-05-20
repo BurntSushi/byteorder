@@ -16,3 +16,6 @@ name = "byteorder"
 [dev-dependencies]
 quickcheck = "*"
 rand = "*"
+
+[profile.bench]
+opt-level = 3
