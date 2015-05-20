@@ -87,64 +87,64 @@ fn extend_sign(val: u64, nbytes: usize) -> i64 {
 pub trait ByteOrder {
     /// Reads an unsigned 16 bit integer from `buf`.
     ///
-    /// Task failure occurs when `buf.len() < 2`.
+    /// Panics when `buf.len() < 2`.
     fn read_u16(buf: &[u8]) -> u16;
 
     /// Reads an unsigned 32 bit integer from `buf`.
     ///
-    /// Task failure occurs when `buf.len() < 4`.
+    /// Panics when `buf.len() < 4`.
     fn read_u32(buf: &[u8]) -> u32;
 
     /// Reads an unsigned 64 bit integer from `buf`.
     ///
-    /// Task failure occurs when `buf.len() < 8`.
+    /// Panics when `buf.len() < 8`.
     fn read_u64(buf: &[u8]) -> u64;
 
     /// Reads an unsigned n-bytes integer from `buf`.
     ///
-    /// Task failure occurs when `nbytes < 1` or `nbytes > 8` or
+    /// Panics when `nbytes < 1` or `nbytes > 8` or
     /// `buf.len() < nbytes`
     fn read_uint(buf: &[u8], nbytes: usize) -> u64;
 
     /// Writes an unsigned 16 bit integer `n` to `buf`.
     ///
-    /// Task failure occurs when `buf.len() < 2`.
+    /// Panics when `buf.len() < 2`.
     fn write_u16(buf: &mut [u8], n: u16);
 
     /// Writes an unsigned 32 bit integer `n` to `buf`.
     ///
-    /// Task failure occurs when `buf.len() < 4`.
+    /// Panics when `buf.len() < 4`.
     fn write_u32(buf: &mut [u8], n: u32);
 
     /// Writes an unsigned 64 bit integer `n` to `buf`.
     ///
-    /// Task failure occurs when `buf.len() < 8`.
+    /// Panics when `buf.len() < 8`.
     fn write_u64(buf: &mut [u8], n: u64);
 
     /// Reads a signed 16 bit integer from `buf`.
     ///
-    /// Task failure occurs when `buf.len() < 2`.
+    /// Panics when `buf.len() < 2`.
     fn read_i16(buf: &[u8]) -> i16 {
         Self::read_u16(buf) as i16
     }
 
     /// Reads a signed 32 bit integer from `buf`.
     ///
-    /// Task failure occurs when `buf.len() < 4`.
+    /// Panics when `buf.len() < 4`.
     fn read_i32(buf: &[u8]) -> i32 {
         Self::read_u32(buf) as i32
     }
 
     /// Reads a signed 64 bit integer from `buf`.
     ///
-    /// Task failure occurs when `buf.len() < 8`.
+    /// Panics when `buf.len() < 8`.
     fn read_i64(buf: &[u8]) -> i64 {
         Self::read_u64(buf) as i64
     }
 
     /// Reads a signed n-bytes integer from `buf`.
     ///
-    /// Task failure occurs when `nbytes < 1` or `nbytes > 8` or
+    /// Panics when `nbytes < 1` or `nbytes > 8` or
     /// `buf.len() < nbytes`
     fn read_int(buf: &[u8], nbytes: usize) -> i64 {
         extend_sign(Self::read_uint(buf, nbytes), nbytes)
@@ -152,49 +152,49 @@ pub trait ByteOrder {
 
     /// Reads a IEEE754 single-precision (4 bytes) floating point number.
     ///
-    /// Task failure occurs when `buf.len() < 4`.
+    /// Panics when `buf.len() < 4`.
     fn read_f32(buf: &[u8]) -> f32 {
         unsafe { transmute(Self::read_u32(buf)) }
     }
 
     /// Reads a IEEE754 double-precision (8 bytes) floating point number.
     ///
-    /// Task failure occurs when `buf.len() < 8`.
+    /// Panics when `buf.len() < 8`.
     fn read_f64(buf: &[u8]) -> f64 {
         unsafe { transmute(Self::read_u64(buf)) }
     }
 
     /// Writes a signed 16 bit integer `n` to `buf`.
     ///
-    /// Task failure occurs when `buf.len() < 2`.
+    /// Panics when `buf.len() < 2`.
     fn write_i16(buf: &mut [u8], n: i16) {
         Self::write_u16(buf, n as u16)
     }
 
     /// Writes a signed 32 bit integer `n` to `buf`.
     ///
-    /// Task failure occurs when `buf.len() < 4`.
+    /// Panics when `buf.len() < 4`.
     fn write_i32(buf: &mut [u8], n: i32) {
         Self::write_u32(buf, n as u32)
     }
 
     /// Writes a signed 64 bit integer `n` to `buf`.
     ///
-    /// Task failure occurs when `buf.len() < 8`.
+    /// Panics when `buf.len() < 8`.
     fn write_i64(buf: &mut [u8], n: i64) {
         Self::write_u64(buf, n as u64)
     }
 
     /// Writes a IEEE754 single-precision (4 bytes) floating point number.
     ///
-    /// Task failure occurs when `buf.len() < 4`.
+    /// Panics when `buf.len() < 4`.
     fn write_f32(buf: &mut [u8], n: f32) {
         Self::write_u32(buf, unsafe { transmute(n) })
     }
 
     /// Writes a IEEE754 double-precision (8 bytes) floating point number.
     ///
-    /// Task failure occurs when `buf.len() < 8`.
+    /// Panics when `buf.len() < 8`.
     fn write_f64(buf: &mut [u8], n: f64) {
         Self::write_u64(buf, unsafe { transmute(n) })
     }
