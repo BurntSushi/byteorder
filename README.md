@@ -2,8 +2,6 @@ This crate provides convenience methods for encoding and decoding numbers in
 either big-endian or little-endian order. This is meant to replace the old
 methods defined on the standard library `Reader` and `Writer` traits.
 
-**This crate currently supports both the `std::io` and `std::old_io` modules.**
-
 [![Build status](https://api.travis-ci.org/BurntSushi/byteorder.png)](https://travis-ci.org/BurntSushi/byteorder)
 [![](http://meritbadge.herokuapp.com/byteorder)](https://crates.io/crates/byteorder)
 
