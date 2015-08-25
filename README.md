@@ -41,13 +41,12 @@ Or use the `ReadBytesExt`/`WriteBytesExt` traits if you're using the new
 For example:
 
 ```rust
-use std::old_io::MemReader;
+use std::io::Cursor;
 use byteorder::{BigEndian, ReadBytesExt};
 
-let mut rdr = MemReader::new(vec![2, 5, 3, 0]);
+let mut rdr = Cursor::new(vec![2, 5, 3, 0]);
 // Note that we use type parameters to indicate which kind of byte order
 // we want!
-assert_eq!(517, rdr.read_u16::<BigEndian>().unwrap());
-assert_eq!(768, rdr.read_u16::<BigEndian>().unwrap());
+assert_eq!(517u16, rdr.read_as::<BigEndian>().unwrap());
+assert_eq!(768u16, rdr.read_as::<BigEndian>().unwrap());
 ```
-
