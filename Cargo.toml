@@ -14,8 +14,8 @@ license = "Unlicense/MIT"
 name = "byteorder"
 
 [dev-dependencies]
-quickcheck = "*"
-rand = "*"
+quickcheck = "0.2"
+rand = "0.3"
 
 [profile.bench]
 opt-level = 3

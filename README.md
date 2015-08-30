@@ -23,7 +23,7 @@ updated.  Add is to your `Cargo.toml` like so:
 
 ```toml
 [dependencies]
-byteorder = "*"
+byteorder = "0.3"
 ```
 
 If you want to augment existing `Reader` and `Writer` types, then import the
