@@ -19,14 +19,14 @@ The documentation includes examples.
 
 This crate works with Cargo and is on
 [crates.io](https://crates.io/crates/byteorder). The package is regularly
-updated.  Add is to your `Cargo.toml` like so:
+updated.  Add it to your `Cargo.toml` like so:
 
 ```toml
 [dependencies]
 byteorder = "0.3"
 ```
 
-If you want to augment existing `Reader` and `Writer` types, then import the
+If you want to augment existing `Read` and `Write` traits, then import the
 extension methods like so:
 
 ```rust
@@ -35,19 +35,15 @@ extern crate byteorder;
 use byteorder::{ReadBytesExt, WriteBytesExt, BigEndian, LittleEndian};
 ```
 
-Or use the `ReadBytesExt`/`WriteBytesExt` traits if you're using the new
-`std::io` module.
-
 For example:
 
 ```rust
-use std::old_io::MemReader;
+use std::io::Cursor;
 use byteorder::{BigEndian, ReadBytesExt};
 
-let mut rdr = MemReader::new(vec![2, 5, 3, 0]);
+let mut rdr = Cursor::new(vec![2, 5, 3, 0]);
 // Note that we use type parameters to indicate which kind of byte order
 // we want!
 assert_eq!(517, rdr.read_u16::<BigEndian>().unwrap());
 assert_eq!(768, rdr.read_u16::<BigEndian>().unwrap());
 ```
-
