@@ -17,5 +17,8 @@ name = "byteorder"
 quickcheck = "0.2"
 rand = "0.3"
 
+[features]
+no-std = []
+
 [profile.bench]
 opt-level = 3
