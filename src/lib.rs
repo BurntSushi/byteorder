@@ -43,8 +43,10 @@ assert_eq!(wtr, vec![5, 2, 0, 3]);
 
 use std::mem::transmute;
 
+#[cfg(not(feature = "no-std"))]
 pub use new::{ReadBytesExt, WriteBytesExt, Error, Result};
 
+#[cfg(not(feature = "no-std"))]
 mod new;
 
 #[inline]
