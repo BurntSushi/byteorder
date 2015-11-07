@@ -307,7 +307,7 @@ pub trait WriteBytesExt: io::Write {
     ) -> Result<()> {
         let mut buf = [0; 8];
         T::write_uint(&mut buf, n, nbytes);
-        write_all(self, &buf)
+        write_all(self, &buf[0..nbytes])
     }
 
     /// Writes a signed n-bytes integer to the underlying writer.
@@ -322,7 +322,7 @@ pub trait WriteBytesExt: io::Write {
     ) -> Result<()> {
         let mut buf = [0; 8];
         T::write_int(&mut buf, n, nbytes);
-        write_all(self, &buf)
+        write_all(self, &buf[0..nbytes])
     }
 
     /// Writes a IEEE754 single-precision (4 bytes) floating point number to
