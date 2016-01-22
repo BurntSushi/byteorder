@@ -130,10 +130,6 @@ pub trait ReadBytesExt: io::Read {
 /// for free.
 impl<R: io::Read + ?Sized> ReadBytesExt for R {}
 
-fn write_all<W: io::Write + ?Sized>(wtr: &mut W, buf: &[u8]) -> Result<()> {
-    wtr.write_all(buf).map_err(From::from)
-}
-
 /// Extends `Write` with methods for writing numbers. (For `std::io`.)
 ///
 /// Most of the methods defined here have an unconstrained type parameter that
@@ -159,7 +155,7 @@ pub trait WriteBytesExt: io::Write {
     /// are used. It is included for completeness.
     #[inline]
     fn write_u8(&mut self, n: u8) -> Result<()> {
-        write_all(self, &[n])
+        self.write_all(&[n])
     }
 
     /// Writes a signed 8 bit integer to the underlying writer.
@@ -168,7 +164,7 @@ pub trait WriteBytesExt: io::Write {
     /// are used. It is included for completeness.
     #[inline]
     fn write_i8(&mut self, n: i8) -> Result<()> {
-        write_all(self, &[n as u8])
+        self.write_all(&[n as u8])
     }
 
     /// Writes an unsigned 16 bit integer to the underlying writer.
@@ -176,7 +172,7 @@ pub trait WriteBytesExt: io::Write {
     fn write_u16<T: ByteOrder>(&mut self, n: u16) -> Result<()> {
         let mut buf = [0; 2];
         T::write_u16(&mut buf, n);
-        write_all(self, &buf)
+        self.write_all(&buf)
     }
 
     /// Writes a signed 16 bit integer to the underlying writer.
@@ -184,7 +180,7 @@ pub trait WriteBytesExt: io::Write {
     fn write_i16<T: ByteOrder>(&mut self, n: i16) -> Result<()> {
         let mut buf = [0; 2];
         T::write_i16(&mut buf, n);
-        write_all(self, &buf)
+        self.write_all(&buf)
     }
 
     /// Writes an unsigned 32 bit integer to the underlying writer.
@@ -192,7 +188,7 @@ pub trait WriteBytesExt: io::Write {
     fn write_u32<T: ByteOrder>(&mut self, n: u32) -> Result<()> {
         let mut buf = [0; 4];
         T::write_u32(&mut buf, n);
-        write_all(self, &buf)
+        self.write_all(&buf)
     }
 
     /// Writes a signed 32 bit integer to the underlying writer.
@@ -200,7 +196,7 @@ pub trait WriteBytesExt: io::Write {
     fn write_i32<T: ByteOrder>(&mut self, n: i32) -> Result<()> {
         let mut buf = [0; 4];
         T::write_i32(&mut buf, n);
-        write_all(self, &buf)
+        self.write_all(&buf)
     }
 
     /// Writes an unsigned 64 bit integer to the underlying writer.
@@ -208,7 +204,7 @@ pub trait WriteBytesExt: io::Write {
     fn write_u64<T: ByteOrder>(&mut self, n: u64) -> Result<()> {
         let mut buf = [0; 8];
         T::write_u64(&mut buf, n);
-        write_all(self, &buf)
+        self.write_all(&buf)
     }
 
     /// Writes a signed 64 bit integer to the underlying writer.
@@ -216,7 +212,7 @@ pub trait WriteBytesExt: io::Write {
     fn write_i64<T: ByteOrder>(&mut self, n: i64) -> Result<()> {
         let mut buf = [0; 8];
         T::write_i64(&mut buf, n);
-        write_all(self, &buf)
+        self.write_all(&buf)
     }
 
     /// Writes an unsigned n-bytes integer to the underlying writer.
@@ -231,7 +227,7 @@ pub trait WriteBytesExt: io::Write {
     ) -> Result<()> {
         let mut buf = [0; 8];
         T::write_uint(&mut buf, n, nbytes);
-        write_all(self, &buf[0..nbytes])
+        self.write_all(&buf[0..nbytes])
     }
 
     /// Writes a signed n-bytes integer to the underlying writer.
@@ -246,7 +242,7 @@ pub trait WriteBytesExt: io::Write {
     ) -> Result<()> {
         let mut buf = [0; 8];
         T::write_int(&mut buf, n, nbytes);
-        write_all(self, &buf[0..nbytes])
+        self.write_all(&buf[0..nbytes])
     }
 
     /// Writes a IEEE754 single-precision (4 bytes) floating point number to
@@ -255,7 +251,7 @@ pub trait WriteBytesExt: io::Write {
     fn write_f32<T: ByteOrder>(&mut self, n: f32) -> Result<()> {
         let mut buf = [0; 4];
         T::write_f32(&mut buf, n);
-        write_all(self, &buf)
+        self.write_all(&buf)
     }
 
     /// Writes a IEEE754 double-precision (8 bytes) floating point number to
@@ -264,7 +260,7 @@ pub trait WriteBytesExt: io::Write {
     fn write_f64<T: ByteOrder>(&mut self, n: f64) -> Result<()> {
         let mut buf = [0; 8];
         T::write_f64(&mut buf, n);
-        write_all(self, &buf)
+        self.write_all(&buf)
     }
 }
 
