@@ -45,7 +45,7 @@ use std::mem::transmute;
 use std::ptr::copy_nonoverlapping;
 
 #[cfg(not(feature = "no-std"))]
-pub use new::{ReadBytesExt, WriteBytesExt, Error, Result};
+pub use new::{ReadBytesExt, WriteBytesExt};
 
 #[cfg(not(feature = "no-std"))]
 mod new;
