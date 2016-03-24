@@ -267,6 +267,18 @@ pub trait ByteOrder {
 /// type level.
 #[allow(missing_copy_implementations)] pub enum LittleEndian {}
 
+/// Defines network byte order serialization.
+///
+/// Network byte order is defined by [RFC 1700][1] to be big-endian, and is
+/// referred to in several protocol specifications.  This type is an alias of
+/// BigEndian.
+///
+/// [1]: https://tools.ietf.org/html/rfc1700
+///
+/// Note that this type has no value constructor. It is used purely at the
+/// type level.
+pub type NetworkEndian = BigEndian;
+
 /// Defines system native-endian serialization.
 ///
 /// Note that this type has no value constructor. It is used purely at the
