@@ -47,3 +47,13 @@ let mut rdr = Cursor::new(vec![2, 5, 3, 0]);
 assert_eq!(517, rdr.read_u16::<BigEndian>().unwrap());
 assert_eq!(768, rdr.read_u16::<BigEndian>().unwrap());
 ```
+
+### `no_std` crates
+
+This crate has a feature, `std`, that is enabled by default. To use this crate
+in a `no_std` context, add the following to your `Cargo.toml`:
+
+```toml
+[dependencies]
+byteorder = { version = "0.5", default-features = false }
+```
