@@ -18,7 +18,8 @@ quickcheck = "0.2"
 rand = "0.3"
 
 [features]
-no-std = []
+default = ["std"]
+std = []
 
 [profile.bench]
 opt-level = 3

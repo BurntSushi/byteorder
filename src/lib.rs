@@ -39,15 +39,20 @@ assert_eq!(wtr, vec![5, 2, 0, 3]);
 #![crate_name = "byteorder"]
 #![doc(html_root_url = "http://burntsushi.net/rustdoc/byteorder")]
 
+#![cfg_attr(not(feature = "std"), no_std)]
+
 #![deny(missing_docs)]
 
-use std::mem::transmute;
-use std::ptr::copy_nonoverlapping;
+#[cfg(feature = "std")]
+extern crate core;
 
-#[cfg(not(feature = "no-std"))]
+use core::mem::transmute;
+use core::ptr::copy_nonoverlapping;
+
+#[cfg(feature = "std")]
 pub use new::{ReadBytesExt, WriteBytesExt};
 
-#[cfg(not(feature = "no-std"))]
+#[cfg(feature = "std")]
 mod new;
 
 #[inline]
