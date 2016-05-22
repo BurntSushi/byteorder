@@ -300,10 +300,16 @@ pub type NativeEndian = BigEndian;
 
 macro_rules! read_num_bytes {
     ($ty:ty, $size:expr, $src:expr, $which:ident) => ({
+        assert!($size == ::std::mem::size_of::<$ty>());
         assert!($size <= $src.len());
+        let mut data: $ty = 0;
         unsafe {
-            (*($src.as_ptr() as *const $ty)).$which()
+            copy_nonoverlapping(
+                $src.as_ptr(),
+                &mut data as *mut $ty as *mut u8,
+                $size);
         }
+        data.$which()
     });
 }
 
