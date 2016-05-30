@@ -300,7 +300,7 @@ pub type NativeEndian = BigEndian;
 
 macro_rules! read_num_bytes {
     ($ty:ty, $size:expr, $src:expr, $which:ident) => ({
-        assert!($size == ::std::mem::size_of::<$ty>());
+        assert!($size == ::core::mem::size_of::<$ty>());
         assert!($size <= $src.len());
         let mut data: $ty = 0;
         unsafe {
