@@ -8,32 +8,6 @@ a platform dependent size like `usize` and `isize`). Two types, `BigEndian`
 and `LittleEndian` implement these methods. Finally, `ReadBytesExt` and
 `WriteBytesExt` provide convenience methods available to all types that
 implement `Read` and `Write`.
-
-# Examples
-
-Read unsigned 16 bit big-endian integers from a `Read` type:
-
-```rust
-use std::io::Cursor;
-use byteorder::{BigEndian, ReadBytesExt};
-
-let mut rdr = Cursor::new(vec![2, 5, 3, 0]);
-// Note that we use type parameters to indicate which kind of byte order
-// we want!
-assert_eq!(517, rdr.read_u16::<BigEndian>().unwrap());
-assert_eq!(768, rdr.read_u16::<BigEndian>().unwrap());
-```
-
-Write unsigned 16 bit little-endian integers to a `Write` type:
-
-```rust
-use byteorder::{LittleEndian, WriteBytesExt};
-
-let mut wtr = vec![];
-wtr.write_u16::<LittleEndian>(517).unwrap();
-wtr.write_u16::<LittleEndian>(768).unwrap();
-assert_eq!(wtr, vec![5, 2, 0, 3]);
-```
 */
 
 #![crate_name = "byteorder"]
@@ -46,14 +20,44 @@ assert_eq!(wtr, vec![5, 2, 0, 3]);
 #[cfg(feature = "std")]
 extern crate core;
 
+#[cfg(all(not(feature = "std"), test))]
+#[macro_use]
+extern crate std;
+
 use core::mem::transmute;
 use core::ptr::copy_nonoverlapping;
 
-#[cfg(feature = "std")]
+#[cfg(any(feature = "std", test))]
 pub use new::{ReadBytesExt, WriteBytesExt};
 
-#[cfg(feature = "std")]
+#[cfg(any(feature = "std", test))]
 mod new;
+
+/// # Examples
+
+/// Read unsigned 16 bit big-endian integers from a `Read` type:
+
+/// ```.rust
+/// use std::io::Cursor;
+/// use byteorder::{BigEndian, ReadBytesExt};
+
+/// let mut rdr = Cursor::new(vec![2, 5, 3, 0]);
+/// // Note that we use type parameters to indicate which kind of byte order
+/// // we want!
+/// assert_eq!(517, rdr.read_u16::<BigEndian>().unwrap());
+/// assert_eq!(768, rdr.read_u16::<BigEndian>().unwrap());
+/// ```
+
+/// Write unsigned 16 bit little-endian integers to a `Write` type:
+
+/// ```.rust
+/// use byteorder::{LittleEndian, WriteBytesExt};
+
+/// let mut wtr = vec![];
+/// wtr.write_u16::<LittleEndian>(517).unwrap();
+/// wtr.write_u16::<LittleEndian>(768).unwrap();
+/// assert_eq!(wtr, vec![5, 2, 0, 3]);
+/// ```
 
 #[inline]
 fn extend_sign(val: u64, nbytes: usize) -> i64 {
@@ -569,6 +573,8 @@ mod test {
          $bytes:expr, $read:ident, $write:ident) => (
             mod $name {
                 use std::io::Cursor;
+                use std::vec::Vec;
+
                 use {
                     ReadBytesExt, WriteBytesExt,
                     BigEndian, NativeEndian, LittleEndian,
