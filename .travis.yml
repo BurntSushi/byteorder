@@ -1,15 +1,16 @@
 language: rust
-matrix:
-  include:
-    - rust: "nightly"
-      env: TEST_SUITE=suite_nightly
-    - rust: "beta"
-      env: TEST_SUITE=suite_beta
-    - rust: "stable"
-      env: TEST_SUITE=suite_stable
+rust:
+ - stable
+ - beta
+ - nightly
+env:
+  matrix:
+    - FLAGS=""
+    - FLAGS="--no-default-features"
 script:
-  - cargo build --verbose
-  - cargo test --verbose
-  - if [ "$TEST_SUITE" = "suite_nightly" ]; then
-      cargo bench --verbose;
-    fi
+  - cargo build --verbose $FLAGS
+  - cargo test --verbose $FLAGS
+  - |
+    [ $TRAVIS_RUST_VERSION != nightly ] || (
+      cargo bench $FLAGS
+    )
