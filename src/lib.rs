@@ -42,6 +42,8 @@ assert_eq!(wtr, vec![5, 2, 0, 3]);
 #[cfg(feature = "std")]
 extern crate core;
 
+use core::fmt::Debug;
+use core::hash::Hash;
 use core::mem::transmute;
 use core::ptr::copy_nonoverlapping;
 
@@ -114,7 +116,8 @@ fn pack_size(n: u64) -> usize {
 /// BigEndian::write_i16(&mut buf, -50_000);
 /// assert_eq!(-50_000, BigEndian::read_i16(&buf));
 /// ```
-pub trait ByteOrder {
+pub trait ByteOrder
+    : Clone + Copy + Debug + Default + Eq + Hash + Ord + PartialEq + PartialOrd {
     /// Reads an unsigned 16 bit integer from `buf`.
     ///
     /// Panics when `buf.len() < 2`.
@@ -260,13 +263,27 @@ pub trait ByteOrder {
 ///
 /// Note that this type has no value constructor. It is used purely at the
 /// type level.
-#[allow(missing_copy_implementations)] pub enum BigEndian {}
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum BigEndian {}
+
+impl Default for BigEndian {
+    fn default() -> BigEndian {
+        unreachable!()
+    }
+}
 
 /// Defines little-endian serialization.
 ///
 /// Note that this type has no value constructor. It is used purely at the
 /// type level.
-#[allow(missing_copy_implementations)] pub enum LittleEndian {}
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum LittleEndian {}
+
+impl Default for LittleEndian {
+    fn default() -> LittleEndian {
+        unreachable!()
+    }
+}
 
 /// Defines network byte order serialization.
 ///
