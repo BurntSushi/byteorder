@@ -689,7 +689,7 @@ mod stdtests {
                     ReadBytesExt, WriteBytesExt,
                     BigEndian, NativeEndian, LittleEndian,
                 };
-                use super::qc_sized;
+                use test::qc_sized;
 
                 #[test]
                 fn big_endian() {
@@ -737,7 +737,7 @@ mod stdtests {
                     ReadBytesExt, WriteBytesExt,
                     BigEndian, NativeEndian, LittleEndian,
                 };
-                use super::qc_sized;
+                use test::qc_sized;
 
                 #[test]
                 fn big_endian() {
