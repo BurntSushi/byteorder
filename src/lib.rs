@@ -695,8 +695,6 @@ mod test {
 #[cfg(test)]
 #[cfg(feature = "std")]
 mod stdtests {
-    use test::{U64_MAX, I64_MAX, qc_sized};
-
     macro_rules! qc_bytes_ext {
         ($name:ident, $ty_int:ident, $max:expr,
          $bytes:expr, $read:ident, $write:ident) => (
@@ -801,22 +799,22 @@ mod stdtests {
     qc_bytes_ext!(prop_ext_f32, f32, ::std::u64::MAX as u64, read_f32, write_f32);
     qc_bytes_ext!(prop_ext_f64, f64, ::std::i64::MAX as u64, read_f64, write_f64);
 
-    qc_bytes_ext!(prop_ext_uint_1, u64, super::U64_MAX, 1, read_uint, write_u64);
-    qc_bytes_ext!(prop_ext_uint_2, u64, super::U64_MAX, 2, read_uint, write_u64);
-    qc_bytes_ext!(prop_ext_uint_3, u64, super::U64_MAX, 3, read_uint, write_u64);
-    qc_bytes_ext!(prop_ext_uint_4, u64, super::U64_MAX, 4, read_uint, write_u64);
-    qc_bytes_ext!(prop_ext_uint_5, u64, super::U64_MAX, 5, read_uint, write_u64);
-    qc_bytes_ext!(prop_ext_uint_6, u64, super::U64_MAX, 6, read_uint, write_u64);
-    qc_bytes_ext!(prop_ext_uint_7, u64, super::U64_MAX, 7, read_uint, write_u64);
-    qc_bytes_ext!(prop_ext_uint_8, u64, super::U64_MAX, 8, read_uint, write_u64);
+    qc_bytes_ext!(prop_ext_uint_1, u64, ::test::U64_MAX, 1, read_uint, write_u64);
+    qc_bytes_ext!(prop_ext_uint_2, u64, ::test::U64_MAX, 2, read_uint, write_u64);
+    qc_bytes_ext!(prop_ext_uint_3, u64, ::test::U64_MAX, 3, read_uint, write_u64);
+    qc_bytes_ext!(prop_ext_uint_4, u64, ::test::U64_MAX, 4, read_uint, write_u64);
+    qc_bytes_ext!(prop_ext_uint_5, u64, ::test::U64_MAX, 5, read_uint, write_u64);
+    qc_bytes_ext!(prop_ext_uint_6, u64, ::test::U64_MAX, 6, read_uint, write_u64);
+    qc_bytes_ext!(prop_ext_uint_7, u64, ::test::U64_MAX, 7, read_uint, write_u64);
+    qc_bytes_ext!(prop_ext_uint_8, u64, ::test::U64_MAX, 8, read_uint, write_u64);
 
-    qc_bytes_ext!(prop_ext_int_1, i64, super::I64_MAX, 1, read_int, write_i64);
-    qc_bytes_ext!(prop_ext_int_2, i64, super::I64_MAX, 2, read_int, write_i64);
-    qc_bytes_ext!(prop_ext_int_3, i64, super::I64_MAX, 3, read_int, write_i64);
-    qc_bytes_ext!(prop_ext_int_4, i64, super::I64_MAX, 4, read_int, write_i64);
-    qc_bytes_ext!(prop_ext_int_5, i64, super::I64_MAX, 5, read_int, write_i64);
-    qc_bytes_ext!(prop_ext_int_6, i64, super::I64_MAX, 6, read_int, write_i64);
-    qc_bytes_ext!(prop_ext_int_7, i64, super::I64_MAX, 7, read_int, write_i64);
-    qc_bytes_ext!(prop_ext_int_8, i64, super::I64_MAX, 8, read_int, write_i64);
+    qc_bytes_ext!(prop_ext_int_1, i64, ::test::I64_MAX, 1, read_int, write_i64);
+    qc_bytes_ext!(prop_ext_int_2, i64, ::test::I64_MAX, 2, read_int, write_i64);
+    qc_bytes_ext!(prop_ext_int_3, i64, ::test::I64_MAX, 3, read_int, write_i64);
+    qc_bytes_ext!(prop_ext_int_4, i64, ::test::I64_MAX, 4, read_int, write_i64);
+    qc_bytes_ext!(prop_ext_int_5, i64, ::test::I64_MAX, 5, read_int, write_i64);
+    qc_bytes_ext!(prop_ext_int_6, i64, ::test::I64_MAX, 6, read_int, write_i64);
+    qc_bytes_ext!(prop_ext_int_7, i64, ::test::I64_MAX, 7, read_int, write_i64);
+    qc_bytes_ext!(prop_ext_int_8, i64, ::test::I64_MAX, 8, read_int, write_i64);
 }
 
