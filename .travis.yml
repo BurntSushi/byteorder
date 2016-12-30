@@ -9,7 +9,7 @@ script:
   - cargo doc
   - cargo test --verbose
   - cargo test --verbose --no-default-features --lib
-  - if [ $TRAVIS_RUST_VERSION != nightly ]; then
+  - if [ "$TRAVIS_RUST_VERSION" = "nightly" ]; then
       cargo bench --verbose;
       cargo bench --verbose --no-default-features;
     fi
