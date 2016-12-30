@@ -39,7 +39,6 @@ assert_eq!(wtr, vec![5, 2, 0, 3]);
 #![deny(missing_docs)]
 #![cfg_attr(not(feature = "std"), no_std)]
 
-
 #[cfg(feature = "std")]
 extern crate core;
 
@@ -436,13 +435,13 @@ mod test {
     extern crate quickcheck;
     extern crate rand;
 
-    use test::rand::thread_rng;
-    use test::quickcheck::{QuickCheck, StdGen, Testable};
+    use self::rand::thread_rng;
+    use self::quickcheck::{QuickCheck, StdGen, Testable};
 
-    const U64_MAX: u64 = ::std::u64::MAX;
-    const I64_MAX: u64 = ::std::i64::MAX as u64;
+    pub const U64_MAX: u64 = ::core::u64::MAX;
+    pub const I64_MAX: u64 = ::core::i64::MAX as u64;
 
-    fn qc_sized<A: Testable>(f: A, size: u64) {
+    pub fn qc_sized<A: Testable>(f: A, size: u64) {
         QuickCheck::new()
             .gen(StdGen::new(thread_rng(), size as usize))
             .tests(1_00)
@@ -494,7 +493,7 @@ mod test {
         ($name:ident, $ty_int:ident, $max:expr,
          $read:ident, $write:ident) => (
             mod $name {
-                use std::mem::size_of;
+                use core::mem::size_of;
                 use {BigEndian, ByteOrder, NativeEndian, LittleEndian};
                 use super::qc_sized;
 
@@ -534,14 +533,14 @@ mod test {
         );
     }
 
-    qc_byte_order!(prop_u16, u16, ::std::u16::MAX as u64, read_u16, write_u16);
-    qc_byte_order!(prop_i16, i16, ::std::i16::MAX as u64, read_i16, write_i16);
-    qc_byte_order!(prop_u32, u32, ::std::u32::MAX as u64, read_u32, write_u32);
-    qc_byte_order!(prop_i32, i32, ::std::i32::MAX as u64, read_i32, write_i32);
-    qc_byte_order!(prop_u64, u64, ::std::u64::MAX as u64, read_u64, write_u64);
-    qc_byte_order!(prop_i64, i64, ::std::i64::MAX as u64, read_i64, write_i64);
-    qc_byte_order!(prop_f32, f32, ::std::u64::MAX as u64, read_f32, write_f32);
-    qc_byte_order!(prop_f64, f64, ::std::i64::MAX as u64, read_f64, write_f64);
+    qc_byte_order!(prop_u16, u16, ::core::u16::MAX as u64, read_u16, write_u16);
+    qc_byte_order!(prop_i16, i16, ::core::i16::MAX as u64, read_i16, write_i16);
+    qc_byte_order!(prop_u32, u32, ::core::u32::MAX as u64, read_u32, write_u32);
+    qc_byte_order!(prop_i32, i32, ::core::i32::MAX as u64, read_i32, write_i32);
+    qc_byte_order!(prop_u64, u64, ::core::u64::MAX as u64, read_u64, write_u64);
+    qc_byte_order!(prop_i64, i64, ::core::i64::MAX as u64, read_i64, write_i64);
+    qc_byte_order!(prop_f32, f32, ::core::u64::MAX as u64, read_f32, write_f32);
+    qc_byte_order!(prop_f64, f64, ::core::i64::MAX as u64, read_f64, write_f64);
 
     qc_byte_order!(prop_uint_1, u64, super::U64_MAX, 1, read_uint, write_uint);
     qc_byte_order!(prop_uint_2, u64, super::U64_MAX, 2, read_uint, write_uint);
@@ -560,6 +559,126 @@ mod test {
     qc_byte_order!(prop_int_6, i64, super::I64_MAX, 6, read_int, write_int);
     qc_byte_order!(prop_int_7, i64, super::I64_MAX, 7, read_int, write_int);
     qc_byte_order!(prop_int_8, i64, super::I64_MAX, 8, read_int, write_int);
+
+    // Test that all of the byte conversion functions panic when given a
+    // buffer that is too small.
+    //
+    // These tests are critical to ensure safety, otherwise we might end up
+    // with a buffer overflow.
+    macro_rules! too_small {
+        ($name:ident, $maximally_small:expr, $zero:expr,
+         $read:ident, $write:ident) => (
+            mod $name {
+                use {BigEndian, ByteOrder, NativeEndian, LittleEndian};
+
+                #[test]
+                #[should_panic]
+                fn read_big_endian() {
+                    let buf = [0; $maximally_small];
+                    BigEndian::$read(&buf);
+                }
+
+                #[test]
+                #[should_panic]
+                fn read_little_endian() {
+                    let buf = [0; $maximally_small];
+                    LittleEndian::$read(&buf);
+                }
+
+                #[test]
+                #[should_panic]
+                fn read_native_endian() {
+                    let buf = [0; $maximally_small];
+                    NativeEndian::$read(&buf);
+                }
+
+                #[test]
+                #[should_panic]
+                fn write_big_endian() {
+                    let mut buf = [0; $maximally_small];
+                    BigEndian::$write(&mut buf, $zero);
+                }
+
+                #[test]
+                #[should_panic]
+                fn write_little_endian() {
+                    let mut buf = [0; $maximally_small];
+                    LittleEndian::$write(&mut buf, $zero);
+                }
+
+                #[test]
+                #[should_panic]
+                fn write_native_endian() {
+                    let mut buf = [0; $maximally_small];
+                    NativeEndian::$write(&mut buf, $zero);
+                }
+            }
+        );
+        ($name:ident, $maximally_small:expr, $read:ident) => (
+            mod $name {
+                use {BigEndian, ByteOrder, NativeEndian, LittleEndian};
+
+                #[test]
+                #[should_panic]
+                fn read_big_endian() {
+                    let buf = [0; $maximally_small];
+                    BigEndian::$read(&buf, $maximally_small + 1);
+                }
+
+                #[test]
+                #[should_panic]
+                fn read_little_endian() {
+                    let buf = [0; $maximally_small];
+                    LittleEndian::$read(&buf, $maximally_small + 1);
+                }
+
+                #[test]
+                #[should_panic]
+                fn read_native_endian() {
+                    let buf = [0; $maximally_small];
+                    NativeEndian::$read(&buf, $maximally_small + 1);
+                }
+            }
+        );
+    }
+
+    too_small!(small_u16, 1, 0, read_u16, write_u16);
+    too_small!(small_i16, 1, 0, read_i16, write_i16);
+    too_small!(small_u32, 3, 0, read_u32, write_u32);
+    too_small!(small_i32, 3, 0, read_i32, write_i32);
+    too_small!(small_u64, 7, 0, read_u64, write_u64);
+    too_small!(small_i64, 7, 0, read_i64, write_i64);
+    too_small!(small_f32, 3, 0.0, read_f32, write_f32);
+    too_small!(small_f64, 7, 0.0, read_f64, write_f64);
+
+    too_small!(small_uint_1, 1, read_uint);
+    too_small!(small_uint_2, 2, read_uint);
+    too_small!(small_uint_3, 3, read_uint);
+    too_small!(small_uint_4, 4, read_uint);
+    too_small!(small_uint_5, 5, read_uint);
+    too_small!(small_uint_6, 6, read_uint);
+    too_small!(small_uint_7, 7, read_uint);
+
+    too_small!(small_int_1, 1, read_int);
+    too_small!(small_int_2, 2, read_int);
+    too_small!(small_int_3, 3, read_int);
+    too_small!(small_int_4, 4, read_int);
+    too_small!(small_int_5, 5, read_int);
+    too_small!(small_int_6, 6, read_int);
+    too_small!(small_int_7, 7, read_int);
+
+    #[test]
+    fn uint_bigger_buffer() {
+        use {ByteOrder, LittleEndian};
+        let n = LittleEndian::read_uint(&[1, 2, 3, 4, 5, 6, 7, 8], 5);
+        assert_eq!(n, 0x0504030201);
+    }
+}
+
+#[cfg(test)]
+#[cfg(feature = "std")]
+mod stdtests {
+    use test::{U64_MAX, I64_MAX, qc_sized};
 
     macro_rules! qc_bytes_ext {
         ($name:ident, $ty_int:ident, $max:expr,
@@ -682,118 +801,5 @@ mod test {
     qc_bytes_ext!(prop_ext_int_6, i64, super::I64_MAX, 6, read_int, write_i64);
     qc_bytes_ext!(prop_ext_int_7, i64, super::I64_MAX, 7, read_int, write_i64);
     qc_bytes_ext!(prop_ext_int_8, i64, super::I64_MAX, 8, read_int, write_i64);
-
-    // Test that all of the byte conversion functions panic when given a
-    // buffer that is too small.
-    //
-    // These tests are critical to ensure safety, otherwise we might end up
-    // with a buffer overflow.
-    macro_rules! too_small {
-        ($name:ident, $maximally_small:expr, $zero:expr,
-         $read:ident, $write:ident) => (
-            mod $name {
-                use {BigEndian, ByteOrder, NativeEndian, LittleEndian};
-
-                #[test]
-                #[should_panic]
-                fn read_big_endian() {
-                    let buf = [0; $maximally_small];
-                    BigEndian::$read(&buf);
-                }
-
-                #[test]
-                #[should_panic]
-                fn read_little_endian() {
-                    let buf = [0; $maximally_small];
-                    LittleEndian::$read(&buf);
-                }
-
-                #[test]
-                #[should_panic]
-                fn read_native_endian() {
-                    let buf = [0; $maximally_small];
-                    NativeEndian::$read(&buf);
-                }
-
-                #[test]
-                #[should_panic]
-                fn write_big_endian() {
-                    let mut buf = [0; $maximally_small];
-                    BigEndian::$write(&mut buf, $zero);
-                }
-
-                #[test]
-                #[should_panic]
-                fn write_little_endian() {
-                    let mut buf = [0; $maximally_small];
-                    LittleEndian::$write(&mut buf, $zero);
-                }
-
-                #[test]
-                #[should_panic]
-                fn write_native_endian() {
-                    let mut buf = [0; $maximally_small];
-                    NativeEndian::$write(&mut buf, $zero);
-                }
-            }
-        );
-        ($name:ident, $maximally_small:expr, $read:ident) => (
-            mod $name {
-                use {BigEndian, ByteOrder, NativeEndian, LittleEndian};
-
-                #[test]
-                #[should_panic]
-                fn read_big_endian() {
-                    let buf = [0; $maximally_small];
-                    BigEndian::$read(&buf, $maximally_small + 1);
-                }
-
-                #[test]
-                #[should_panic]
-                fn read_little_endian() {
-                    let buf = [0; $maximally_small];
-                    LittleEndian::$read(&buf, $maximally_small + 1);
-                }
-
-                #[test]
-                #[should_panic]
-                fn read_native_endian() {
-                    let buf = [0; $maximally_small];
-                    NativeEndian::$read(&buf, $maximally_small + 1);
-                }
-            }
-        );
-    }
-
-    too_small!(small_u16, 1, 0, read_u16, write_u16);
-    too_small!(small_i16, 1, 0, read_i16, write_i16);
-    too_small!(small_u32, 3, 0, read_u32, write_u32);
-    too_small!(small_i32, 3, 0, read_i32, write_i32);
-    too_small!(small_u64, 7, 0, read_u64, write_u64);
-    too_small!(small_i64, 7, 0, read_i64, write_i64);
-    too_small!(small_f32, 3, 0.0, read_f32, write_f32);
-    too_small!(small_f64, 7, 0.0, read_f64, write_f64);
-
-    too_small!(small_uint_1, 1, read_uint);
-    too_small!(small_uint_2, 2, read_uint);
-    too_small!(small_uint_3, 3, read_uint);
-    too_small!(small_uint_4, 4, read_uint);
-    too_small!(small_uint_5, 5, read_uint);
-    too_small!(small_uint_6, 6, read_uint);
-    too_small!(small_uint_7, 7, read_uint);
-
-    too_small!(small_int_1, 1, read_int);
-    too_small!(small_int_2, 2, read_int);
-    too_small!(small_int_3, 3, read_int);
-    too_small!(small_int_4, 4, read_int);
-    too_small!(small_int_5, 5, read_int);
-    too_small!(small_int_6, 6, read_int);
-    too_small!(small_int_7, 7, read_int);
-
-    #[test]
-    fn uint_bigger_buffer() {
-        use {ByteOrder, LittleEndian};
-        let n = LittleEndian::read_uint(&[1, 2, 3, 4, 5, 6, 7, 8], 5);
-        assert_eq!(n, 0x0504030201);
-    }
 }
+
