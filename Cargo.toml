@@ -23,6 +23,7 @@ rand = "0.3"
 [features]
 default = ["std"]
 std = []
+i128 = []
 
 [profile.bench]
 opt-level = 3

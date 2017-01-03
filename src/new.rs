@@ -239,6 +239,64 @@ pub trait ReadBytesExt: io::Read {
         Ok(T::read_i64(&buf))
     }
 
+    /// Reads an unsigned 128 bit integer from the underlying reader.
+    ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Read::read_exact`].
+    ///
+    /// [`Read::read_exact`]: https://doc.rust-lang.org/std/io/trait.Read.html#method.read_exact
+    ///
+    /// # Examples
+    ///
+    /// Read an unsigned 128 bit big-endian integer from a `Read`:
+    ///
+    /// ```rust
+    /// use std::io::Cursor;
+    /// use byteorder::{BigEndian, ReadBytesExt};
+    ///
+    /// let mut rdr = Cursor::new(vec![
+    ///     0x00, 0x03, 0x43, 0x95, 0x4d, 0x60, 0x86, 0x83,
+    ///     0x00, 0x03, 0x43, 0x95, 0x4d, 0x60, 0x86, 0x83
+    /// ]);
+    /// assert_eq!(16947640962301618749969007319746179, rdr.read_u128::<BigEndian>().unwrap());
+    /// ```
+    #[cfg(feature = "i128")]
+    #[inline]
+    fn read_u128<T: ByteOrder>(&mut self) -> Result<u128> {
+        let mut buf = [0; 16];
+        try!(self.read_exact(&mut buf));
+        Ok(T::read_u128(&buf))
+    }
+
+    /// Reads a signed 128 bit integer from the underlying reader.
+    ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Read::read_exact`].
+    ///
+    /// [`Read::read_exact`]: https://doc.rust-lang.org/std/io/trait.Read.html#method.read_exact
+    ///
+    /// # Examples
+    ///
+    /// Read a signed 128 bit big-endian integer from a `Read`:
+    ///
+    /// ```rust
+    /// #![feature(i128_type)]
+    /// use std::io::Cursor;
+    /// use byteorder::{BigEndian, ReadBytesExt};
+    ///
+    /// let mut rdr = Cursor::new(vec![0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+    /// assert_eq!(i128::min_value(), rdr.read_i128::<BigEndian>().unwrap());
+    /// ```
+    #[cfg(feature = "i128")]
+    #[inline]
+    fn read_i128<T: ByteOrder>(&mut self) -> Result<i128> {
+        let mut buf = [0; 16];
+        try!(self.read_exact(&mut buf));
+        Ok(T::read_i128(&buf))
+    }
+
     /// Reads an unsigned n-bytes integer from the underlying reader.
     ///
     /// # Errors
@@ -287,6 +345,24 @@ pub trait ReadBytesExt: io::Read {
         let mut buf = [0; 8];
         try!(self.read_exact(&mut buf[..nbytes]));
         Ok(T::read_int(&buf[..nbytes], nbytes))
+    }
+
+    /// Reads an unsigned n-bytes integer from the underlying reader.
+    #[cfg(feature = "i128")]
+    #[inline]
+    fn read_uint128<T: ByteOrder>(&mut self, nbytes: usize) -> Result<u128> {
+        let mut buf = [0; 16];
+        try!(self.read_exact(&mut buf[..nbytes]));
+        Ok(T::read_uint128(&buf[..nbytes], nbytes))
+    }
+
+    /// Reads a signed n-bytes integer from the underlying reader.
+    #[cfg(feature = "i128")]
+    #[inline]
+    fn read_int128<T: ByteOrder>(&mut self, nbytes: usize) -> Result<i128> {
+        let mut buf = [0; 16];
+        try!(self.read_exact(&mut buf[..nbytes]));
+        Ok(T::read_int128(&buf[..nbytes], nbytes))
     }
 
     /// Reads a IEEE754 single-precision (4 bytes) floating point number from
@@ -481,6 +557,24 @@ pub trait WriteBytesExt: io::Write {
         self.write_all(&buf)
     }
 
+    /// Writes an unsigned 128 bit integer to the underlying writer.
+    #[cfg(feature = "i128")]
+    #[inline]
+    fn write_u128<T: ByteOrder>(&mut self, n: u128) -> Result<()> {
+        let mut buf = [0; 16];
+        T::write_u128(&mut buf, n);
+        self.write_all(&buf)
+    }
+
+    /// Writes a signed 128 bit integer to the underlying writer.
+    #[cfg(feature = "i128")]
+    #[inline]
+    fn write_i128<T: ByteOrder>(&mut self, n: i128) -> Result<()> {
+        let mut buf = [0; 16];
+        T::write_i128(&mut buf, n);
+        self.write_all(&buf)
+    }
+
     /// Writes an unsigned n-bytes integer to the underlying writer.
     ///
     /// # Errors
@@ -524,6 +618,38 @@ pub trait WriteBytesExt: io::Write {
     ) -> Result<()> {
         let mut buf = [0; 8];
         T::write_int(&mut buf, n, nbytes);
+        self.write_all(&buf[0..nbytes])
+    }
+
+    /// Writes an unsigned n-bytes integer to the underlying writer.
+    ///
+    /// If the given integer is not representable in the given number of bytes,
+    /// this method panics. If `nbytes > 16`, this method panics.
+    #[cfg(feature = "i128")]
+    #[inline]
+    fn write_uint128<T: ByteOrder>(
+        &mut self,
+        n: u128,
+        nbytes: usize,
+    ) -> Result<()> {
+        let mut buf = [0; 16];
+        T::write_uint128(&mut buf, n, nbytes);
+        self.write_all(&buf[0..nbytes])
+    }
+
+    /// Writes a signed n-bytes integer to the underlying writer.
+    ///
+    /// If the given integer is not representable in the given number of bytes,
+    /// this method panics. If `nbytes > 16`, this method panics.
+    #[cfg(feature = "i128")]
+    #[inline]
+    fn write_int128<T: ByteOrder>(
+        &mut self,
+        n: i128,
+        nbytes: usize,
+    ) -> Result<()> {
+        let mut buf = [0; 16];
+        T::write_int128(&mut buf, n, nbytes);
         self.write_all(&buf[0..nbytes])
     }
 

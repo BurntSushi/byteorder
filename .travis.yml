@@ -10,6 +10,10 @@ script:
   - cargo test --verbose
   - cargo test --verbose --no-default-features --lib
   - if [ "$TRAVIS_RUST_VERSION" = "nightly" ]; then
+      cargo test --verbose --features i128;
+      cargo test --verbose --no-default-features --features i128 --lib;
       cargo bench --verbose;
       cargo bench --verbose --no-default-features;
+      cargo bench --verbose --features i128;
+      cargo bench --verbose --no-default-features --features i128;
     fi
