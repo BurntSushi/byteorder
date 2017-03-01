@@ -418,6 +418,15 @@ pub trait ReadBytesExt: io::Read {
         try!(self.read_exact(&mut buf));
         Ok(T::read_f64(&buf))
     }
+
+    /// Reads a IEEE754 double-precision (8 bytes) floating point number from
+    /// the underlying reader (padding with zeros).
+    #[inline]
+    fn read_float<T: ByteOrder>(&mut self, nbytes: usize) -> Result<f64> {
+        let mut buf = [0; 8];
+        try!(self.read_exact(&mut buf[..nbytes]));
+        Ok(T::read_float(&buf[..nbytes], nbytes))
+    }
 }
 
 /// All types that implement `Read` get methods defined in `ReadBytesExt`

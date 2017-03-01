@@ -382,6 +382,26 @@ pub trait ByteOrder
     #[cfg(feature = "i128")]
     fn write_uint128(buf: &mut [u8], n: u128, nbytes: usize);
 
+    /// Reads the first nbytes of a IEEE754 double-precision (8 bytes) floating point number and
+    /// assumes the rest are zero.
+    /// This is useful for formats which serialize floats as little-endian integers and elid any
+    /// trailing zeros in the low bits to save space.
+    ///
+    /// Panics when `nbytes < 1` or `nbytes > 8` or
+    /// `buf.len() < nbytes`
+    ///
+    /// # Examples
+    ///
+    /// Write and read n-byte length floats:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let buf = b"\xf0\x3f";
+    /// assert_eq!(1.0, LittleEndian::read_float(buf, buf.len()));
+    /// ```
+    fn read_float(buf: &[u8], nbytes: usize) -> f64;
+
     /// Reads a signed 16 bit integer from `buf`.
     ///
     /// # Panics
@@ -861,6 +881,17 @@ impl ByteOrder for BigEndian {
     }
 
     #[inline]
+    fn read_float(buf: &[u8], nbytes: usize) -> f64 {
+        assert!(1 <= nbytes && nbytes <= 8 && nbytes <= buf.len());
+        let mut out = [0; 8];
+        let ptr_out = out.as_mut_ptr();
+        unsafe {
+            copy_nonoverlapping(buf.as_ptr(), ptr_out.offset((8 - nbytes) as isize), nbytes);
+            transmute((*(ptr_out as *const u64)).to_be())
+        }
+    }
+
+    #[inline]
     fn write_u16(buf: &mut [u8], n: u16) {
         write_num_bytes!(u16, 2, n, buf, to_be);
     }
@@ -951,6 +982,17 @@ impl ByteOrder for LittleEndian {
         unsafe {
             copy_nonoverlapping(buf.as_ptr(), ptr_out, nbytes);
             (*(ptr_out as *const u128)).to_le()
+        }
+    }
+
+    #[inline]
+    fn read_float(buf: &[u8], nbytes: usize) -> f64 {
+        assert!(1 <= nbytes && nbytes <= 8 && nbytes <= buf.len());
+        let mut out = [0; 8];
+        let ptr_out = out.as_mut_ptr();
+        unsafe {
+            copy_nonoverlapping(buf.as_ptr(), ptr_out.offset((8 - nbytes) as isize), nbytes);
+            transmute((*(ptr_out as *const u64)).to_le())
         }
     }
 
@@ -1462,6 +1504,14 @@ mod test {
     too_small!(small_int128_14, 14, read_int128);
     #[cfg(feature = "i128")]
     too_small!(small_int128_15, 15, read_int128);
+
+    too_small!(small_float_1, 1, read_float);
+    too_small!(small_float_2, 2, read_float);
+    too_small!(small_float_3, 3, read_float);
+    too_small!(small_float_4, 4, read_float);
+    too_small!(small_float_5, 5, read_float);
+    too_small!(small_float_6, 6, read_float);
+    too_small!(small_float_7, 7, read_float);
 
     #[test]
     fn uint_bigger_buffer() {
