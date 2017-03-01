@@ -608,6 +608,8 @@ pub trait ByteOrder
 
     /// Reads a IEEE754 single-precision (4 bytes) floating point number.
     ///
+    /// The return value is always defined; signaling NaN's may be turned into quiet NaN's.
+    ///
     /// # Panics
     ///
     /// Panics when `buf.len() < 4`.
@@ -626,10 +628,12 @@ pub trait ByteOrder
     /// ```
     #[inline]
     fn read_f32(buf: &[u8]) -> f32 {
-        unsafe { transmute(Self::read_u32(buf)) }
+        safe_u32_bits_to_f32(Self::read_u32(buf))
     }
 
     /// Reads a IEEE754 double-precision (8 bytes) floating point number.
+    ///
+    /// The return value is always defined; signaling NaN's may be turned into quiet NaN's.
     ///
     /// # Panics
     ///
@@ -649,7 +653,7 @@ pub trait ByteOrder
     /// ```
     #[inline]
     fn read_f64(buf: &[u8]) -> f64 {
-        unsafe { transmute(Self::read_u64(buf)) }
+        safe_u64_bits_to_f64(Self::read_u64(buf))
     }
 
     /// Writes a signed 16 bit integer `n` to `buf`.
@@ -1155,6 +1159,44 @@ impl ByteOrder for LittleEndian {
     }
 }
 
+#[inline]
+fn safe_u32_bits_to_f32(u: u32) -> f32 {
+    use core::f32::NAN;
+
+    const EXP_MASK: u32 = 0x7F800000;
+    const FRACT_MASK: u32 = 0x007FFFFF;
+
+    if u & EXP_MASK == EXP_MASK && u & FRACT_MASK != 0 {
+        // While IEEE 754-2008 specifies encodings for quiet NaNs and
+        // signaling ones, certains MIPS and PA-RISC CPUs treat signaling
+        // NaNs differently. Therefore, to be safe, we pass a known quiet
+        // NaN if u is any kind of NaN. The check above only assumes
+        // IEEE 754-1985 to be valid.
+        unsafe { transmute(NAN) }
+    } else {
+        unsafe { transmute(u) }
+    }
+}
+
+#[inline]
+fn safe_u64_bits_to_f64(u: u64) -> f64 {
+    use core::f64::NAN;
+
+    const EXP_MASK: u64 = 0x7FF0000000000000;
+    const FRACT_MASK: u64 = 0x000FFFFFFFFFFFFF;
+
+    if u & EXP_MASK == EXP_MASK && u & FRACT_MASK != 0 {
+        // While IEEE 754-2008 specifies encodings for quiet NaNs and
+        // signaling ones, certains MIPS and PA-RISC CPUs treat signaling
+        // NaNs differently. Therefore, to be safe, we pass a known quiet
+        // NaN if u is any kind of NaN. The check above only assumes
+        // IEEE 754-1985 to be valid.
+        unsafe { transmute(NAN) }
+    } else {
+        unsafe { transmute(u) }
+    }
+}
+
 #[cfg(test)]
 mod test {
     extern crate quickcheck;
@@ -1631,6 +1673,35 @@ mod test {
         use {ByteOrder, LittleEndian};
         let n = LittleEndian::read_uint(&[1, 2, 3, 4, 5, 6, 7, 8], 5);
         assert_eq!(n, 0x0504030201);
+    }
+
+    #[test]
+    fn read_snan() {
+        use core::f32;
+        use core::f64;
+        use core::mem::transmute;
+
+        use {ByteOrder, BigEndian, LittleEndian};
+
+        let sf = BigEndian::read_f32(&[0xFF, 0x80, 0x00, 0x01]);
+        let sbits: u32 = unsafe { transmute(sf) };
+        assert_eq!(sbits, unsafe { transmute(f32::NAN) });
+        assert_eq!(sf.classify(), ::core::num::FpCategory::Nan);
+
+        let df = BigEndian::read_f64(&[0x7F, 0xF0, 0, 0, 0, 0, 0, 0x01]);
+        let dbits: u64 = unsafe { ::core::mem::transmute(df) };
+        assert_eq!(dbits, unsafe { transmute(f64::NAN) });
+        assert_eq!(df.classify(), ::core::num::FpCategory::Nan);
+
+        let sf = LittleEndian::read_f32(&[0x01, 0x00, 0x80, 0xFF]);
+        let sbits: u32 = unsafe { transmute(sf) };
+        assert_eq!(sbits, unsafe { transmute(f32::NAN) });
+        assert_eq!(sf.classify(), ::core::num::FpCategory::Nan);
+
+        let df = LittleEndian::read_f64(&[0x01, 0, 0, 0, 0, 0, 0xF0, 0x7F]);
+        let dbits: u64 = unsafe { ::core::mem::transmute(df) };
+        assert_eq!(dbits, unsafe { transmute(f64::NAN) });
+        assert_eq!(df.classify(), ::core::num::FpCategory::Nan);
     }
 }
 
