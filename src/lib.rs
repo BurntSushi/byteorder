@@ -38,6 +38,7 @@ assert_eq!(wtr, vec![5, 2, 0, 3]);
 
 #![deny(missing_docs)]
 #![cfg_attr(not(feature = "std"), no_std)]
+#![doc(html_root_url = "https://docs.rs/byteorder/1.0.0")]
 
 #[cfg(feature = "std")]
 extern crate core;
