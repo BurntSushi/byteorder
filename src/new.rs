@@ -217,6 +217,8 @@ pub trait WriteBytesExt: io::Write {
 
     /// Writes an unsigned n-bytes integer to the underlying writer.
     ///
+    /// # Panics
+    ///
     /// If the given integer is not representable in the given number of bytes,
     /// this method panics. If `nbytes > 8`, this method panics.
     #[inline]
@@ -231,6 +233,8 @@ pub trait WriteBytesExt: io::Write {
     }
 
     /// Writes a signed n-bytes integer to the underlying writer.
+    ///
+    /// # Panics
     ///
     /// If the given integer is not representable in the given number of bytes,
     /// this method panics. If `nbytes > 8`, this method panics.
