@@ -1,5 +1,6 @@
 [package]
 name = "byteorder"
+# NB: When modifying, also modify html_root_url in lib.rs
 version = "1.0.0"  #:version
 authors = ["Andrew Gallant <jamslam@gmail.com>"]
 description = "Library for reading/writing numbers in big-endian and little-endian."
