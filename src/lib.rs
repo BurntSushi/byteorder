@@ -120,20 +120,28 @@ pub trait ByteOrder
     : Clone + Copy + Debug + Default + Eq + Hash + Ord + PartialEq + PartialOrd {
     /// Reads an unsigned 16 bit integer from `buf`.
     ///
+    /// # Panics
+    ///
     /// Panics when `buf.len() < 2`.
     fn read_u16(buf: &[u8]) -> u16;
 
     /// Reads an unsigned 32 bit integer from `buf`.
+    ///
+    /// # Panics
     ///
     /// Panics when `buf.len() < 4`.
     fn read_u32(buf: &[u8]) -> u32;
 
     /// Reads an unsigned 64 bit integer from `buf`.
     ///
+    /// # Panics
+    ///
     /// Panics when `buf.len() < 8`.
     fn read_u64(buf: &[u8]) -> u64;
 
     /// Reads an unsigned n-bytes integer from `buf`.
+    ///
+    /// # Panics
     ///
     /// Panics when `nbytes < 1` or `nbytes > 8` or
     /// `buf.len() < nbytes`
@@ -141,26 +149,36 @@ pub trait ByteOrder
 
     /// Writes an unsigned 16 bit integer `n` to `buf`.
     ///
+    /// # Panics
+    ///
     /// Panics when `buf.len() < 2`.
     fn write_u16(buf: &mut [u8], n: u16);
 
     /// Writes an unsigned 32 bit integer `n` to `buf`.
+    ///
+    /// # Panics
     ///
     /// Panics when `buf.len() < 4`.
     fn write_u32(buf: &mut [u8], n: u32);
 
     /// Writes an unsigned 64 bit integer `n` to `buf`.
     ///
+    /// # Panics
+    ///
     /// Panics when `buf.len() < 8`.
     fn write_u64(buf: &mut [u8], n: u64);
 
     /// Writes an unsigned integer `n` to `buf` using only `nbytes`.
+    ///
+    /// # Panics
     ///
     /// If `n` is not representable in `nbytes`, or if `nbytes` is `> 8`, then
     /// this method panics.
     fn write_uint(buf: &mut [u8], n: u64, nbytes: usize);
 
     /// Reads a signed 16 bit integer from `buf`.
+    ///
+    /// # Panics
     ///
     /// Panics when `buf.len() < 2`.
     #[inline]
@@ -170,6 +188,8 @@ pub trait ByteOrder
 
     /// Reads a signed 32 bit integer from `buf`.
     ///
+    /// # Panics
+    ///
     /// Panics when `buf.len() < 4`.
     #[inline]
     fn read_i32(buf: &[u8]) -> i32 {
@@ -178,6 +198,8 @@ pub trait ByteOrder
 
     /// Reads a signed 64 bit integer from `buf`.
     ///
+    /// # Panics
+    ///
     /// Panics when `buf.len() < 8`.
     #[inline]
     fn read_i64(buf: &[u8]) -> i64 {
@@ -185,6 +207,8 @@ pub trait ByteOrder
     }
 
     /// Reads a signed n-bytes integer from `buf`.
+    ///
+    /// # Panics
     ///
     /// Panics when `nbytes < 1` or `nbytes > 8` or
     /// `buf.len() < nbytes`
@@ -195,6 +219,8 @@ pub trait ByteOrder
 
     /// Reads a IEEE754 single-precision (4 bytes) floating point number.
     ///
+    /// # Panics
+    ///
     /// Panics when `buf.len() < 4`.
     #[inline]
     fn read_f32(buf: &[u8]) -> f32 {
@@ -202,6 +228,8 @@ pub trait ByteOrder
     }
 
     /// Reads a IEEE754 double-precision (8 bytes) floating point number.
+    ///
+    /// # Panics
     ///
     /// Panics when `buf.len() < 8`.
     #[inline]
@@ -211,6 +239,8 @@ pub trait ByteOrder
 
     /// Writes a signed 16 bit integer `n` to `buf`.
     ///
+    /// # Panics
+    ///
     /// Panics when `buf.len() < 2`.
     #[inline]
     fn write_i16(buf: &mut [u8], n: i16) {
@@ -218,6 +248,8 @@ pub trait ByteOrder
     }
 
     /// Writes a signed 32 bit integer `n` to `buf`.
+    ///
+    /// # Panics
     ///
     /// Panics when `buf.len() < 4`.
     #[inline]
@@ -227,6 +259,8 @@ pub trait ByteOrder
 
     /// Writes a signed 64 bit integer `n` to `buf`.
     ///
+    /// # Panics
+    ///
     /// Panics when `buf.len() < 8`.
     #[inline]
     fn write_i64(buf: &mut [u8], n: i64) {
@@ -234,6 +268,8 @@ pub trait ByteOrder
     }
 
     /// Writes a signed integer `n` to `buf` using only `nbytes`.
+    ///
+    /// # Panics
     ///
     /// If `n` is not representable in `nbytes`, or if `nbytes` is `> 8`, then
     /// this method panics.
@@ -244,6 +280,8 @@ pub trait ByteOrder
 
     /// Writes a IEEE754 single-precision (4 bytes) floating point number.
     ///
+    /// # Panics
+    ///
     /// Panics when `buf.len() < 4`.
     #[inline]
     fn write_f32(buf: &mut [u8], n: f32) {
@@ -251,6 +289,8 @@ pub trait ByteOrder
     }
 
     /// Writes a IEEE754 double-precision (8 bytes) floating point number.
+    ///
+    /// # Panics
     ///
     /// Panics when `buf.len() < 8`.
     #[inline]
