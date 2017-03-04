@@ -25,6 +25,12 @@ pub trait ReadBytesExt: io::Read {
     ///
     /// Note that since this reads a single byte, no byte order conversions
     /// are used. It is included for completeness.
+    ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Read::read_exact`].
+    ///
+    /// [`Read::read_exact`]: https://doc.rust-lang.org/std/io/trait.Read.html#method.read_exact
     #[inline]
     fn read_u8(&mut self) -> Result<u8> {
         let mut buf = [0; 1];
@@ -36,6 +42,12 @@ pub trait ReadBytesExt: io::Read {
     ///
     /// Note that since this reads a single byte, no byte order conversions
     /// are used. It is included for completeness.
+    ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Read::read_exact`].
+    ///
+    /// [`Read::read_exact`]: https://doc.rust-lang.org/std/io/trait.Read.html#method.read_exact
     #[inline]
     fn read_i8(&mut self) -> Result<i8> {
         let mut buf = [0; 1];
@@ -44,6 +56,12 @@ pub trait ReadBytesExt: io::Read {
     }
 
     /// Reads an unsigned 16 bit integer from the underlying reader.
+    ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Read::read_exact`].
+    ///
+    /// [`Read::read_exact`]: https://doc.rust-lang.org/std/io/trait.Read.html#method.read_exact
     #[inline]
     fn read_u16<T: ByteOrder>(&mut self) -> Result<u16> {
         let mut buf = [0; 2];
@@ -52,6 +70,12 @@ pub trait ReadBytesExt: io::Read {
     }
 
     /// Reads a signed 16 bit integer from the underlying reader.
+    ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Read::read_exact`].
+    ///
+    /// [`Read::read_exact`]: https://doc.rust-lang.org/std/io/trait.Read.html#method.read_exact
     #[inline]
     fn read_i16<T: ByteOrder>(&mut self) -> Result<i16> {
         let mut buf = [0; 2];
@@ -60,6 +84,12 @@ pub trait ReadBytesExt: io::Read {
     }
 
     /// Reads an unsigned 32 bit integer from the underlying reader.
+    ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Read::read_exact`].
+    ///
+    /// [`Read::read_exact`]: https://doc.rust-lang.org/std/io/trait.Read.html#method.read_exact
     #[inline]
     fn read_u32<T: ByteOrder>(&mut self) -> Result<u32> {
         let mut buf = [0; 4];
@@ -68,6 +98,12 @@ pub trait ReadBytesExt: io::Read {
     }
 
     /// Reads a signed 32 bit integer from the underlying reader.
+    ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Read::read_exact`].
+    ///
+    /// [`Read::read_exact`]: https://doc.rust-lang.org/std/io/trait.Read.html#method.read_exact
     #[inline]
     fn read_i32<T: ByteOrder>(&mut self) -> Result<i32> {
         let mut buf = [0; 4];
@@ -76,6 +112,12 @@ pub trait ReadBytesExt: io::Read {
     }
 
     /// Reads an unsigned 64 bit integer from the underlying reader.
+    ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Read::read_exact`].
+    ///
+    /// [`Read::read_exact`]: https://doc.rust-lang.org/std/io/trait.Read.html#method.read_exact
     #[inline]
     fn read_u64<T: ByteOrder>(&mut self) -> Result<u64> {
         let mut buf = [0; 8];
@@ -84,6 +126,12 @@ pub trait ReadBytesExt: io::Read {
     }
 
     /// Reads a signed 64 bit integer from the underlying reader.
+    ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Read::read_exact`].
+    ///
+    /// [`Read::read_exact`]: https://doc.rust-lang.org/std/io/trait.Read.html#method.read_exact
     #[inline]
     fn read_i64<T: ByteOrder>(&mut self) -> Result<i64> {
         let mut buf = [0; 8];
@@ -92,6 +140,12 @@ pub trait ReadBytesExt: io::Read {
     }
 
     /// Reads an unsigned n-bytes integer from the underlying reader.
+    ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Read::read_exact`].
+    ///
+    /// [`Read::read_exact`]: https://doc.rust-lang.org/std/io/trait.Read.html#method.read_exact
     #[inline]
     fn read_uint<T: ByteOrder>(&mut self, nbytes: usize) -> Result<u64> {
         let mut buf = [0; 8];
@@ -100,6 +154,12 @@ pub trait ReadBytesExt: io::Read {
     }
 
     /// Reads a signed n-bytes integer from the underlying reader.
+    ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Read::read_exact`].
+    ///
+    /// [`Read::read_exact`]: https://doc.rust-lang.org/std/io/trait.Read.html#method.read_exact
     #[inline]
     fn read_int<T: ByteOrder>(&mut self, nbytes: usize) -> Result<i64> {
         let mut buf = [0; 8];
@@ -109,6 +169,12 @@ pub trait ReadBytesExt: io::Read {
 
     /// Reads a IEEE754 single-precision (4 bytes) floating point number from
     /// the underlying reader.
+    ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Read::read_exact`].
+    ///
+    /// [`Read::read_exact`]: https://doc.rust-lang.org/std/io/trait.Read.html#method.read_exact
     #[inline]
     fn read_f32<T: ByteOrder>(&mut self) -> Result<f32> {
         let mut buf = [0; 4];
@@ -119,6 +185,12 @@ pub trait ReadBytesExt: io::Read {
     /// Reads a IEEE754 double-precision (8 bytes) floating point number from
     /// the underlying reader.
     #[inline]
+    ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Read::read_exact`].
+    ///
+    /// [`Read::read_exact`]: https://doc.rust-lang.org/std/io/trait.Read.html#method.read_exact
     fn read_f64<T: ByteOrder>(&mut self) -> Result<f64> {
         let mut buf = [0; 8];
         try!(self.read_exact(&mut buf));
@@ -153,6 +225,12 @@ pub trait WriteBytesExt: io::Write {
     ///
     /// Note that since this writes a single byte, no byte order conversions
     /// are used. It is included for completeness.
+    ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Write::write_all`].
+    ///
+    /// [`Write::write_all`]: https://doc.rust-lang.org/std/io/trait.Write.html#method.write_all
     #[inline]
     fn write_u8(&mut self, n: u8) -> Result<()> {
         self.write_all(&[n])
@@ -162,12 +240,24 @@ pub trait WriteBytesExt: io::Write {
     ///
     /// Note that since this writes a single byte, no byte order conversions
     /// are used. It is included for completeness.
+    ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Write::write_all`].
+    ///
+    /// [`Write::write_all`]: https://doc.rust-lang.org/std/io/trait.Write.html#method.write_all
     #[inline]
     fn write_i8(&mut self, n: i8) -> Result<()> {
         self.write_all(&[n as u8])
     }
 
     /// Writes an unsigned 16 bit integer to the underlying writer.
+    ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Write::write_all`].
+    ///
+    /// [`Write::write_all`]: https://doc.rust-lang.org/std/io/trait.Write.html#method.write_all
     #[inline]
     fn write_u16<T: ByteOrder>(&mut self, n: u16) -> Result<()> {
         let mut buf = [0; 2];
@@ -176,6 +266,12 @@ pub trait WriteBytesExt: io::Write {
     }
 
     /// Writes a signed 16 bit integer to the underlying writer.
+    ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Write::write_all`].
+    ///
+    /// [`Write::write_all`]: https://doc.rust-lang.org/std/io/trait.Write.html#method.write_all
     #[inline]
     fn write_i16<T: ByteOrder>(&mut self, n: i16) -> Result<()> {
         let mut buf = [0; 2];
@@ -184,6 +280,12 @@ pub trait WriteBytesExt: io::Write {
     }
 
     /// Writes an unsigned 32 bit integer to the underlying writer.
+    ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Write::write_all`].
+    ///
+    /// [`Write::write_all`]: https://doc.rust-lang.org/std/io/trait.Write.html#method.write_all
     #[inline]
     fn write_u32<T: ByteOrder>(&mut self, n: u32) -> Result<()> {
         let mut buf = [0; 4];
@@ -192,6 +294,12 @@ pub trait WriteBytesExt: io::Write {
     }
 
     /// Writes a signed 32 bit integer to the underlying writer.
+    ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Write::write_all`].
+    ///
+    /// [`Write::write_all`]: https://doc.rust-lang.org/std/io/trait.Write.html#method.write_all
     #[inline]
     fn write_i32<T: ByteOrder>(&mut self, n: i32) -> Result<()> {
         let mut buf = [0; 4];
@@ -200,6 +308,12 @@ pub trait WriteBytesExt: io::Write {
     }
 
     /// Writes an unsigned 64 bit integer to the underlying writer.
+    ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Write::write_all`].
+    ///
+    /// [`Write::write_all`]: https://doc.rust-lang.org/std/io/trait.Write.html#method.write_all
     #[inline]
     fn write_u64<T: ByteOrder>(&mut self, n: u64) -> Result<()> {
         let mut buf = [0; 8];
@@ -208,6 +322,12 @@ pub trait WriteBytesExt: io::Write {
     }
 
     /// Writes a signed 64 bit integer to the underlying writer.
+    ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Write::write_all`].
+    ///
+    /// [`Write::write_all`]: https://doc.rust-lang.org/std/io/trait.Write.html#method.write_all
     #[inline]
     fn write_i64<T: ByteOrder>(&mut self, n: i64) -> Result<()> {
         let mut buf = [0; 8];
@@ -216,6 +336,12 @@ pub trait WriteBytesExt: io::Write {
     }
 
     /// Writes an unsigned n-bytes integer to the underlying writer.
+    ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Write::write_all`].
+    ///
+    /// [`Write::write_all`]: https://doc.rust-lang.org/std/io/trait.Write.html#method.write_all
     ///
     /// # Panics
     ///
@@ -234,6 +360,12 @@ pub trait WriteBytesExt: io::Write {
 
     /// Writes a signed n-bytes integer to the underlying writer.
     ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Write::write_all`].
+    ///
+    /// [`Write::write_all`]: https://doc.rust-lang.org/std/io/trait.Write.html#method.write_all
+    ///
     /// # Panics
     ///
     /// If the given integer is not representable in the given number of bytes,
@@ -251,6 +383,12 @@ pub trait WriteBytesExt: io::Write {
 
     /// Writes a IEEE754 single-precision (4 bytes) floating point number to
     /// the underlying writer.
+    ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Write::write_all`].
+    ///
+    /// [`Write::write_all`]: https://doc.rust-lang.org/std/io/trait.Write.html#method.write_all
     #[inline]
     fn write_f32<T: ByteOrder>(&mut self, n: f32) -> Result<()> {
         let mut buf = [0; 4];
