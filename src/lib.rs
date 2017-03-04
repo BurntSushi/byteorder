@@ -268,7 +268,7 @@ pub enum BigEndian {}
 
 impl Default for BigEndian {
     fn default() -> BigEndian {
-        unreachable!()
+        panic!("BigEndian default")
     }
 }
 
@@ -281,7 +281,7 @@ pub enum LittleEndian {}
 
 impl Default for LittleEndian {
     fn default() -> LittleEndian {
-        unreachable!()
+        panic!("LittleEndian default")
     }
 }
 
