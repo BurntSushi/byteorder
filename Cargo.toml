@@ -7,6 +7,7 @@ documentation = "https://docs.rs/byteorder"
 homepage = "https://github.com/BurntSushi/byteorder"
 repository = "https://github.com/BurntSushi/byteorder"
 readme = "README.md"
+categories = ["encoding", "parsing"]
 keywords = ["byte", "endian", "big-endian", "little-endian", "binary"]
 license = "Unlicense/MIT"
 
