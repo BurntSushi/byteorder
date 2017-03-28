@@ -31,6 +31,19 @@ pub trait ReadBytesExt: io::Read {
     /// This method returns the same errors as [`Read::read_exact`].
     ///
     /// [`Read::read_exact`]: https://doc.rust-lang.org/std/io/trait.Read.html#method.read_exact
+    ///
+    /// # Examples
+    ///
+    /// Read unsigned 8 bit integers from a `Read`:
+    ///
+    /// ```rust
+    /// use std::io::Cursor;
+    /// use byteorder::{BigEndian, ReadBytesExt};
+    ///
+    /// let mut rdr = Cursor::new(vec![2, 5]);
+    /// assert_eq!(2, rdr.read_u8().unwrap());
+    /// assert_eq!(5, rdr.read_u8().unwrap());
+    /// ```
     #[inline]
     fn read_u8(&mut self) -> Result<u8> {
         let mut buf = [0; 1];
@@ -48,6 +61,19 @@ pub trait ReadBytesExt: io::Read {
     /// This method returns the same errors as [`Read::read_exact`].
     ///
     /// [`Read::read_exact`]: https://doc.rust-lang.org/std/io/trait.Read.html#method.read_exact
+    ///
+    /// # Examples
+    ///
+    /// Read unsigned 8 bit integers from a `Read`:
+    ///
+    /// ```rust
+    /// use std::io::Cursor;
+    /// use byteorder::{BigEndian, ReadBytesExt};
+    ///
+    /// let mut rdr = Cursor::new(vec![0x02, 0xfb]);
+    /// assert_eq!(2, rdr.read_i8().unwrap());
+    /// assert_eq!(-5, rdr.read_i8().unwrap());
+    /// ```
     #[inline]
     fn read_i8(&mut self) -> Result<i8> {
         let mut buf = [0; 1];
@@ -62,6 +88,19 @@ pub trait ReadBytesExt: io::Read {
     /// This method returns the same errors as [`Read::read_exact`].
     ///
     /// [`Read::read_exact`]: https://doc.rust-lang.org/std/io/trait.Read.html#method.read_exact
+    ///
+    /// # Examples
+    ///
+    /// Read unsigned 16 bit big-endian integers from a `Read`:
+    ///
+    /// ```rust
+    /// use std::io::Cursor;
+    /// use byteorder::{BigEndian, ReadBytesExt};
+    ///
+    /// let mut rdr = Cursor::new(vec![2, 5, 3, 0]);
+    /// assert_eq!(517, rdr.read_u16::<BigEndian>().unwrap());
+    /// assert_eq!(768, rdr.read_u16::<BigEndian>().unwrap());
+    /// ```
     #[inline]
     fn read_u16<T: ByteOrder>(&mut self) -> Result<u16> {
         let mut buf = [0; 2];
@@ -76,6 +115,19 @@ pub trait ReadBytesExt: io::Read {
     /// This method returns the same errors as [`Read::read_exact`].
     ///
     /// [`Read::read_exact`]: https://doc.rust-lang.org/std/io/trait.Read.html#method.read_exact
+    ///
+    /// # Examples
+    ///
+    /// Read signed 16 bit big-endian integers from a `Read`:
+    ///
+    /// ```rust
+    /// use std::io::Cursor;
+    /// use byteorder::{BigEndian, ReadBytesExt};
+    ///
+    /// let mut rdr = Cursor::new(vec![0x00, 0xc1, 0xff, 0x7c]);
+    /// assert_eq!(193, rdr.read_i16::<BigEndian>().unwrap());
+    /// assert_eq!(-132, rdr.read_i16::<BigEndian>().unwrap());
+    /// ```
     #[inline]
     fn read_i16<T: ByteOrder>(&mut self) -> Result<i16> {
         let mut buf = [0; 2];
@@ -90,6 +142,18 @@ pub trait ReadBytesExt: io::Read {
     /// This method returns the same errors as [`Read::read_exact`].
     ///
     /// [`Read::read_exact`]: https://doc.rust-lang.org/std/io/trait.Read.html#method.read_exact
+    ///
+    /// # Examples
+    ///
+    /// Read unsigned 32 bit big-endian integers from a `Read`:
+    ///
+    /// ```rust
+    /// use std::io::Cursor;
+    /// use byteorder::{BigEndian, ReadBytesExt};
+    ///
+    /// let mut rdr = Cursor::new(vec![0x00, 0x00, 0x01, 0x0b]);
+    /// assert_eq!(267, rdr.read_u32::<BigEndian>().unwrap());
+    /// ```
     #[inline]
     fn read_u32<T: ByteOrder>(&mut self) -> Result<u32> {
         let mut buf = [0; 4];
@@ -104,6 +168,18 @@ pub trait ReadBytesExt: io::Read {
     /// This method returns the same errors as [`Read::read_exact`].
     ///
     /// [`Read::read_exact`]: https://doc.rust-lang.org/std/io/trait.Read.html#method.read_exact
+    ///
+    /// # Examples
+    ///
+    /// Read signed 32 bit big-endian integers from a `Read`:
+    ///
+    /// ```rust
+    /// use std::io::Cursor;
+    /// use byteorder::{BigEndian, ReadBytesExt};
+    ///
+    /// let mut rdr = Cursor::new(vec![0xff, 0xff, 0x7a, 0x33]);
+    /// assert_eq!(-34253, rdr.read_i32::<BigEndian>().unwrap());
+    /// ```
     #[inline]
     fn read_i32<T: ByteOrder>(&mut self) -> Result<i32> {
         let mut buf = [0; 4];
@@ -118,6 +194,18 @@ pub trait ReadBytesExt: io::Read {
     /// This method returns the same errors as [`Read::read_exact`].
     ///
     /// [`Read::read_exact`]: https://doc.rust-lang.org/std/io/trait.Read.html#method.read_exact
+    ///
+    /// # Examples
+    ///
+    /// Read an unsigned 64 bit big-endian integer from a `Read`:
+    ///
+    /// ```rust
+    /// use std::io::Cursor;
+    /// use byteorder::{BigEndian, ReadBytesExt};
+    ///
+    /// let mut rdr = Cursor::new(vec![0x00, 0x03, 0x43, 0x95, 0x4d, 0x60, 0x86, 0x83]);
+    /// assert_eq!(918733457491587, rdr.read_u64::<BigEndian>().unwrap());
+    /// ```
     #[inline]
     fn read_u64<T: ByteOrder>(&mut self) -> Result<u64> {
         let mut buf = [0; 8];
@@ -132,6 +220,18 @@ pub trait ReadBytesExt: io::Read {
     /// This method returns the same errors as [`Read::read_exact`].
     ///
     /// [`Read::read_exact`]: https://doc.rust-lang.org/std/io/trait.Read.html#method.read_exact
+    ///
+    /// # Examples
+    ///
+    /// Read a signed 64 bit big-endian integer from a `Read`:
+    ///
+    /// ```rust
+    /// use std::io::Cursor;
+    /// use byteorder::{BigEndian, ReadBytesExt};
+    ///
+    /// let mut rdr = Cursor::new(vec![0x80, 0, 0, 0, 0, 0, 0, 0]);
+    /// assert_eq!(i64::min_value(), rdr.read_i64::<BigEndian>().unwrap());
+    /// ```
     #[inline]
     fn read_i64<T: ByteOrder>(&mut self) -> Result<i64> {
         let mut buf = [0; 8];
@@ -146,6 +246,17 @@ pub trait ReadBytesExt: io::Read {
     /// This method returns the same errors as [`Read::read_exact`].
     ///
     /// [`Read::read_exact`]: https://doc.rust-lang.org/std/io/trait.Read.html#method.read_exact
+    ///
+    /// # Examples
+    ///
+    /// Read an unsigned n-byte big-endian integer from a `Read`:
+    ///
+    /// ```rust
+    /// use std::io::Cursor;
+    /// use byteorder::{BigEndian, ReadBytesExt};
+    ///
+    /// let mut rdr = Cursor::new(vec![0x80, 0x74, 0xfa]);
+    /// assert_eq!(8418554, rdr.read_uint::<BigEndian>(3).unwrap());
     #[inline]
     fn read_uint<T: ByteOrder>(&mut self, nbytes: usize) -> Result<u64> {
         let mut buf = [0; 8];
@@ -160,6 +271,17 @@ pub trait ReadBytesExt: io::Read {
     /// This method returns the same errors as [`Read::read_exact`].
     ///
     /// [`Read::read_exact`]: https://doc.rust-lang.org/std/io/trait.Read.html#method.read_exact
+    ///
+    /// # Examples
+    ///
+    /// Read an unsigned n-byte big-endian integer from a `Read`:
+    ///
+    /// ```rust
+    /// use std::io::Cursor;
+    /// use byteorder::{BigEndian, ReadBytesExt};
+    ///
+    /// let mut rdr = Cursor::new(vec![0xc1, 0xff, 0x7c]);
+    /// assert_eq!(-4063364, rdr.read_int::<BigEndian>(3).unwrap());
     #[inline]
     fn read_int<T: ByteOrder>(&mut self, nbytes: usize) -> Result<i64> {
         let mut buf = [0; 8];
@@ -175,6 +297,18 @@ pub trait ReadBytesExt: io::Read {
     /// This method returns the same errors as [`Read::read_exact`].
     ///
     /// [`Read::read_exact`]: https://doc.rust-lang.org/std/io/trait.Read.html#method.read_exact
+    ///
+    /// # Examples
+    ///
+    /// Read a big-endian single-precision floating point number from a `Read`:
+    ///
+    /// ```rust
+    /// use std::io::Cursor;
+    /// use byteorder::{BigEndian, ReadBytesExt};
+    /// use std::f32::consts;
+    ///
+    /// let mut rdr = Cursor::new(vec![0x40, 0x49, 0x0f, 0xdb]);
+    /// assert_eq!(consts::PI, rdr.read_f32::<BigEndian>().unwrap());
     #[inline]
     fn read_f32<T: ByteOrder>(&mut self) -> Result<f32> {
         let mut buf = [0; 4];
@@ -191,6 +325,18 @@ pub trait ReadBytesExt: io::Read {
     /// This method returns the same errors as [`Read::read_exact`].
     ///
     /// [`Read::read_exact`]: https://doc.rust-lang.org/std/io/trait.Read.html#method.read_exact
+    ///
+    /// # Examples
+    ///
+    /// Read a big-endian double-precision floating point number from a `Read`:
+    ///
+    /// ```rust
+    /// use std::io::Cursor;
+    /// use byteorder::{BigEndian, ReadBytesExt};
+    /// use std::f64::consts;
+    ///
+    /// let mut rdr = Cursor::new(vec![0x40, 0x09, 0x21, 0xfb, 0x54, 0x44, 0x2d, 0x18]);
+    /// assert_eq!(consts::PI, rdr.read_f64::<BigEndian>().unwrap());
     fn read_f64<T: ByteOrder>(&mut self) -> Result<f64> {
         let mut buf = [0; 8];
         try!(self.read_exact(&mut buf));
