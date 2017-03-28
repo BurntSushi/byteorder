@@ -87,6 +87,13 @@ fn pack_size(n: u64) -> usize {
     }
 }
 
+mod private {
+    /// Sealed stops crates other than byteorder from implementing any traits that use it.
+    pub trait Sealed{}
+    impl Sealed for super::LittleEndian {}
+    impl Sealed for super::BigEndian {}
+}
+
 /// ByteOrder describes types that can serialize integers as bytes.
 ///
 /// Note that `Self` does not appear anywhere in this trait's definition!
@@ -95,6 +102,8 @@ fn pack_size(n: u64) -> usize {
 ///
 /// This crate provides two types that implement `ByteOrder`: `BigEndian`
 /// and `LittleEndian`.
+/// This trait is sealed and cannot be implemented for callers to avoid
+/// breaking backwards compatibility when adding new derived traits.
 ///
 /// # Examples
 ///
@@ -118,7 +127,7 @@ fn pack_size(n: u64) -> usize {
 /// assert_eq!(-50_000, BigEndian::read_i16(&buf));
 /// ```
 pub trait ByteOrder
-    : Clone + Copy + Debug + Default + Eq + Hash + Ord + PartialEq + PartialOrd {
+    : Clone + Copy + Debug + Default + Eq + Hash + Ord + PartialEq + PartialOrd + private::Sealed {
     /// Reads an unsigned 16 bit integer from `buf`.
     ///
     /// # Panics
