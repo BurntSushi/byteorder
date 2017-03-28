@@ -26,3 +26,7 @@ std = []
 
 [profile.bench]
 opt-level = 3
+
+[badges]
+
+travis-ci = { repository = "https://github.com/BurntSushi/byteorder", branch = "master" }
