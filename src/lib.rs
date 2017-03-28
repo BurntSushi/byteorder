@@ -140,6 +140,18 @@ pub trait ByteOrder
     /// # Panics
     ///
     /// Panics when `buf.len() < 4`.
+    ///
+    /// # Examples
+    ///
+    /// Write and read `u32` numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut buf = [0; 4];
+    /// LittleEndian::write_u32(&mut buf, 1_000_000);
+    /// assert_eq!(1_000_000, LittleEndian::read_u32(&buf));
+    /// ```
     fn read_u32(buf: &[u8]) -> u32;
 
     /// Reads an unsigned 64 bit integer from `buf`.
@@ -147,6 +159,18 @@ pub trait ByteOrder
     /// # Panics
     ///
     /// Panics when `buf.len() < 8`.
+    ///
+    /// # Examples
+    ///
+    /// Write and read `u64` numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut buf = [0; 8];
+    /// LittleEndian::write_u64(&mut buf, 1_000_000);
+    /// assert_eq!(1_000_000, LittleEndian::read_u64(&buf));
+    /// ```
     fn read_u64(buf: &[u8]) -> u64;
 
     /// Reads an unsigned n-bytes integer from `buf`.
@@ -155,6 +179,18 @@ pub trait ByteOrder
     ///
     /// Panics when `nbytes < 1` or `nbytes > 8` or
     /// `buf.len() < nbytes`
+    ///
+    /// # Examples
+    ///
+    /// Write and read an n-byte number in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut buf = [0; 3];
+    /// LittleEndian::write_uint(&mut buf, 1_000_000, 3);
+    /// assert_eq!(1_000_000, LittleEndian::read_uint(&buf, 3));
+    /// ```
     fn read_uint(buf: &[u8], nbytes: usize) -> u64;
 
     /// Writes an unsigned 16 bit integer `n` to `buf`.
@@ -162,6 +198,18 @@ pub trait ByteOrder
     /// # Panics
     ///
     /// Panics when `buf.len() < 2`.
+    ///
+    /// # Examples
+    ///
+    /// Write and read `u16` numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut buf = [0; 2];
+    /// LittleEndian::write_u16(&mut buf, 1_000_000);
+    /// assert_eq!(1_000_000, LittleEndian::read_u16(&buf));
+    /// ```
     fn write_u16(buf: &mut [u8], n: u16);
 
     /// Writes an unsigned 32 bit integer `n` to `buf`.
@@ -169,6 +217,18 @@ pub trait ByteOrder
     /// # Panics
     ///
     /// Panics when `buf.len() < 4`.
+    ///
+    /// # Examples
+    ///
+    /// Write and read `u32` numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut buf = [0; 4];
+    /// LittleEndian::write_u32(&mut buf, 1_000_000);
+    /// assert_eq!(1_000_000, LittleEndian::read_u32(&buf));
+    /// ```
     fn write_u32(buf: &mut [u8], n: u32);
 
     /// Writes an unsigned 64 bit integer `n` to `buf`.
@@ -176,6 +236,18 @@ pub trait ByteOrder
     /// # Panics
     ///
     /// Panics when `buf.len() < 8`.
+    ///
+    /// # Examples
+    ///
+    /// Write and read `u64` numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut buf = [0; 8];
+    /// LittleEndian::write_u64(&mut buf, 1_000_000);
+    /// assert_eq!(1_000_000, LittleEndian::read_u64(&buf));
+    /// ```
     fn write_u64(buf: &mut [u8], n: u64);
 
     /// Writes an unsigned integer `n` to `buf` using only `nbytes`.
@@ -184,6 +256,18 @@ pub trait ByteOrder
     ///
     /// If `n` is not representable in `nbytes`, or if `nbytes` is `> 8`, then
     /// this method panics.
+    ///
+    /// # Examples
+    ///
+    /// Write and read an n-byte number in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut buf = [0; 3];
+    /// LittleEndian::write_uint(&mut buf, 1_000_000, 3);
+    /// assert_eq!(1_000_000, LittleEndian::read_uint(&buf, 3));
+    /// ```
     fn write_uint(buf: &mut [u8], n: u64, nbytes: usize);
 
     /// Reads a signed 16 bit integer from `buf`.
@@ -191,6 +275,18 @@ pub trait ByteOrder
     /// # Panics
     ///
     /// Panics when `buf.len() < 2`.
+    ///
+    /// # Examples
+    ///
+    /// Write and read `u16` numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut buf = [0; 2];
+    /// LittleEndian::write_i16(&mut buf, -1_000);
+    /// assert_eq!(-1_000, LittleEndian::read_i16(&buf));
+    /// ```
     #[inline]
     fn read_i16(buf: &[u8]) -> i16 {
         Self::read_u16(buf) as i16
@@ -201,6 +297,18 @@ pub trait ByteOrder
     /// # Panics
     ///
     /// Panics when `buf.len() < 4`.
+    ///
+    /// # Examples
+    ///
+    /// Write and read `u32` numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut buf = [0; 4];
+    /// LittleEndian::write_i32(&mut buf, -1_000_000);
+    /// assert_eq!(-1_000_000, LittleEndian::read_i32(&buf));
+    /// ```
     #[inline]
     fn read_i32(buf: &[u8]) -> i32 {
         Self::read_u32(buf) as i32
@@ -211,6 +319,18 @@ pub trait ByteOrder
     /// # Panics
     ///
     /// Panics when `buf.len() < 8`.
+    ///
+    /// # Examples
+    ///
+    /// Write and read `u64` numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut buf = [0; 8];
+    /// LittleEndian::write_i64(&mut buf, -1_000_000_000);
+    /// assert_eq!(-1_000_000_000, LittleEndian::read_i64(&buf));
+    /// ```
     #[inline]
     fn read_i64(buf: &[u8]) -> i64 {
         Self::read_u64(buf) as i64
@@ -222,6 +342,18 @@ pub trait ByteOrder
     ///
     /// Panics when `nbytes < 1` or `nbytes > 8` or
     /// `buf.len() < nbytes`
+    ///
+    /// # Examples
+    ///
+    /// Write and read n-length signed numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut buf = [0; 3];
+    /// LittleEndian::write_int(&mut buf, -1_000, 3);
+    /// assert_eq!(-1_000, LittleEndian::read_int(&buf, 3));
+    /// ```
     #[inline]
     fn read_int(buf: &[u8], nbytes: usize) -> i64 {
         extend_sign(Self::read_uint(buf, nbytes), nbytes)
@@ -232,6 +364,19 @@ pub trait ByteOrder
     /// # Panics
     ///
     /// Panics when `buf.len() < 4`.
+    ///
+    /// # Examples
+    ///
+    /// Write and read `f32` numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let e = 2.71828;
+    /// let mut buf = [0; 4];
+    /// LittleEndian::write_f32(&mut buf, e);
+    /// assert_eq!(e, LittleEndian::read_f32(&buf));
+    /// ```
     #[inline]
     fn read_f32(buf: &[u8]) -> f32 {
         unsafe { transmute(Self::read_u32(buf)) }
@@ -242,6 +387,19 @@ pub trait ByteOrder
     /// # Panics
     ///
     /// Panics when `buf.len() < 8`.
+    ///
+    /// # Examples
+    ///
+    /// Write and read `f64` numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let phi = 1.6180339887;
+    /// let mut buf = [0; 8];
+    /// LittleEndian::write_f64(&mut buf, phi);
+    /// assert_eq!(phi, LittleEndian::read_f64(&buf));
+    /// ```
     #[inline]
     fn read_f64(buf: &[u8]) -> f64 {
         unsafe { transmute(Self::read_u64(buf)) }
@@ -252,6 +410,18 @@ pub trait ByteOrder
     /// # Panics
     ///
     /// Panics when `buf.len() < 2`.
+    ///
+    /// # Examples
+    ///
+    /// Write and read `u16` numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut buf = [0; 2];
+    /// LittleEndian::write_i16(&mut buf, -1_000);
+    /// assert_eq!(-1_000, LittleEndian::read_i16(&buf));
+    /// ```
     #[inline]
     fn write_i16(buf: &mut [u8], n: i16) {
         Self::write_u16(buf, n as u16)
@@ -262,6 +432,18 @@ pub trait ByteOrder
     /// # Panics
     ///
     /// Panics when `buf.len() < 4`.
+    ///
+    /// # Examples
+    ///
+    /// Write and read `u32` numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut buf = [0; 4];
+    /// LittleEndian::write_i32(&mut buf, -1_000_000);
+    /// assert_eq!(-1_000_000, LittleEndian::read_i32(&buf));
+    /// ```
     #[inline]
     fn write_i32(buf: &mut [u8], n: i32) {
         Self::write_u32(buf, n as u32)
@@ -272,6 +454,18 @@ pub trait ByteOrder
     /// # Panics
     ///
     /// Panics when `buf.len() < 8`.
+    ///
+    /// # Examples
+    ///
+    /// Write and read `u64` numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut buf = [0; 8];
+    /// LittleEndian::write_i64(&mut buf, -1_000_000_000);
+    /// assert_eq!(-1_000_000_000, LittleEndian::read_i64(&buf));
+    /// ```
     #[inline]
     fn write_i64(buf: &mut [u8], n: i64) {
         Self::write_u64(buf, n as u64)
@@ -283,6 +477,18 @@ pub trait ByteOrder
     ///
     /// If `n` is not representable in `nbytes`, or if `nbytes` is `> 8`, then
     /// this method panics.
+    ///
+    /// # Examples
+    ///
+    /// Write and read an n-byte number in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut buf = [0; 3];
+    /// LittleEndian::write_int(&mut buf, -1_000, 3);
+    /// assert_eq!(-1_000, LittleEndian::read_int(&buf, 3));
+    /// ```
     #[inline]
     fn write_int(buf: &mut [u8], n: i64, nbytes: usize) {
         Self::write_uint(buf, unextend_sign(n, nbytes), nbytes)
@@ -293,6 +499,19 @@ pub trait ByteOrder
     /// # Panics
     ///
     /// Panics when `buf.len() < 4`.
+    ///
+    /// # Examples
+    ///
+    /// Write and read `f32` numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let e = 2.71828;
+    /// let mut buf = [0; 4];
+    /// LittleEndian::write_f32(&mut buf, e);
+    /// assert_eq!(e, LittleEndian::read_f32(&buf));
+    /// ```
     #[inline]
     fn write_f32(buf: &mut [u8], n: f32) {
         Self::write_u32(buf, unsafe { transmute(n) })
@@ -303,6 +522,19 @@ pub trait ByteOrder
     /// # Panics
     ///
     /// Panics when `buf.len() < 8`.
+    ///
+    /// # Examples
+    ///
+    /// Write and read `f64` numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let phi = 1.6180339887;
+    /// let mut buf = [0; 8];
+    /// LittleEndian::write_f64(&mut buf, phi);
+    /// assert_eq!(phi, LittleEndian::read_f64(&buf));
+    /// ```
     #[inline]
     fn write_f64(buf: &mut [u8], n: f64) {
         Self::write_u64(buf, unsafe { transmute(n) })
@@ -313,6 +545,18 @@ pub trait ByteOrder
 ///
 /// Note that this type has no value constructor. It is used purely at the
 /// type level.
+///
+/// # Examples
+///
+/// Write and read `u32` numbers in big endian order:
+///
+/// ```rust
+/// use byteorder::{ByteOrder, BigEndian};
+///
+/// let mut buf = [0; 4];
+/// BigEndian::write_u32(&mut buf, 1_000_000);
+/// assert_eq!(1_000_000, BigEndian::read_u32(&buf));
+/// ```
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum BigEndian {}
 
@@ -326,6 +570,18 @@ impl Default for BigEndian {
 ///
 /// Note that this type has no value constructor. It is used purely at the
 /// type level.
+///
+/// # Examples
+///
+/// Write and read `u32` numbers in little endian order:
+///
+/// ```rust
+/// use byteorder::{ByteOrder, LittleEndian};
+///
+/// let mut buf = [0; 4];
+/// LittleEndian::write_u32(&mut buf, 1_000_000);
+/// assert_eq!(1_000_000, LittleEndian::read_u32(&buf));
+/// ```
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum LittleEndian {}
 
@@ -345,6 +601,18 @@ impl Default for LittleEndian {
 ///
 /// Note that this type has no value constructor. It is used purely at the
 /// type level.
+///
+/// # Examples
+///
+/// Write and read `i16` numbers in big endian order:
+///
+/// ```rust
+/// use byteorder::{ByteOrder, NetworkEndian, BigEndian};
+///
+/// let mut buf = [0; 2];
+/// BigEndian::write_i16(&mut buf, -50_000);
+/// assert_eq!(-50_000, NetworkEndian::read_i16(&buf));
+/// ```
 pub type NetworkEndian = BigEndian;
 
 /// Defines system native-endian serialization.
