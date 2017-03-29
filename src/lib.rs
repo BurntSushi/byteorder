@@ -350,6 +350,18 @@ pub trait ByteOrder
     /// # Panics
     ///
     /// Panics when `buf.len() < 16`.
+    ///
+    /// # Examples
+    ///
+    /// Write and read `u128` numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut buf = [0; 16];
+    /// LittleEndian::write_u128(&mut buf, 1_000_000);
+    /// assert_eq!(1_000_000, LittleEndian::read_u128(&buf));
+    /// ```
     #[cfg(feature = "i128")]
     fn write_u128(buf: &mut [u8], n: u128);
 
@@ -379,6 +391,18 @@ pub trait ByteOrder
     ///
     /// If `n` is not representable in `nbytes`, or if `nbytes` is `> 16`, then
     /// this method panics.
+    ///
+    /// # Examples
+    ///
+    /// Write and read an n-byte number in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut buf = [0; 3];
+    /// LittleEndian::write_uint128(&mut buf, 1_000_000, 3);
+    /// assert_eq!(1_000_000, LittleEndian::read_uint128(&buf, 3));
+    /// ```
     #[cfg(feature = "i128")]
     fn write_uint128(buf: &mut [u8], n: u128, nbytes: usize);
 
@@ -434,7 +458,7 @@ pub trait ByteOrder
     ///
     /// # Examples
     ///
-    /// Write and read `u64` numbers in little endian order:
+    /// Write and read `i64` numbers in little endian order:
     ///
     /// ```rust
     /// use byteorder::{ByteOrder, LittleEndian};
@@ -453,6 +477,18 @@ pub trait ByteOrder
     /// # Panics
     ///
     /// Panics when `buf.len() < 16`.
+    ///
+    /// # Examples
+    ///
+    /// Write and read `i128` numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut buf = [0; 16];
+    /// LittleEndian::write_i128(&mut buf, -1_000_000_000);
+    /// assert_eq!(-1_000_000_000, LittleEndian::read_i128(&buf));
+    /// ```
     #[cfg(feature = "i128")]
     #[inline]
     fn read_i128(buf: &[u8]) -> i128 {
@@ -488,6 +524,18 @@ pub trait ByteOrder
     ///
     /// Panics when `nbytes < 1` or `nbytes > 16` or
     /// `buf.len() < nbytes`
+    ///
+    /// # Examples
+    ///
+    /// Write and read n-length signed numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut buf = [0; 3];
+    /// LittleEndian::write_int128(&mut buf, -1_000, 3);
+    /// assert_eq!(-1_000, LittleEndian::read_int128(&buf, 3));
+    /// ```
     #[cfg(feature = "i128")]
     #[inline]
     fn read_int128(buf: &[u8], nbytes: usize) -> i128 {
@@ -592,7 +640,7 @@ pub trait ByteOrder
     ///
     /// # Examples
     ///
-    /// Write and read `u64` numbers in little endian order:
+    /// Write and read `i64` numbers in little endian order:
     ///
     /// ```rust
     /// use byteorder::{ByteOrder, LittleEndian};
@@ -611,6 +659,18 @@ pub trait ByteOrder
     /// # Panics
     ///
     /// Panics when `buf.len() < 16`.
+    ///
+    /// # Examples
+    ///
+    /// Write and read n-byte `i128` numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut buf = [0; 16];
+    /// LittleEndian::write_i128(&mut buf, -1_000_000_000);
+    /// assert_eq!(-1_000_000_000, LittleEndian::read_i128(&buf));
+    /// ```
     #[cfg(feature = "i128")]
     #[inline]
     fn write_i128(buf: &mut [u8], n: i128) {
@@ -646,6 +706,18 @@ pub trait ByteOrder
     ///
     /// If `n` is not representable in `nbytes`, or if `nbytes` is `> 16`, then
     /// this method panics.
+    ///
+    /// # Examples
+    ///
+    /// Write and read n-length signed numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut buf = [0; 3];
+    /// LittleEndian::write_int128(&mut buf, -1_000, 3);
+    /// assert_eq!(-1_000, LittleEndian::read_int128(&buf, 3));
+    /// ```
     #[cfg(feature = "i128")]
     #[inline]
     fn write_int128(buf: &mut [u8], n: i128, nbytes: usize) {
