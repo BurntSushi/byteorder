@@ -543,7 +543,7 @@ pub trait ByteOrder
         let mut u = Self::read_u32(buf);
         // The exponent is 1's  &&  the mantissa has at least one bit set (aka. is_nan):
         if (u & 0xFF<<23 == 0xFF<<23) && (u & 0x3FFFFF != 0) {
-            u |= 1;
+            u |= 1<<22;
         }
         unsafe { transmute(u) }
     }
@@ -573,7 +573,7 @@ pub trait ByteOrder
         let mut u = Self::read_u64(buf);
         // The exponent is 1's  &&  the mantissa has at least one bit set (aka. is_nan):
         if (u & 0x7FF<<52 == 0x7FF<<52) && (u & 0x000FFFFFFFFFFFFF != 0) {
-            u |= 1;
+            u |= 1<<51;
         }
         unsafe { transmute(u) }
     }
@@ -905,8 +905,8 @@ impl ByteOrder for BigEndian {
         let ptr_out = out.as_mut_ptr();
         unsafe {
             copy_nonoverlapping(buf.as_ptr(), ptr_out.offset((8 - nbytes) as isize), nbytes);
-            if (out[0] == 0x7F || out[0] == 0xFF) && out[1] & 0xF0 == 0xF0 && out[7] & 0x01 == 0 {
-                out[7] |= 0x1;
+            if (out[0] == 0x7F || out[0] == 0xFF) && out[1] & 0xF0 == 0xF0 {
+                out[1] |= 0x08;
             }
             transmute((*(ptr_out as *const u64)).to_be())
         }
@@ -1008,13 +1008,12 @@ impl ByteOrder for LittleEndian {
 
     #[inline]
     fn read_float(buf: &[u8], nbytes: usize) -> f64 {
-        assert!(1 <= nbytes && nbytes <= 8 && nbytes <= buf.len());
         let mut out = [0; 8];
         let ptr_out = out.as_mut_ptr();
         unsafe {
             copy_nonoverlapping(buf.as_ptr(), ptr_out.offset((8 - nbytes) as isize), nbytes);
-            if (out[7] == 0x7F || out[7] == 0xFF) && out[6] & 0xF0 == 0xF0 && out[0] & 0x01 == 0 {
-                out[0] |= 0x1;
+            if (out[7] == 0x7F || out[7] == 0xFF) && out[6] & 0xF0 == 0xF0 {
+                out[6] |= 0x08;
             }
             transmute((*(ptr_out as *const u64)).to_le())
         }
@@ -1548,27 +1547,27 @@ mod test {
     fn read_snan() {
         use {ByteOrder, BigEndian, LittleEndian};
 
-        let sf = BigEndian::read_f32(&[0xFF, 0xF8, 0, 0]);
+        let sf = BigEndian::read_f32(&[0xFF, 0x80, 0x00, 0x01]);
         let sbits: u32 = unsafe { ::core::mem::transmute(sf) };
 
         // Check that this is the same value with the MSB of the fraction set (which should be a
         // valid qNaN)
-        assert_eq!(sbits, 0xFFF80001);
+        assert_eq!(sbits, 0xFFC00001);
         assert_eq!(sf.classify(), ::core::num::FpCategory::Nan);
 
-        let df = BigEndian::read_f64(&[0x7F, 0xF8, 0, 0, 0, 0, 0, 0]);
+        let df = BigEndian::read_f64(&[0x7F, 0xF0, 0, 0, 0, 0, 0, 0x01]);
         let dbits: u64 = unsafe { ::core::mem::transmute(df) };
         assert_eq!(dbits, 0x7FF8000000000001);
         assert_eq!(df.classify(), ::core::num::FpCategory::Nan);
 
-        let bf = BigEndian::read_float(&[0x7F, 0xF8, 0, 0, 0, 0, 0, 0], 8);
+        let bf = BigEndian::read_float(&[0x7F, 0xF0, 0, 0, 0, 0, 0, 0x01], 8);
         let bbits: u64 = unsafe { ::core::mem::transmute(bf) };
         assert_eq!(bbits, 0x7FF8000000000001);
         assert_eq!(bf.classify(), ::core::num::FpCategory::Nan);
 
-        let lf = LittleEndian::read_float(&[0, 0, 0, 0, 0, 0, 0xFF, 0xFF], 8);
+        let lf = LittleEndian::read_float(&[0x01, 0, 0, 0, 0, 0, 0xF0, 0xFF], 8);
         let lbits: u64 = unsafe { ::core::mem::transmute(lf) };
-        assert_eq!(lbits, 0xFFFF000000000001);
+        assert_eq!(lbits, 0xFFF8000000000001);
         assert_eq!(lf.classify(), ::core::num::FpCategory::Nan);
     }
 }
