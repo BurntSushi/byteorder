@@ -905,7 +905,7 @@ impl ByteOrder for BigEndian {
         let ptr_out = out.as_mut_ptr();
         unsafe {
             copy_nonoverlapping(buf.as_ptr(), ptr_out.offset((8 - nbytes) as isize), nbytes);
-            if (out[0] == 0x7F || out[0] == 0xFF) && out[1] & 0xF0 == 0xF0 {
+            if (out[0] == 0x7F || out[0] == 0xFF) && ((out[1] & 0x0F) | out[2] | out[3] | out[4] | out[5] | out[6] | out[7] != 0) {
                 out[1] |= 0x08;
             }
             transmute((*(ptr_out as *const u64)).to_be())
@@ -1008,11 +1008,12 @@ impl ByteOrder for LittleEndian {
 
     #[inline]
     fn read_float(buf: &[u8], nbytes: usize) -> f64 {
+        assert!(1 <= nbytes && nbytes <= 8 && nbytes <= buf.len());
         let mut out = [0; 8];
         let ptr_out = out.as_mut_ptr();
         unsafe {
             copy_nonoverlapping(buf.as_ptr(), ptr_out.offset((8 - nbytes) as isize), nbytes);
-            if (out[7] == 0x7F || out[7] == 0xFF) && out[6] & 0xF0 == 0xF0 {
+            if (out[7] == 0x7F || out[7] == 0xFF) && ((out[6] & 0x0F) | out[5] | out[4] | out[3] | out[2] | out[1] | out[0] != 0) {
                 out[6] |= 0x08;
             }
             transmute((*(ptr_out as *const u64)).to_le())
