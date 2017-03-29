@@ -520,6 +520,8 @@ pub trait ByteOrder
 
     /// Reads a IEEE754 single-precision (4 bytes) floating point number.
     ///
+    /// The return value of is always defined; signaling NaN's are turned into quiet NaN's.
+    ///
     /// # Panics
     ///
     /// Panics when `buf.len() < 4`.
@@ -538,10 +540,17 @@ pub trait ByteOrder
     /// ```
     #[inline]
     fn read_f32(buf: &[u8]) -> f32 {
-        unsafe { transmute(Self::read_u32(buf)) }
+        let mut u = Self::read_u32(buf);
+        // The exponent is 1's  &&  the mantissa has at least one bit set (aka. is_nan):
+        if (u & 0xFF<<23 == 0xFF<<23) && (u & 0x3FFFFF != 0) {
+            u |= 1;
+        }
+        unsafe { transmute(u) }
     }
 
     /// Reads a IEEE754 double-precision (8 bytes) floating point number.
+    ///
+    /// The return value of is always defined; signaling NaN's are turned into quiet NaN's.
     ///
     /// # Panics
     ///
@@ -561,7 +570,12 @@ pub trait ByteOrder
     /// ```
     #[inline]
     fn read_f64(buf: &[u8]) -> f64 {
-        unsafe { transmute(Self::read_u64(buf)) }
+        let mut u = Self::read_u64(buf);
+        // The exponent is 1's  &&  the mantissa has at least one bit set (aka. is_nan):
+        if (u & 0x7FF<<52 == 0x7FF<<52) && (u & 0x000FFFFFFFFFFFFF != 0) {
+            u |= 1;
+        }
+        unsafe { transmute(u) }
     }
 
     /// Writes a signed 16 bit integer `n` to `buf`.
@@ -1534,11 +1548,21 @@ mod test {
     fn read_snan() {
         use {ByteOrder, BigEndian, LittleEndian};
 
-        let bf = BigEndian::read_float(&[0x7F, 0xF8, 0, 0, 0, 0, 0, 0], 8);
-        let bbits: u64 = unsafe { ::core::mem::transmute(bf) };
+        let sf = BigEndian::read_f32(&[0xFF, 0xF8, 0, 0]);
+        let sbits: u32 = unsafe { ::core::mem::transmute(sf) };
 
         // Check that this is the same value with the MSB of the fraction set (which should be a
         // valid qNaN)
+        assert_eq!(sbits, 0xFFF80001);
+        assert_eq!(sf.classify(), ::core::num::FpCategory::Nan);
+
+        let df = BigEndian::read_f64(&[0x7F, 0xF8, 0, 0, 0, 0, 0, 0]);
+        let dbits: u64 = unsafe { ::core::mem::transmute(df) };
+        assert_eq!(dbits, 0x7FF8000000000001);
+        assert_eq!(df.classify(), ::core::num::FpCategory::Nan);
+
+        let bf = BigEndian::read_float(&[0x7F, 0xF8, 0, 0, 0, 0, 0, 0], 8);
+        let bbits: u64 = unsafe { ::core::mem::transmute(bf) };
         assert_eq!(bbits, 0x7FF8000000000001);
         assert_eq!(bf.classify(), ::core::num::FpCategory::Nan);
 
