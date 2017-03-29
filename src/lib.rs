@@ -384,15 +384,19 @@ pub trait ByteOrder
 
     /// Reads the first nbytes of a IEEE754 double-precision (8 bytes) floating point number and
     /// assumes the rest are zero.
+    ///
     /// This is useful for formats which serialize floats as little-endian integers and elid any
     /// trailing zeros in the low bits to save space.
+    /// The return value of read_float is always defined; signaling NaN's are turned into quiet
+    /// NaN's.
     ///
-    /// Panics when `nbytes < 1` or `nbytes > 8` or
-    /// `buf.len() < nbytes`
+    /// # Panics
+    ///
+    /// If `nbytes < 1` or `nbytes > 8` or `buf.len() < nbytes`
     ///
     /// # Examples
     ///
-    /// Write and read n-byte length floats:
+    /// Read 2 bytes into a double-precision float:
     ///
     /// ```rust
     /// use byteorder::{ByteOrder, LittleEndian};
@@ -887,6 +891,9 @@ impl ByteOrder for BigEndian {
         let ptr_out = out.as_mut_ptr();
         unsafe {
             copy_nonoverlapping(buf.as_ptr(), ptr_out.offset((8 - nbytes) as isize), nbytes);
+            if (out[0] == 0x7F || out[0] == 0xFF) && out[1] & 0xF0 == 0xF0 && out[7] & 0x01 == 0 {
+                out[7] |= 0x1;
+            }
             transmute((*(ptr_out as *const u64)).to_be())
         }
     }
@@ -992,6 +999,9 @@ impl ByteOrder for LittleEndian {
         let ptr_out = out.as_mut_ptr();
         unsafe {
             copy_nonoverlapping(buf.as_ptr(), ptr_out.offset((8 - nbytes) as isize), nbytes);
+            if (out[7] == 0x7F || out[7] == 0xFF) && out[6] & 0xF0 == 0xF0 && out[0] & 0x01 == 0 {
+                out[0] |= 0x1;
+            }
             transmute((*(ptr_out as *const u64)).to_le())
         }
     }
@@ -1518,6 +1528,24 @@ mod test {
         use {ByteOrder, LittleEndian};
         let n = LittleEndian::read_uint(&[1, 2, 3, 4, 5, 6, 7, 8], 5);
         assert_eq!(n, 0x0504030201);
+    }
+
+    #[test]
+    fn read_snan() {
+        use {ByteOrder, BigEndian, LittleEndian};
+
+        let bf = BigEndian::read_float(&[0x7F, 0xF8, 0, 0, 0, 0, 0, 0], 8);
+        let bbits: u64 = unsafe { ::core::mem::transmute(bf) };
+
+        // Check that this is the same value with the MSB of the fraction set (which should be a
+        // valid qNaN)
+        assert_eq!(bbits, 0x7FF8000000000001);
+        assert_eq!(bf.classify(), ::core::num::FpCategory::Nan);
+
+        let lf = LittleEndian::read_float(&[0, 0, 0, 0, 0, 0, 0xFF, 0xFF], 8);
+        let lbits: u64 = unsafe { ::core::mem::transmute(lf) };
+        assert_eq!(lbits, 0xFFFF000000000001);
+        assert_eq!(lf.classify(), ::core::num::FpCategory::Nan);
     }
 }
 
