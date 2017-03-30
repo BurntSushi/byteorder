@@ -387,8 +387,7 @@ pub trait ByteOrder
     ///
     /// This is useful for formats which serialize floats as little-endian integers and elid any
     /// trailing zeros in the low bits to save space.
-    /// The return value of read_float is always defined; signaling NaN's are turned into quiet
-    /// NaN's.
+    /// The return value is always defined; signaling NaN's may be turned into quiet NaN's.
     ///
     /// # Panics
     ///
@@ -520,7 +519,7 @@ pub trait ByteOrder
 
     /// Reads a IEEE754 single-precision (4 bytes) floating point number.
     ///
-    /// The return value of is always defined; signaling NaN's are turned into quiet NaN's.
+    /// The return value is always defined; signaling NaN's may be turned into quiet NaN's.
     ///
     /// # Panics
     ///
@@ -550,7 +549,7 @@ pub trait ByteOrder
 
     /// Reads a IEEE754 double-precision (8 bytes) floating point number.
     ///
-    /// The return value of is always defined; signaling NaN's are turned into quiet NaN's.
+    /// The return value is always defined; signaling NaN's may be turned into quiet NaN's.
     ///
     /// # Panics
     ///
