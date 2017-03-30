@@ -421,6 +421,17 @@ pub trait ReadBytesExt: io::Read {
 
     /// Reads a IEEE754 double-precision (8 bytes) floating point number from
     /// the underlying reader (padding with zeros).
+    ///
+    /// # Examples
+    ///
+    /// Read a little-endian double-precision floating point number from a `Read`:
+    ///
+    /// ```rust
+    /// use std::io::Cursor;
+    /// use byteorder::{LittleEndian, ReadBytesExt};
+    ///
+    /// let mut rdr = Cursor::new(vec![0xF0, 0x3F]);
+    /// assert_eq!(1.0, rdr.read_float::<LittleEndian>(2).unwrap());
     #[inline]
     fn read_float<T: ByteOrder>(&mut self, nbytes: usize) -> Result<f64> {
         let mut buf = [0; 8];
