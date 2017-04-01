@@ -2,6 +2,7 @@ This crate provides convenience methods for encoding and decoding numbers in
 either big-endian or little-endian order.
 
 [![Build status](https://api.travis-ci.org/BurntSushi/byteorder.png)](https://travis-ci.org/BurntSushi/byteorder)
+[![Clippy Linting Result](http://clippy.bashy.io/github/BurntSushi/byteorder/master/badge.svg)](http://clippy.bashy.io/github/BurntSushi/byteorder/master/log)
 [![](http://meritbadge.herokuapp.com/byteorder)](https://crates.io/crates/byteorder)
 
 Dual-licensed under MIT or the [UNLICENSE](http://unlicense.org).
