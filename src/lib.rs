@@ -189,6 +189,27 @@ pub trait ByteOrder
     /// Panics when `buf.len() < 2`.
     fn read_u16(buf: &[u8]) -> u16;
 
+    /// Reads an unsigned 24 bit integer from `buf`, stored in u32.
+    ///
+    /// # Panics
+    ///
+    /// Panics when `buf.len() < 3`.
+    ///
+    /// # Examples
+    ///
+    /// Write and read 24 bit `u32` numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut buf = [0; 3];
+    /// LittleEndian::write_u24(&mut buf, 1_000_000);
+    /// assert_eq!(1_000_000, LittleEndian::read_u24(&buf));
+    /// ```
+    fn read_u24(buf: &[u8]) -> u32 {
+        Self::read_uint(buf, 3) as u32
+    }
+
     /// Reads an unsigned 32 bit integer from `buf`.
     ///
     /// # Panics
@@ -307,6 +328,27 @@ pub trait ByteOrder
     /// ```
     fn write_u16(buf: &mut [u8], n: u16);
 
+    /// Writes an unsigned 24 bit integer `n` to `buf`, stored in u32.
+    ///
+    /// # Panics
+    ///
+    /// Panics when `buf.len() < 3`.
+    ///
+    /// # Examples
+    ///
+    /// Write and read 24 bit `u32` numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut buf = [0; 3];
+    /// LittleEndian::write_u24(&mut buf, 1_000_000);
+    /// assert_eq!(1_000_000, LittleEndian::read_u24(&buf));
+    /// ```
+    fn write_u24(buf: &mut [u8], n: u32) {
+        Self::write_uint(buf, n as u64, 3)
+    }
+
     /// Writes an unsigned 32 bit integer `n` to `buf`.
     ///
     /// # Panics
@@ -402,6 +444,28 @@ pub trait ByteOrder
     #[inline]
     fn read_i16(buf: &[u8]) -> i16 {
         Self::read_u16(buf) as i16
+    }
+
+    /// Reads a signed 24 bit integer from `buf`, stored in i32.
+    ///
+    /// # Panics
+    ///
+    /// Panics when `buf.len() < 3`.
+    ///
+    /// # Examples
+    ///
+    /// Write and read 24 bit `i32` numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut buf = [0; 3];
+    /// LittleEndian::write_i24(&mut buf, -1_000_000);
+    /// assert_eq!(-1_000_000, LittleEndian::read_i24(&buf));
+    /// ```
+    #[inline]
+    fn read_i24(buf: &[u8]) -> i32 {
+        Self::read_int(buf, 3) as i32
     }
 
     /// Reads a signed 32 bit integer from `buf`.
@@ -560,6 +624,28 @@ pub trait ByteOrder
     #[inline]
     fn write_i16(buf: &mut [u8], n: i16) {
         Self::write_u16(buf, n as u16)
+    }
+
+    /// Writes a signed 24 bit integer `n` to `buf`, stored in i32.
+    ///
+    /// # Panics
+    ///
+    /// Panics when `buf.len() < 3`.
+    ///
+    /// # Examples
+    ///
+    /// Write and read 24 bit `i32` numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut buf = [0; 3];
+    /// LittleEndian::write_i24(&mut buf, -1_000_000);
+    /// assert_eq!(-1_000_000, LittleEndian::read_i24(&buf));
+    /// ```
+    #[inline]
+    fn write_i24(buf: &mut [u8], n: i32) {
+        Self::write_int(buf, n as i64, 3)
     }
 
     /// Writes a signed 32 bit integer `n` to `buf`.
@@ -1006,6 +1092,9 @@ mod test {
     use self::quickcheck::{QuickCheck, StdGen, Testable};
     #[cfg(feature = "i128")] use self::quickcheck::{ Arbitrary, Gen };
 
+    pub const U24_MAX: u32 = 16_777_215;
+    pub const I24_MAX: i32 = 8_388_607;
+
     pub const U64_MAX: u64 = ::core::u64::MAX;
     pub const I64_MAX: u64 = ::core::i64::MAX as u64;
 
@@ -1145,6 +1234,8 @@ mod test {
 
     qc_byte_order!(prop_u16, u16, ::core::u16::MAX as u64, read_u16, write_u16);
     qc_byte_order!(prop_i16, i16, ::core::i16::MAX as u64, read_i16, write_i16);
+    qc_byte_order!(prop_u24, u32, ::test::U24_MAX as u64, read_u24, write_u24);
+    qc_byte_order!(prop_i24, i32, ::test::I24_MAX as u64, read_i24, write_i24);
     qc_byte_order!(prop_u32, u32, ::core::u32::MAX as u64, read_u32, write_u32);
     qc_byte_order!(prop_i32, i32, ::core::i32::MAX as u64, read_i32, write_i32);
     qc_byte_order!(prop_u64, u64, ::core::u64::MAX as u64, read_u64, write_u64);
