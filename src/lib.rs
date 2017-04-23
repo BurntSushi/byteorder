@@ -432,7 +432,7 @@ pub trait ByteOrder
     ///
     /// # Examples
     ///
-    /// Write and read `u16` numbers in little endian order:
+    /// Write and read `i16` numbers in little endian order:
     ///
     /// ```rust
     /// use byteorder::{ByteOrder, LittleEndian};
@@ -476,7 +476,7 @@ pub trait ByteOrder
     ///
     /// # Examples
     ///
-    /// Write and read `u32` numbers in little endian order:
+    /// Write and read `i32` numbers in little endian order:
     ///
     /// ```rust
     /// use byteorder::{ByteOrder, LittleEndian};
@@ -498,7 +498,7 @@ pub trait ByteOrder
     ///
     /// # Examples
     ///
-    /// Write and read `u64` numbers in little endian order:
+    /// Write and read `i64` numbers in little endian order:
     ///
     /// ```rust
     /// use byteorder::{ByteOrder, LittleEndian};
@@ -612,7 +612,7 @@ pub trait ByteOrder
     ///
     /// # Examples
     ///
-    /// Write and read `u16` numbers in little endian order:
+    /// Write and read `i16` numbers in little endian order:
     ///
     /// ```rust
     /// use byteorder::{ByteOrder, LittleEndian};
@@ -656,7 +656,7 @@ pub trait ByteOrder
     ///
     /// # Examples
     ///
-    /// Write and read `u32` numbers in little endian order:
+    /// Write and read `i32` numbers in little endian order:
     ///
     /// ```rust
     /// use byteorder::{ByteOrder, LittleEndian};
@@ -678,7 +678,7 @@ pub trait ByteOrder
     ///
     /// # Examples
     ///
-    /// Write and read `u64` numbers in little endian order:
+    /// Write and read `i64` numbers in little endian order:
     ///
     /// ```rust
     /// use byteorder::{ByteOrder, LittleEndian};
