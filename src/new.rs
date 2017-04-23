@@ -135,6 +135,58 @@ pub trait ReadBytesExt: io::Read {
         Ok(T::read_i16(&buf))
     }
 
+    /// Reads an unsigned 24 bit integer from the underlying reader.
+    ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Read::read_exact`].
+    ///
+    /// [`Read::read_exact`]: https://doc.rust-lang.org/std/io/trait.Read.html#method.read_exact
+    ///
+    /// # Examples
+    ///
+    /// Read unsigned 24 bit big-endian integers from a `Read`:
+    ///
+    /// ```rust
+    /// use std::io::Cursor;
+    /// use byteorder::{BigEndian, ReadBytesExt};
+    ///
+    /// let mut rdr = Cursor::new(vec![0x00, 0x01, 0x0b]);
+    /// assert_eq!(267, rdr.read_u24::<BigEndian>().unwrap());
+    /// ```
+    #[inline]
+    fn read_u24<T: ByteOrder>(&mut self) -> Result<u32> {
+        let mut buf = [0; 3];
+        try!(self.read_exact(&mut buf));
+        Ok(T::read_u24(&buf))
+    }
+
+    /// Reads a signed 24 bit integer from the underlying reader.
+    ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Read::read_exact`].
+    ///
+    /// [`Read::read_exact`]: https://doc.rust-lang.org/std/io/trait.Read.html#method.read_exact
+    ///
+    /// # Examples
+    ///
+    /// Read signed 24 bit big-endian integers from a `Read`:
+    ///
+    /// ```rust
+    /// use std::io::Cursor;
+    /// use byteorder::{BigEndian, ReadBytesExt};
+    ///
+    /// let mut rdr = Cursor::new(vec![0xff, 0x7a, 0x33]);
+    /// assert_eq!(-34253, rdr.read_i24::<BigEndian>().unwrap());
+    /// ```
+    #[inline]
+    fn read_i24<T: ByteOrder>(&mut self) -> Result<i32> {
+        let mut buf = [0; 3];
+        try!(self.read_exact(&mut buf));
+        Ok(T::read_i24(&buf))
+    }
+
     /// Reads an unsigned 32 bit integer from the underlying reader.
     ///
     /// # Errors
@@ -498,6 +550,34 @@ pub trait WriteBytesExt: io::Write {
     fn write_i16<T: ByteOrder>(&mut self, n: i16) -> Result<()> {
         let mut buf = [0; 2];
         T::write_i16(&mut buf, n);
+        self.write_all(&buf)
+    }
+
+    /// Writes an unsigned 24 bit integer to the underlying writer.
+    ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Write::write_all`].
+    ///
+    /// [`Write::write_all`]: https://doc.rust-lang.org/std/io/trait.Write.html#method.write_all
+    #[inline]
+    fn write_u24<T: ByteOrder>(&mut self, n: u32) -> Result<()> {
+        let mut buf = [0; 3];
+        T::write_u24(&mut buf, n);
+        self.write_all(&buf)
+    }
+
+    /// Writes a signed 24 bit integer to the underlying writer.
+    ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Write::write_all`].
+    ///
+    /// [`Write::write_all`]: https://doc.rust-lang.org/std/io/trait.Write.html#method.write_all
+    #[inline]
+    fn write_i24<T: ByteOrder>(&mut self, n: i32) -> Result<()> {
+        let mut buf = [0; 3];
+        T::write_i24(&mut buf, n);
         self.write_all(&buf)
     }
 
