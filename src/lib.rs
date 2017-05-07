@@ -787,6 +787,22 @@ pub type NativeEndian = LittleEndian;
 #[cfg(target_endian = "big")]
 pub type NativeEndian = BigEndian;
 
+/// Defines the serialization that is opposite to system native-endian.
+/// This is `BigEndian` in a Little Endian system and `LittleEndian` in a Big Endian system.
+///
+/// Note that this type has no value constructor. It is used purely at the
+/// type level.
+#[cfg(target_endian = "little")]
+pub type OppositeNativeEndian = BigEndian;
+
+/// Defines the serialization that is opposite to system native-endian.
+/// This is `BigEndian` in a Little Endian system and `LittleEndian` in a Big Endian system.
+///
+/// Note that this type has no value constructor. It is used purely at the
+/// type level.
+#[cfg(target_endian = "big")]
+pub type OppositeNativeEndian = LittleEndian;
+
 macro_rules! read_num_bytes {
     ($ty:ty, $size:expr, $src:expr, $which:ident) => ({
         assert!($size == ::core::mem::size_of::<$ty>());
@@ -1066,7 +1082,7 @@ mod test {
         ($name:ident, $ty_int:ty, $max:expr,
          $bytes:expr, $read:ident, $write:ident) => (
             mod $name {
-                use {BigEndian, ByteOrder, NativeEndian, LittleEndian};
+                use {BigEndian, ByteOrder, NativeEndian, OppositeNativeEndian, LittleEndian};
                 #[allow(unused_imports)] use super::{ qc_sized, Wi128 };
 
                 #[test]
@@ -1095,6 +1111,16 @@ mod test {
                         let mut buf = [0; 16];
                         NativeEndian::$write(&mut buf, n.clone(), $bytes);
                         n == NativeEndian::$read(&mut buf[..$bytes], $bytes)
+                    }
+                    qc_sized(prop as fn($ty_int) -> bool, $max);
+                }
+                
+                #[test]
+                fn opposite_native_endian() {
+                    fn prop(n: $ty_int) -> bool {
+                        let mut buf = [0; 16];
+                        OppositeNativeEndian::$write(&mut buf, n.clone(), $bytes);
+                        n == OppositeNativeEndian::$read(&mut buf[..$bytes], $bytes)
                     }
                     qc_sized(prop as fn($ty_int) -> bool, $max);
                 }
