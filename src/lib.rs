@@ -1045,20 +1045,20 @@ impl ByteOrder for BigEndian {
         read_slice!(buf, dst, 16, to_be);
     }
 
-    /// Read u16 slice
+    #[inline]
     fn write_u16v(buf: &mut [u8], src: &[u16]) {
         write_slice!(src, buf, 2, to_be);
     }
-    /// Read u32 slice
+    #[inline]
     fn write_u32v(buf: &mut [u8], src: &[u32]) {
         write_slice!(src, buf, 4, to_be);
     }
-    /// Read u64 slice
+    #[inline]
     fn write_u64v(buf: &mut [u8], src: &[u64]) {
         write_slice!(src, buf, 8, to_be);
     }
-    /// Read u128 slice
     #[cfg(feature = "i128")]
+    #[inline]
     fn write_u128v(buf: &mut [u8], src: &[u128]) {
         write_slice!(src, buf, 16, to_be);
     }
@@ -1172,20 +1172,20 @@ impl ByteOrder for LittleEndian {
         read_slice!(buf, dst, 16, to_le);
     }
 
-    /// Read u16 slice
+    #[inline]
     fn write_u16v(buf: &mut [u8], src: &[u16]) {
         write_slice!(src, buf, 2, to_le);
     }
-    /// Read u32 slice
+    #[inline]
     fn write_u32v(buf: &mut [u8], src: &[u32]) {
         write_slice!(src, buf, 4, to_le);
     }
-    /// Read u64 slice
+    #[inline]
     fn write_u64v(buf: &mut [u8], src: &[u64]) {
         write_slice!(src, buf, 8, to_le);
     }
-    /// Read u128 slice
     #[cfg(feature = "i128")]
+    #[inline]
     fn write_u128v(buf: &mut [u8], src: &[u128]) {
         write_slice!(src, buf, 16, to_le);
     }
