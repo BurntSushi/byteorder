@@ -288,15 +288,53 @@ pub trait ByteOrder
     #[cfg(feature = "i128")]
     fn read_uint128(buf: &[u8], nbytes: usize) -> u128;
 
+
+
+
     /// Read u16 slice
-    fn read_u16v(dst: &mut [u32], buf: &[u8]);
+    fn read_u16v(dst: &mut [u16], buf: &[u8]);
     /// Read u32 slice
     fn read_u32v(dst: &mut [u32], buf: &[u8]);
     /// Read u64 slice
     fn read_u64v(dst: &mut [u64], buf: &[u8]);
     /// Read u128 slice
     #[cfg(feature = "i128")]
-    fn read_u128v(dst: &mut [u128], buf: &[u8]);
+    fn read_u128v(dst: &mut [i128], buf: &[u8]);
+
+
+    /// Read i16 slice
+    #[inline]
+    fn read_i16v(dst: &mut [i16], buf: &[u8]) {
+        Self::read_u16v(unsafe{ transmute(dst) }, buf);
+    }
+    /// Read i32 slice
+    #[inline]
+    fn read_i32v(dst: &mut [i32], buf: &[u8]) {
+        Self::read_u32v(unsafe{ transmute(dst) }, buf);
+    }
+    /// Read i64 slice
+    #[inline]
+    fn read_i64v(dst: &mut [i64], buf: &[u8]) {
+        Self::read_u64v(unsafe{ transmute(dst) }, buf);
+    }
+    /// Read i128 slice
+    #[cfg(feature = "i128")]
+    #[inline]
+    fn read_i128v(dst: &mut [i128], buf: &[u8]) {
+        Self::read_u128v(unsafe{ transmute(dst) }, buf);
+    }
+    /// Read f32 slice
+    #[inline]
+    fn read_f32v(dst: &mut [f32], buf: &[u8]) {
+        Self::read_u32v(unsafe{ transmute(dst) }, buf);
+    }
+    /// Read f64 slice
+    #[inline]
+    fn read_f64v(dst: &mut [f64], buf: &[u8]) {
+        Self::read_u64v(unsafe{ transmute(dst) }, buf);
+    }
+
+
 
     /// Writes an unsigned 16 bit integer `n` to `buf`.
     ///
@@ -717,6 +755,34 @@ pub trait ByteOrder
     /// Write u128 slice
     #[cfg(feature = "i128")]
     fn write_u128v(buf: &mut [u8], src: &[u128]);
+
+
+    /// Write i16 slice
+    fn write_i16v(buf: &mut [u8], src: &[i16]) {
+        Self::write_u16v(buf, unsafe{ transmute(src) });
+    }
+    /// Write i32 slice
+    fn write_i32v(buf: &mut [u8], src: &[i32]) {
+        Self::write_u32v(buf, unsafe{ transmute(src) });
+    }
+    /// Write i64 slice
+    fn write_i64v(buf: &mut [u8], src: &[i64]) {
+        Self::write_u64v(buf, unsafe{ transmute(src) });
+    }
+    /// Write i128 slice
+    #[cfg(feature = "i128")]
+    fn write_i128v(buf: &mut [u8], src: &[i128]) {
+        Self::write_u128v(buf, unsafe{ transmute(src) });
+    }
+
+    /// Write f32 slice
+    fn write_f32v(buf: &mut [u8], src: &[f32]) {
+        Self::write_u32v(buf, unsafe{ transmute(src) });
+    }
+    /// Write f64 slice
+    fn write_f64v(buf: &mut [u8], src: &[f64]) {
+        Self::write_u64v(buf, unsafe{ transmute(src) });
+    }
 }
 
 /// Defines big-endian serialization.
@@ -959,7 +1025,7 @@ impl ByteOrder for BigEndian {
     }
 
     #[inline]
-    fn read_u16v(dst: &mut [u32], buf: &[u8]) {
+    fn read_u16v(dst: &mut [u16], buf: &[u8]) {
         read_slice!(buf, dst, 2, to_be);
     }
 
@@ -1086,7 +1152,7 @@ impl ByteOrder for LittleEndian {
     }
 
     #[inline]
-    fn read_u16v(dst: &mut [u32], buf: &[u8]) {
+    fn read_u16v(dst: &mut [u16], buf: &[u8]) {
         read_slice!(buf, dst, 2, to_le);
     }
 
