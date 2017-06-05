@@ -288,6 +288,16 @@ pub trait ByteOrder
     #[cfg(feature = "i128")]
     fn read_uint128(buf: &[u8], nbytes: usize) -> u128;
 
+    /// Read u16 slice
+    fn read_u16v(dst: &mut [u32], buf: &[u8]);
+    /// Read u32 slice
+    fn read_u32v(dst: &mut [u32], buf: &[u8]);
+    /// Read u64 slice
+    fn read_u64v(dst: &mut [u64], buf: &[u8]);
+    /// Read u128 slice
+    #[cfg(feature = "i128")]
+    fn read_u128v(dst: &mut [u128], buf: &[u8]);
+
     /// Writes an unsigned 16 bit integer `n` to `buf`.
     ///
     /// # Panics
@@ -697,6 +707,16 @@ pub trait ByteOrder
     fn write_f64(buf: &mut [u8], n: f64) {
         Self::write_u64(buf, unsafe { transmute(n) })
     }
+
+    /// Write u16 slice
+    fn write_u16v(buf: &mut [u8], src: &[u16]);
+    /// Write u32 slice
+    fn write_u32v(buf: &mut [u8], src: &[u32]);
+    /// Write u64 slice
+    fn write_u64v(buf: &mut [u8], src: &[u64]);
+    /// Write u128 slice
+    #[cfg(feature = "i128")]
+    fn write_u128v(buf: &mut [u8], src: &[u128]);
 }
 
 /// Defines big-endian serialization.
@@ -813,6 +833,36 @@ macro_rules! write_num_bytes {
     });
 }
 
+macro_rules! read_slice {
+    ($src:expr, $dst:expr, $size:expr, $which:ident) => ({
+        assert_eq!($size*$dst.len(), $src.len());
+        unsafe {
+            copy_nonoverlapping(
+                $src.as_ptr(),
+                $dst.as_mut_ptr() as *mut u8,
+                $src.len());
+        }
+        for v in $dst.iter_mut() {
+            *v = v.$which();
+        }
+    });
+}
+
+macro_rules! write_slice {
+    ($src:expr, $dst:expr, $size:expr, $which:ident) => ({
+        assert_eq!($dst.len(), $size*$src.len());
+        unsafe {
+            copy_nonoverlapping(
+                $src.as_ptr() as *const u8,
+                $dst.as_mut_ptr(),
+                $src.len());
+        }
+        for v in $dst.iter_mut() {
+            *v = v.$which();
+        }
+    });
+}
+
 impl ByteOrder for BigEndian {
     #[inline]
     fn read_u16(buf: &[u8]) -> u16 {
@@ -907,6 +957,45 @@ impl ByteOrder for BigEndian {
                 nbytes);
         }
     }
+
+    #[inline]
+    fn read_u16v(dst: &mut [u32], buf: &[u8]) {
+        read_slice!(buf, dst, 2, to_be);
+    }
+
+    #[inline]
+    fn read_u32v(dst: &mut [u32], buf: &[u8]) {
+        read_slice!(buf, dst, 4, to_be);
+    }
+
+    #[inline]
+    fn read_u64v(dst: &mut [u64], buf: &[u8]) {
+        read_slice!(buf, dst, 8, to_be);
+    }
+
+    #[cfg(feature = "i128")]
+    #[inline]
+    fn read_u128v(dst: &mut [u128], buf: &[u8]) {
+        read_slice!(buf, dst, 16, to_be);
+    }
+
+    /// Read u16 slice
+    fn write_u16v(buf: &mut [u8], src: &[u16]) {
+        write_slice!(src, buf, 2, to_be);
+    }
+    /// Read u32 slice
+    fn write_u32v(buf: &mut [u8], src: &[u32]) {
+        write_slice!(src, buf, 4, to_be);
+    }
+    /// Read u64 slice
+    fn write_u64v(buf: &mut [u8], src: &[u64]) {
+        write_slice!(src, buf, 8, to_be);
+    }
+    /// Read u128 slice
+    #[cfg(feature = "i128")]
+    fn write_u128v(buf: &mut [u8], src: &[u128]) {
+        write_slice!(src, buf, 16, to_be);
+    }
 }
 
 impl ByteOrder for LittleEndian {
@@ -994,6 +1083,45 @@ impl ByteOrder for LittleEndian {
             let bytes: [u8; 16] = transmute(n.to_le());
             copy_nonoverlapping(bytes.as_ptr(), buf.as_mut_ptr(), nbytes);
         }
+    }
+
+    #[inline]
+    fn read_u16v(dst: &mut [u32], buf: &[u8]) {
+        read_slice!(buf, dst, 2, to_le);
+    }
+
+    #[inline]
+    fn read_u32v(dst: &mut [u32], buf: &[u8]) {
+        read_slice!(buf, dst, 4, to_le);
+    }
+
+    #[inline]
+    fn read_u64v(dst: &mut [u64], buf: &[u8]) {
+        read_slice!(buf, dst, 8, to_le);
+    }
+
+    #[cfg(feature = "i128")]
+    #[inline]
+    fn read_u128v(dst: &mut [u128], buf: &[u8]) {
+        read_slice!(buf, dst, 16, to_le);
+    }
+
+    /// Read u16 slice
+    fn write_u16v(buf: &mut [u8], src: &[u16]) {
+        write_slice!(src, buf, 2, to_le);
+    }
+    /// Read u32 slice
+    fn write_u32v(buf: &mut [u8], src: &[u32]) {
+        write_slice!(src, buf, 4, to_le);
+    }
+    /// Read u64 slice
+    fn write_u64v(buf: &mut [u8], src: &[u64]) {
+        write_slice!(src, buf, 8, to_le);
+    }
+    /// Read u128 slice
+    #[cfg(feature = "i128")]
+    fn write_u128v(buf: &mut [u8], src: &[u128]) {
+        write_slice!(src, buf, 16, to_le);
     }
 }
 
