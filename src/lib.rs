@@ -288,47 +288,253 @@ pub trait ByteOrder
     #[cfg(feature = "i128")]
     fn read_uint128(buf: &[u8], nbytes: usize) -> u128;
 
-
-
-
-    /// Read u16 slice
+    /// Reads unsigned 16 bit integers from `buf` to `dst`.
+    ///
+    /// # Panics
+    ///
+    /// Panics when `buf.len() != 2*dst.len()`.
+    ///
+    /// # Examples
+    ///
+    /// Write and read `u16` numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut buf = [0; 8];
+    /// let val = [1, 2, 0xf00f, 0xffee];
+    /// print!("{:?}", val);
+    /// LittleEndian::write_u16v(&mut buf, &val);
+    /// let mut val2 = [0; 4];
+    /// LittleEndian::read_u16v(&mut val2, &buf);
+    /// assert_eq!(val, val2);
+    /// ```
     fn read_u16v(dst: &mut [u16], buf: &[u8]);
-    /// Read u32 slice
+
+    /// Reads unsigned 32 bit integers from `buf` to `dst`.
+    ///
+    /// # Panics
+    ///
+    /// Panics when `buf.len() != 4*dst.len()`.
+    ///
+    /// # Examples
+    ///
+    /// Write and read `u32` numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut buf = [0; 16];
+    /// let val = [1, 2, 0xf00f, 0xffee];
+    /// print!("{:?}", val);
+    /// LittleEndian::write_u32v(&mut buf, &val);
+    /// let mut val2 = [0; 4];
+    /// LittleEndian::read_u32v(&mut val2, &buf);
+    /// assert_eq!(val, val2);
+    /// ```
     fn read_u32v(dst: &mut [u32], buf: &[u8]);
-    /// Read u64 slice
+
+    /// Reads unsigned 64 bit integers from `buf` to `dst`.
+    ///
+    /// # Panics
+    ///
+    /// Panics when `buf.len() != 8*dst.len()`.
+    ///
+    /// # Examples
+    ///
+    /// Write and read `u64` numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut buf = [0; 32];
+    /// let val = [1, 2, 0xf00f, 0xffee];
+    /// print!("{:?}", val);
+    /// LittleEndian::write_u64v(&mut buf, &val);
+    /// let mut val2 = [0; 4];
+    /// LittleEndian::read_u64v(&mut val2, &buf);
+    /// assert_eq!(val, val2);
+    /// ```
     fn read_u64v(dst: &mut [u64], buf: &[u8]);
-    /// Read u128 slice
+
+    /// Reads unsigned 128 bit integers from `buf` to `dst`.
+    ///
+    /// # Panics
+    ///
+    /// Panics when `buf.len() != 16*dst.len()`.
+    ///
+    /// # Examples
+    ///
+    /// Write and read `u128` numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut buf = [0; 64];
+    /// let val = [1, 2, 0xf00f, 0xffee];
+    /// print!("{:?}", val);
+    /// LittleEndian::write_u128v(&mut buf, &val);
+    /// let mut val2 = [0; 4];
+    /// LittleEndian::read_u128v(&mut val2, &buf);
+    /// assert_eq!(val, val2);
+    /// ```
     #[cfg(feature = "i128")]
-    fn read_u128v(dst: &mut [i128], buf: &[u8]);
+    fn read_u128v(dst: &mut [u128], buf: &[u8]);
 
-
-    /// Read i16 slice
+    /// Reads signed 16 bit integers from `buf` to `dst`.
+    ///
+    /// # Panics
+    ///
+    /// Panics when `buf.len() != 2*dst.len()`.
+    ///
+    /// # Examples
+    ///
+    /// Write and read `i16` numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut buf = [0; 8];
+    /// let val = [1, 2, 0xf00f, 0xffee];
+    /// print!("{:?}", val);
+    /// LittleEndian::write_i16v(&mut buf, &val);
+    /// let mut val2 = [0; 4];
+    /// LittleEndian::read_i16v(&mut val2, &buf);
+    /// assert_eq!(val, val2);
+    /// ```
     #[inline]
     fn read_i16v(dst: &mut [i16], buf: &[u8]) {
         Self::read_u16v(unsafe{ transmute(dst) }, buf);
     }
-    /// Read i32 slice
+
+    /// Reads signed 32 bit integers from `buf` to `dst`.
+    ///
+    /// # Panics
+    ///
+    /// Panics when `buf.len() != 4*dst.len()`.
+    ///
+    /// # Examples
+    ///
+    /// Write and read `i32` numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut buf = [0; 16];
+    /// let val = [1, 2, 0xf00f, 0xffee];
+    /// print!("{:?}", val);
+    /// LittleEndian::write_i32v(&mut buf, &val);
+    /// let mut val2 = [0; 4];
+    /// LittleEndian::read_i32v(&mut val2, &buf);
+    /// assert_eq!(val, val2);
+    /// ```
     #[inline]
     fn read_i32v(dst: &mut [i32], buf: &[u8]) {
         Self::read_u32v(unsafe{ transmute(dst) }, buf);
     }
-    /// Read i64 slice
+
+    /// Reads signed 64 bit integers from `buf` to `dst`.
+    ///
+    /// # Panics
+    ///
+    /// Panics when `buf.len() != 8*dst.len()`.
+    ///
+    /// # Examples
+    ///
+    /// Write and read `i64` numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut buf = [0; 32];
+    /// let val = [1, 2, 0xf00f, 0xffee];
+    /// print!("{:?}", val);
+    /// LittleEndian::write_i64v(&mut buf, &val);
+    /// let mut val2 = [0; 4];
+    /// LittleEndian::read_i64v(&mut val2, &buf);
+    /// assert_eq!(val, val2);
+    /// ```
     #[inline]
     fn read_i64v(dst: &mut [i64], buf: &[u8]) {
         Self::read_u64v(unsafe{ transmute(dst) }, buf);
     }
-    /// Read i128 slice
+
+    /// Reads signed 128 bit integers from `buf` to `dst`.
+    ///
+    /// # Panics
+    ///
+    /// Panics when `buf.len() != 16*dst.len()`.
+    ///
+    /// # Examples
+    ///
+    /// Write and read `i128` numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut buf = [0; 64];
+    /// let val = [1, 2, 0xf00f, 0xffee];
+    /// print!("{:?}", val);
+    /// LittleEndian::write_i128v(&mut buf, &val);
+    /// let mut val2 = [0; 4];
+    /// LittleEndian::read_i128v(&mut val2, &buf);
+    /// assert_eq!(val, val2);
+    /// ```
     #[cfg(feature = "i128")]
     #[inline]
     fn read_i128v(dst: &mut [i128], buf: &[u8]) {
         Self::read_u128v(unsafe{ transmute(dst) }, buf);
     }
-    /// Read f32 slice
+
+    /// Reads IEEE754 single-precision (4 bytes) floating point numbers from
+    /// `buf` to `dst`.
+    ///
+    /// # Panics
+    ///
+    /// Panics when `buf.len() != 4*dst.len()`.
+    ///
+    /// # Examples
+    ///
+    /// Write and read `f32` numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut buf = [0; 16];
+    /// let val = [1.0, 2.0, 31.312e311, -11.32e91];
+    /// print!("{:?}", val);
+    /// LittleEndian::write_f32v(&mut buf, &val);
+    /// let mut val2 = [0.0; 4];
+    /// LittleEndian::read_f32v(&mut val2, &buf);
+    /// assert_eq!(val, val2);
+    /// ```
     #[inline]
     fn read_f32v(dst: &mut [f32], buf: &[u8]) {
         Self::read_u32v(unsafe{ transmute(dst) }, buf);
     }
-    /// Read f64 slice
+
+    /// Reads IEEE754 double-precision (8 bytes) floating point numbers from
+    /// `buf` to `dst`.
+    ///
+    /// # Panics
+    ///
+    /// Panics when `buf.len() != 8*dst.len()`.
+    ///
+    /// # Examples
+    ///
+    /// Write and read `f64` numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut buf = [0; 32];
+    /// let val = [1.0, 2.0, 31.312e311, -11.32e91];
+    /// print!("{:?}", val);
+    /// LittleEndian::write_f64v(&mut buf, &val);
+    /// let mut val2 = [0.0; 4];
+    /// LittleEndian::read_f64v(&mut val2, &buf);
+    /// assert_eq!(val, val2);
+    /// ```
     #[inline]
     fn read_f64v(dst: &mut [f64], buf: &[u8]) {
         Self::read_u64v(unsafe{ transmute(dst) }, buf);
@@ -921,7 +1127,7 @@ macro_rules! write_slice {
             copy_nonoverlapping(
                 $src.as_ptr() as *const u8,
                 $dst.as_mut_ptr(),
-                $src.len());
+                $dst.len());
         }
         for v in $dst.iter_mut() {
             *v = v.$which();
