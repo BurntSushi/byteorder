@@ -1338,7 +1338,7 @@ macro_rules! write_slice {
                 $src.as_ptr() as *const u8,
                 $dst.as_mut_ptr(),
                 $dst.len());
-            let tmp: &mut [$ty] = transmute(&mut *$dst);
+            let tmp: &mut [$ty] = transmute($dst);
             for v in tmp[..$src.len()].iter_mut() {
                 *v = v.$which();
             }
