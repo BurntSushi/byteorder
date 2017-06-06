@@ -1330,16 +1330,18 @@ macro_rules! read_slice {
 }
 
 macro_rules! write_slice {
-    ($src:expr, $dst:expr, $size:expr, $which:ident) => ({
+    ($src:expr, $dst:expr, $ty:ty, $size:expr, $which:ident) => ({
+        assert!($size == ::core::mem::size_of::<$ty>());
         assert_eq!($dst.len(), $size*$src.len());
         unsafe {
             copy_nonoverlapping(
                 $src.as_ptr() as *const u8,
                 $dst.as_mut_ptr(),
                 $dst.len());
-        }
-        for v in $dst.iter_mut() {
-            *v = v.$which();
+            let tmp: &mut [$ty] = transmute(&mut *$dst);
+            for v in tmp[..$src.len()].iter_mut() {
+                *v = v.$which();
+            }
         }
     });
 }
@@ -1462,20 +1464,20 @@ impl ByteOrder for BigEndian {
 
     #[inline]
     fn write_u16v(buf: &mut [u8], src: &[u16]) {
-        write_slice!(src, buf, 2, to_be);
+        write_slice!(src, buf, u16, 2, to_be);
     }
     #[inline]
     fn write_u32v(buf: &mut [u8], src: &[u32]) {
-        write_slice!(src, buf, 4, to_be);
+        write_slice!(src, buf, u32, 4, to_be);
     }
     #[inline]
     fn write_u64v(buf: &mut [u8], src: &[u64]) {
-        write_slice!(src, buf, 8, to_be);
+        write_slice!(src, buf, u64, 8, to_be);
     }
     #[cfg(feature = "i128")]
     #[inline]
     fn write_u128v(buf: &mut [u8], src: &[u128]) {
-        write_slice!(src, buf, 16, to_be);
+        write_slice!(src, buf, u128, 16, to_be);
     }
 }
 
@@ -1589,20 +1591,20 @@ impl ByteOrder for LittleEndian {
 
     #[inline]
     fn write_u16v(buf: &mut [u8], src: &[u16]) {
-        write_slice!(src, buf, 2, to_le);
+        write_slice!(src, buf, u16, 2, to_le);
     }
     #[inline]
     fn write_u32v(buf: &mut [u8], src: &[u32]) {
-        write_slice!(src, buf, 4, to_le);
+        write_slice!(src, buf, u32, 4, to_le);
     }
     #[inline]
     fn write_u64v(buf: &mut [u8], src: &[u64]) {
-        write_slice!(src, buf, 8, to_le);
+        write_slice!(src, buf, u64, 8, to_le);
     }
     #[cfg(feature = "i128")]
     #[inline]
     fn write_u128v(buf: &mut [u8], src: &[u128]) {
-        write_slice!(src, buf, 16, to_le);
+        write_slice!(src, buf, u128, 16, to_le);
     }
 }
 
