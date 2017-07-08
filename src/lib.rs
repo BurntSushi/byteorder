@@ -1172,7 +1172,7 @@ fn safe_u32_bits_to_f32(u: u32) -> f32 {
         // NaNs differently. Therefore, to be safe, we pass a known quiet
         // NaN if u is any kind of NaN. The check above only assumes
         // IEEE 754-1985 to be valid.
-        unsafe { transmute(NAN) }
+        NAN
     } else {
         unsafe { transmute(u) }
     }
@@ -1191,7 +1191,7 @@ fn safe_u64_bits_to_f64(u: u64) -> f64 {
         // NaNs differently. Therefore, to be safe, we pass a known quiet
         // NaN if u is any kind of NaN. The check above only assumes
         // IEEE 754-1985 to be valid.
-        unsafe { transmute(NAN) }
+        NAN
     } else {
         unsafe { transmute(u) }
     }
