@@ -448,6 +448,29 @@ pub trait ByteOrder
     #[cfg(feature = "i128")]
     fn write_uint128(buf: &mut [u8], n: u128, nbytes: usize);
 
+    /// Reads the first nbytes of a IEEE754 double-precision (8 bytes) floating point number and
+    /// assumes the rest are zero.
+    ///
+    /// This is useful for formats which serialize floats as little-endian integers and elid any
+    /// trailing zeros in the low bits to save space.
+    /// The return value is always defined; signaling NaN's may be turned into quiet NaN's.
+    ///
+    /// # Panics
+    ///
+    /// If `nbytes < 1` or `nbytes > 8` or `buf.len() < nbytes`
+    ///
+    /// # Examples
+    ///
+    /// Read 2 bytes into a double-precision float:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let buf = b"\xf0\x3f";
+    /// assert_eq!(1.0, LittleEndian::read_float(buf, buf.len()));
+    /// ```
+    fn read_float(buf: &[u8], nbytes: usize) -> f64;
+
     /// Reads a signed 16 bit integer from `buf`.
     ///
     /// # Panics
@@ -608,6 +631,8 @@ pub trait ByteOrder
 
     /// Reads a IEEE754 single-precision (4 bytes) floating point number.
     ///
+    /// The return value is always defined; signaling NaN's may be turned into quiet NaN's.
+    ///
     /// # Panics
     ///
     /// Panics when `buf.len() < 4`.
@@ -626,10 +651,17 @@ pub trait ByteOrder
     /// ```
     #[inline]
     fn read_f32(buf: &[u8]) -> f32 {
-        unsafe { transmute(Self::read_u32(buf)) }
+        let mut u = Self::read_u32(buf);
+        // The exponent is 1's  &&  the mantissa has at least one bit set (aka. is_nan):
+        if (u & 0xFF<<23 == 0xFF<<23) && (u & 0x3FFFFF != 0) {
+            u |= 1<<22;
+        }
+        unsafe { transmute(u) }
     }
 
     /// Reads a IEEE754 double-precision (8 bytes) floating point number.
+    ///
+    /// The return value is always defined; signaling NaN's may be turned into quiet NaN's.
     ///
     /// # Panics
     ///
@@ -649,7 +681,12 @@ pub trait ByteOrder
     /// ```
     #[inline]
     fn read_f64(buf: &[u8]) -> f64 {
-        unsafe { transmute(Self::read_u64(buf)) }
+        let mut u = Self::read_u64(buf);
+        // The exponent is 1's  &&  the mantissa has at least one bit set (aka. is_nan):
+        if (u & 0x7FF<<52 == 0x7FF<<52) && (u & 0x000FFFFFFFFFFFFF != 0) {
+            u |= 1<<51;
+        }
+        unsafe { transmute(u) }
     }
 
     /// Writes a signed 16 bit integer `n` to `buf`.
@@ -1019,6 +1056,20 @@ impl ByteOrder for BigEndian {
     }
 
     #[inline]
+    fn read_float(buf: &[u8], nbytes: usize) -> f64 {
+        assert!(1 <= nbytes && nbytes <= 8 && nbytes <= buf.len());
+        let mut out = [0; 8];
+        let ptr_out = out.as_mut_ptr();
+        unsafe {
+            copy_nonoverlapping(buf.as_ptr(), ptr_out.offset((8 - nbytes) as isize), nbytes);
+            if (out[0] == 0x7F || out[0] == 0xFF) && ((out[1] & 0x0F) | out[2] | out[3] | out[4] | out[5] | out[6] | out[7] != 0) {
+                out[1] |= 0x08;
+            }
+            transmute((*(ptr_out as *const u64)).to_be())
+        }
+    }
+
+    #[inline]
     fn write_u16(buf: &mut [u8], n: u16) {
         write_num_bytes!(u16, 2, n, buf, to_be);
     }
@@ -1109,6 +1160,20 @@ impl ByteOrder for LittleEndian {
         unsafe {
             copy_nonoverlapping(buf.as_ptr(), ptr_out, nbytes);
             (*(ptr_out as *const u128)).to_le()
+        }
+    }
+
+    #[inline]
+    fn read_float(buf: &[u8], nbytes: usize) -> f64 {
+        assert!(1 <= nbytes && nbytes <= 8 && nbytes <= buf.len());
+        let mut out = [0; 8];
+        let ptr_out = out.as_mut_ptr();
+        unsafe {
+            copy_nonoverlapping(buf.as_ptr(), ptr_out.offset((8 - nbytes) as isize), nbytes);
+            if (out[7] == 0x7F || out[7] == 0xFF) && ((out[6] & 0x0F) | out[5] | out[4] | out[3] | out[2] | out[1] | out[0] != 0) {
+                out[6] |= 0x08;
+            }
+            transmute((*(ptr_out as *const u64)).to_le())
         }
     }
 
@@ -1626,11 +1691,47 @@ mod test {
     #[cfg(feature = "i128")]
     too_small!(small_int128_15, 15, read_int128);
 
+    too_small!(small_float_1, 1, read_float);
+    too_small!(small_float_2, 2, read_float);
+    too_small!(small_float_3, 3, read_float);
+    too_small!(small_float_4, 4, read_float);
+    too_small!(small_float_5, 5, read_float);
+    too_small!(small_float_6, 6, read_float);
+    too_small!(small_float_7, 7, read_float);
+
     #[test]
     fn uint_bigger_buffer() {
         use {ByteOrder, LittleEndian};
         let n = LittleEndian::read_uint(&[1, 2, 3, 4, 5, 6, 7, 8], 5);
         assert_eq!(n, 0x0504030201);
+    }
+
+    #[test]
+    fn read_snan() {
+        use {ByteOrder, BigEndian, LittleEndian};
+
+        let sf = BigEndian::read_f32(&[0xFF, 0x80, 0x00, 0x01]);
+        let sbits: u32 = unsafe { ::core::mem::transmute(sf) };
+
+        // Check that this is the same value with the MSB of the fraction set (which should be a
+        // valid qNaN)
+        assert_eq!(sbits, 0xFFC00001);
+        assert_eq!(sf.classify(), ::core::num::FpCategory::Nan);
+
+        let df = BigEndian::read_f64(&[0x7F, 0xF0, 0, 0, 0, 0, 0, 0x01]);
+        let dbits: u64 = unsafe { ::core::mem::transmute(df) };
+        assert_eq!(dbits, 0x7FF8000000000001);
+        assert_eq!(df.classify(), ::core::num::FpCategory::Nan);
+
+        let bf = BigEndian::read_float(&[0x7F, 0xF0, 0, 0, 0, 0, 0, 0x01], 8);
+        let bbits: u64 = unsafe { ::core::mem::transmute(bf) };
+        assert_eq!(bbits, 0x7FF8000000000001);
+        assert_eq!(bf.classify(), ::core::num::FpCategory::Nan);
+
+        let lf = LittleEndian::read_float(&[0x01, 0, 0, 0, 0, 0, 0xF0, 0xFF], 8);
+        let lbits: u64 = unsafe { ::core::mem::transmute(lf) };
+        assert_eq!(lbits, 0xFFF8000000000001);
+        assert_eq!(lf.classify(), ::core::num::FpCategory::Nan);
     }
 }
 
