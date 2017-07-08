@@ -17,7 +17,7 @@ name = "byteorder"
 bench = false
 
 [dev-dependencies]
-quickcheck = "0.4"
+quickcheck = { version = "0.4", default-features = false }
 rand = "0.3"
 
 [features]
@@ -29,5 +29,4 @@ i128 = []
 opt-level = 3
 
 [badges]
-
 travis-ci = { repository = "https://github.com/BurntSushi/byteorder", branch = "master" }
