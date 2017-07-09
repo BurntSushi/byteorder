@@ -51,10 +51,10 @@ use core::mem::transmute;
 use core::ptr::copy_nonoverlapping;
 
 #[cfg(feature = "std")]
-pub use new::{ReadBytesExt, WriteBytesExt};
+pub use io::{ReadBytesExt, WriteBytesExt};
 
 #[cfg(feature = "std")]
-mod new;
+mod io;
 
 #[inline]
 fn extend_sign(val: u64, nbytes: usize) -> i64 {
