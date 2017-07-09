@@ -142,7 +142,8 @@ fn pack_size128(n: u128) -> usize {
 }
 
 mod private {
-    /// Sealed stops crates other than byteorder from implementing any traits that use it.
+    /// Sealed stops crates other than byteorder from implementing any traits
+    /// that use it.
     pub trait Sealed{}
     impl Sealed for super::LittleEndian {}
     impl Sealed for super::BigEndian {}
@@ -181,7 +182,9 @@ mod private {
 /// assert_eq!(-50_000, BigEndian::read_i16(&buf));
 /// ```
 pub trait ByteOrder
-    : Clone + Copy + Debug + Default + Eq + Hash + Ord + PartialEq + PartialOrd + private::Sealed {
+    : Clone + Copy + Debug + Default + Eq + Hash + Ord + PartialEq + PartialOrd
+    + private::Sealed
+{
     /// Reads an unsigned 16 bit integer from `buf`.
     ///
     /// # Panics
@@ -560,8 +563,6 @@ pub trait ByteOrder
     fn read_f64v(dst: &mut [f64], buf: &[u8]) {
         Self::read_u64v(unsafe{ transmute(dst) }, buf);
     }
-
-
 
     /// Writes an unsigned 16 bit integer `n` to `buf`.
     ///
