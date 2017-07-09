@@ -17,3 +17,6 @@ script:
       cargo bench --verbose --features i128;
       cargo bench --verbose --no-default-features --features i128;
     fi
+branches:
+  only:
+    - master
