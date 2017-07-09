@@ -1,4 +1,6 @@
 use std::io::{self, Result};
+use std::slice;
+// use std::mem::transmute;
 
 use ByteOrder;
 
@@ -431,12 +433,16 @@ pub trait ReadBytesExt: io::Read {
     /// Read a big-endian single-precision floating point number from a `Read`:
     ///
     /// ```rust
+    /// use std::f32;
     /// use std::io::Cursor;
-    /// use byteorder::{BigEndian, ReadBytesExt};
-    /// use std::f32::consts;
     ///
-    /// let mut rdr = Cursor::new(vec![0x40, 0x49, 0x0f, 0xdb]);
-    /// assert_eq!(consts::PI, rdr.read_f32::<BigEndian>().unwrap());
+    /// use byteorder::{BigEndian, ReadBytesExt};
+    ///
+    /// let mut rdr = Cursor::new(vec![
+    ///     0x40, 0x49, 0x0f, 0xdb,
+    /// ]);
+    /// assert_eq!(f32::consts::PI, rdr.read_f32::<BigEndian>().unwrap());
+    /// ```
     #[inline]
     fn read_f32<T: ByteOrder>(&mut self) -> Result<f32> {
         let mut buf = [0; 4];
@@ -446,7 +452,6 @@ pub trait ReadBytesExt: io::Read {
 
     /// Reads a IEEE754 double-precision (8 bytes) floating point number from
     /// the underlying reader.
-    #[inline]
     ///
     /// # Errors
     ///
@@ -459,16 +464,425 @@ pub trait ReadBytesExt: io::Read {
     /// Read a big-endian double-precision floating point number from a `Read`:
     ///
     /// ```rust
+    /// use std::f64;
     /// use std::io::Cursor;
-    /// use byteorder::{BigEndian, ReadBytesExt};
-    /// use std::f64::consts;
     ///
-    /// let mut rdr = Cursor::new(vec![0x40, 0x09, 0x21, 0xfb, 0x54, 0x44, 0x2d, 0x18]);
-    /// assert_eq!(consts::PI, rdr.read_f64::<BigEndian>().unwrap());
+    /// use byteorder::{BigEndian, ReadBytesExt};
+    ///
+    /// let mut rdr = Cursor::new(vec![
+    ///     0x40, 0x09, 0x21, 0xfb, 0x54, 0x44, 0x2d, 0x18,
+    /// ]);
+    /// assert_eq!(f64::consts::PI, rdr.read_f64::<BigEndian>().unwrap());
+    /// ```
+    #[inline]
     fn read_f64<T: ByteOrder>(&mut self) -> Result<f64> {
         let mut buf = [0; 8];
         try!(self.read_exact(&mut buf));
         Ok(T::read_f64(&buf))
+    }
+
+    /// Reads a sequence of unsigned 16 bit integers from the underlying
+    /// reader.
+    ///
+    /// The given buffer is either filled completely or an error is returned.
+    /// If an error is returned, the contents of `dst` are unspecified.
+    ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Read::read_exact`].
+    ///
+    /// [`Read::read_exact`]: https://doc.rust-lang.org/std/io/trait.Read.html#method.read_exact
+    ///
+    /// # Examples
+    ///
+    /// Read a sequence of unsigned 16 bit big-endian integers from a `Read`:
+    ///
+    /// ```rust
+    /// use std::io::Cursor;
+    /// use byteorder::{BigEndian, ReadBytesExt};
+    ///
+    /// let mut rdr = Cursor::new(vec![2, 5, 3, 0]);
+    /// let mut dst = [0; 2];
+    /// rdr.read_u16_into::<BigEndian>(&mut dst).unwrap();
+    /// assert_eq!([517, 768], dst);
+    /// ```
+    #[inline]
+    fn read_u16_into<T: ByteOrder>(&mut self, dst: &mut [u16]) -> Result<()> {
+        {
+            let mut buf = unsafe { slice_to_u8_mut(dst) };
+            try!(self.read_exact(buf));
+        }
+        T::from_slice_u16(dst);
+        Ok(())
+    }
+
+    /// Reads a sequence of unsigned 32 bit integers from the underlying
+    /// reader.
+    ///
+    /// The given buffer is either filled completely or an error is returned.
+    /// If an error is returned, the contents of `dst` are unspecified.
+    ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Read::read_exact`].
+    ///
+    /// [`Read::read_exact`]: https://doc.rust-lang.org/std/io/trait.Read.html#method.read_exact
+    ///
+    /// # Examples
+    ///
+    /// Read a sequence of unsigned 32 bit big-endian integers from a `Read`:
+    ///
+    /// ```rust
+    /// use std::io::Cursor;
+    /// use byteorder::{BigEndian, ReadBytesExt};
+    ///
+    /// let mut rdr = Cursor::new(vec![0, 0, 2, 5, 0, 0, 3, 0]);
+    /// let mut dst = [0; 2];
+    /// rdr.read_u32_into::<BigEndian>(&mut dst).unwrap();
+    /// assert_eq!([517, 768], dst);
+    /// ```
+    #[inline]
+    fn read_u32_into<T: ByteOrder>(&mut self, dst: &mut [u32]) -> Result<()> {
+        {
+            let mut buf = unsafe { slice_to_u8_mut(dst) };
+            try!(self.read_exact(buf));
+        }
+        T::from_slice_u32(dst);
+        Ok(())
+    }
+
+    /// Reads a sequence of unsigned 64 bit integers from the underlying
+    /// reader.
+    ///
+    /// The given buffer is either filled completely or an error is returned.
+    /// If an error is returned, the contents of `dst` are unspecified.
+    ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Read::read_exact`].
+    ///
+    /// [`Read::read_exact`]: https://doc.rust-lang.org/std/io/trait.Read.html#method.read_exact
+    ///
+    /// # Examples
+    ///
+    /// Read a sequence of unsigned 64 bit big-endian integers from a `Read`:
+    ///
+    /// ```rust
+    /// use std::io::Cursor;
+    /// use byteorder::{BigEndian, ReadBytesExt};
+    ///
+    /// let mut rdr = Cursor::new(vec![
+    ///     0, 0, 0, 0, 0, 0, 2, 5,
+    ///     0, 0, 0, 0, 0, 0, 3, 0,
+    /// ]);
+    /// let mut dst = [0; 2];
+    /// rdr.read_u64_into::<BigEndian>(&mut dst).unwrap();
+    /// assert_eq!([517, 768], dst);
+    /// ```
+    #[inline]
+    fn read_u64_into<T: ByteOrder>(&mut self, dst: &mut [u64]) -> Result<()> {
+        {
+            let mut buf = unsafe { slice_to_u8_mut(dst) };
+            try!(self.read_exact(buf));
+        }
+        T::from_slice_u64(dst);
+        Ok(())
+    }
+
+    /// Reads a sequence of unsigned 128 bit integers from the underlying
+    /// reader.
+    ///
+    /// The given buffer is either filled completely or an error is returned.
+    /// If an error is returned, the contents of `dst` are unspecified.
+    ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Read::read_exact`].
+    ///
+    /// [`Read::read_exact`]: https://doc.rust-lang.org/std/io/trait.Read.html#method.read_exact
+    ///
+    /// # Examples
+    ///
+    /// Read a sequence of unsigned 128 bit big-endian integers from a `Read`:
+    ///
+    /// ```rust
+    /// use std::io::Cursor;
+    /// use byteorder::{BigEndian, ReadBytesExt};
+    ///
+    /// let mut rdr = Cursor::new(vec![
+    ///     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 5,
+    ///     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0,
+    /// ]);
+    /// let mut dst = [0; 2];
+    /// rdr.read_u128_into::<BigEndian>(&mut dst).unwrap();
+    /// assert_eq!([517, 768], dst);
+    /// ```
+    #[cfg(feature = "i128")]
+    #[inline]
+    fn read_u128_into<T: ByteOrder>(
+        &mut self,
+        dst: &mut [u128],
+    ) -> Result<()> {
+        {
+            let mut buf = unsafe { slice_to_u8_mut(dst) };
+            try!(self.read_exact(buf));
+        }
+        T::from_slice_u128(dst);
+        Ok(())
+    }
+
+    /// Reads a sequence of signed 16 bit integers from the underlying
+    /// reader.
+    ///
+    /// The given buffer is either filled completely or an error is returned.
+    /// If an error is returned, the contents of `dst` are unspecified.
+    ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Read::read_exact`].
+    ///
+    /// [`Read::read_exact`]: https://doc.rust-lang.org/std/io/trait.Read.html#method.read_exact
+    ///
+    /// # Examples
+    ///
+    /// Read a sequence of signed 16 bit big-endian integers from a `Read`:
+    ///
+    /// ```rust
+    /// use std::io::Cursor;
+    /// use byteorder::{BigEndian, ReadBytesExt};
+    ///
+    /// let mut rdr = Cursor::new(vec![2, 5, 3, 0]);
+    /// let mut dst = [0; 2];
+    /// rdr.read_i16_into::<BigEndian>(&mut dst).unwrap();
+    /// assert_eq!([517, 768], dst);
+    /// ```
+    #[inline]
+    fn read_i16_into<T: ByteOrder>(&mut self, dst: &mut [i16]) -> Result<()> {
+        {
+            let mut buf = unsafe { slice_to_u8_mut(dst) };
+            try!(self.read_exact(buf));
+        }
+        T::from_slice_i16(dst);
+        Ok(())
+    }
+
+    /// Reads a sequence of signed 32 bit integers from the underlying
+    /// reader.
+    ///
+    /// The given buffer is either filled completely or an error is returned.
+    /// If an error is returned, the contents of `dst` are unspecified.
+    ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Read::read_exact`].
+    ///
+    /// [`Read::read_exact`]: https://doc.rust-lang.org/std/io/trait.Read.html#method.read_exact
+    ///
+    /// # Examples
+    ///
+    /// Read a sequence of signed 32 bit big-endian integers from a `Read`:
+    ///
+    /// ```rust
+    /// use std::io::Cursor;
+    /// use byteorder::{BigEndian, ReadBytesExt};
+    ///
+    /// let mut rdr = Cursor::new(vec![0, 0, 2, 5, 0, 0, 3, 0]);
+    /// let mut dst = [0; 2];
+    /// rdr.read_i32_into::<BigEndian>(&mut dst).unwrap();
+    /// assert_eq!([517, 768], dst);
+    /// ```
+    #[inline]
+    fn read_i32_into<T: ByteOrder>(&mut self, dst: &mut [i32]) -> Result<()> {
+        {
+            let mut buf = unsafe { slice_to_u8_mut(dst) };
+            try!(self.read_exact(buf));
+        }
+        T::from_slice_i32(dst);
+        Ok(())
+    }
+
+    /// Reads a sequence of signed 64 bit integers from the underlying
+    /// reader.
+    ///
+    /// The given buffer is either filled completely or an error is returned.
+    /// If an error is returned, the contents of `dst` are unspecified.
+    ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Read::read_exact`].
+    ///
+    /// [`Read::read_exact`]: https://doc.rust-lang.org/std/io/trait.Read.html#method.read_exact
+    ///
+    /// # Examples
+    ///
+    /// Read a sequence of signed 64 bit big-endian integers from a `Read`:
+    ///
+    /// ```rust
+    /// use std::io::Cursor;
+    /// use byteorder::{BigEndian, ReadBytesExt};
+    ///
+    /// let mut rdr = Cursor::new(vec![
+    ///     0, 0, 0, 0, 0, 0, 2, 5,
+    ///     0, 0, 0, 0, 0, 0, 3, 0,
+    /// ]);
+    /// let mut dst = [0; 2];
+    /// rdr.read_i64_into::<BigEndian>(&mut dst).unwrap();
+    /// assert_eq!([517, 768], dst);
+    /// ```
+    #[inline]
+    fn read_i64_into<T: ByteOrder>(&mut self, dst: &mut [i64]) -> Result<()> {
+        {
+            let mut buf = unsafe { slice_to_u8_mut(dst) };
+            try!(self.read_exact(buf));
+        }
+        T::from_slice_i64(dst);
+        Ok(())
+    }
+
+    /// Reads a sequence of signed 128 bit integers from the underlying
+    /// reader.
+    ///
+    /// The given buffer is either filled completely or an error is returned.
+    /// If an error is returned, the contents of `dst` are unspecified.
+    ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Read::read_exact`].
+    ///
+    /// [`Read::read_exact`]: https://doc.rust-lang.org/std/io/trait.Read.html#method.read_exact
+    ///
+    /// # Examples
+    ///
+    /// Read a sequence of signed 128 bit big-endian integers from a `Read`:
+    ///
+    /// ```rust
+    /// use std::io::Cursor;
+    /// use byteorder::{BigEndian, ReadBytesExt};
+    ///
+    /// let mut rdr = Cursor::new(vec![
+    ///     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 5,
+    ///     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0,
+    /// ]);
+    /// let mut dst = [0; 2];
+    /// rdr.read_i128_into::<BigEndian>(&mut dst).unwrap();
+    /// assert_eq!([517, 768], dst);
+    /// ```
+    #[cfg(feature = "i128")]
+    #[inline]
+    fn read_i128_into<T: ByteOrder>(
+        &mut self,
+        dst: &mut [i128],
+    ) -> Result<()> {
+        {
+            let mut buf = unsafe { slice_to_u8_mut(dst) };
+            try!(self.read_exact(buf));
+        }
+        T::from_slice_i128(dst);
+        Ok(())
+    }
+
+    /// Reads a sequence of IEEE754 single-precision (4 bytes) floating
+    /// point numbers from the underlying reader.
+    ///
+    /// The given buffer is either filled completely or an error is returned.
+    /// If an error is returned, the contents of `dst` are unspecified.
+    ///
+    /// # Safety
+    ///
+    /// This method is unsafe because there are no guarantees made about the
+    /// floating point values. In particular, this method does not check for
+    /// signaling NaNs, which may result in undefined behavior.
+    ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Read::read_exact`].
+    ///
+    /// [`Read::read_exact`]: https://doc.rust-lang.org/std/io/trait.Read.html#method.read_exact
+    ///
+    /// # Examples
+    ///
+    /// Read a sequence of big-endian single-precision floating point number
+    /// from a `Read`:
+    ///
+    /// ```rust
+    /// use std::f32;
+    /// use std::io::Cursor;
+    ///
+    /// use byteorder::{BigEndian, ReadBytesExt};
+    ///
+    /// let mut rdr = Cursor::new(vec![
+    ///     0x40, 0x49, 0x0f, 0xdb,
+    ///     0x3f, 0x80, 0x00, 0x00,
+    /// ]);
+    /// let mut dst = [0.0; 2];
+    /// unsafe {
+    ///     rdr.read_f32_into_unchecked::<BigEndian>(&mut dst).unwrap();
+    /// }
+    /// assert_eq!([f32::consts::PI, 1.0], dst);
+    /// ```
+    #[inline]
+    unsafe fn read_f32_into_unchecked<T: ByteOrder>(
+        &mut self,
+        dst: &mut [f32],
+    ) -> Result<()> {
+        {
+            let mut buf = slice_to_u8_mut(dst);
+            try!(self.read_exact(buf));
+        }
+        T::from_slice_f32(dst);
+        Ok(())
+    }
+
+    /// Reads a sequence of IEEE754 double-precision (8 bytes) floating
+    /// point numbers from the underlying reader.
+    ///
+    /// The given buffer is either filled completely or an error is returned.
+    /// If an error is returned, the contents of `dst` are unspecified.
+    ///
+    /// # Safety
+    ///
+    /// This method is unsafe because there are no guarantees made about the
+    /// floating point values. In particular, this method does not check for
+    /// signaling NaNs, which may result in undefined behavior.
+    ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Read::read_exact`].
+    ///
+    /// [`Read::read_exact`]: https://doc.rust-lang.org/std/io/trait.Read.html#method.read_exact
+    ///
+    /// # Examples
+    ///
+    /// Read a sequence of big-endian single-precision floating point number
+    /// from a `Read`:
+    ///
+    /// ```rust
+    /// use std::f64;
+    /// use std::io::Cursor;
+    ///
+    /// use byteorder::{BigEndian, ReadBytesExt};
+    ///
+    /// let mut rdr = Cursor::new(vec![
+    ///     0x40, 0x09, 0x21, 0xfb, 0x54, 0x44, 0x2d, 0x18,
+    ///     0x3f, 0xF0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    /// ]);
+    /// let mut dst = [0.0; 2];
+    /// unsafe {
+    ///     rdr.read_f64_into_unchecked::<BigEndian>(&mut dst).unwrap();
+    /// }
+    /// assert_eq!([f64::consts::PI, 1.0], dst);
+    /// ```
+    #[inline]
+    unsafe fn read_f64_into_unchecked<T: ByteOrder>(
+        &mut self,
+        dst: &mut [f64],
+    ) -> Result<()> {
+        {
+            let mut buf = slice_to_u8_mut(dst);
+            try!(self.read_exact(buf));
+        }
+        T::from_slice_f64(dst);
+        Ok(())
     }
 }
 
@@ -761,3 +1175,15 @@ pub trait WriteBytesExt: io::Write {
 /// All types that implement `Write` get methods defined in `WriteBytesExt`
 /// for free.
 impl<W: io::Write + ?Sized> WriteBytesExt for W {}
+
+/// Convert a slice of T (where T is plain old data) to its mutable binary
+/// representation.
+///
+/// This function is wildly unsafe because it permits arbitrary modification of
+/// the binary representation of any `Copy` type. Use with care.
+unsafe fn slice_to_u8_mut<T: Copy>(slice: &mut [T]) -> &mut [u8] {
+    use std::mem::size_of;
+
+    let len = size_of::<T>() * slice.len();
+    slice::from_raw_parts_mut(slice.as_mut_ptr() as *mut u8, len)
+}
