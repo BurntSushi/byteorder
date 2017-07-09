@@ -1388,6 +1388,9 @@ impl Default for BigEndian {
     }
 }
 
+/// A type alias for `BigEndian`.
+pub type BE = BigEndian;
+
 /// Defines little-endian serialization.
 ///
 /// Note that this type has no value constructor. It is used purely at the
@@ -1412,6 +1415,9 @@ impl Default for LittleEndian {
         panic!("LittleEndian default")
     }
 }
+
+/// A type alias for `LittleEndian`.
+pub type LE = LittleEndian;
 
 /// Defines network byte order serialization.
 ///
