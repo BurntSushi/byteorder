@@ -1382,6 +1382,230 @@ pub trait ByteOrder
     fn write_f64_into(src: &[f64], dst: &mut [u8]) {
         Self::write_u64_into(unsafe { transmute(src) }, dst);
     }
+
+    /// Converts the given slice of unsigned 16 bit integers to a particular
+    /// endianness.
+    ///
+    /// If the endianness matches the endianness of the host platform, then
+    /// this is a no-op.
+    ///
+    /// # Examples
+    ///
+    /// Convert the host platform's endianness to big-endian:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, BigEndian};
+    ///
+    /// let mut numbers = [5, 65000];
+    /// BigEndian::from_slice_u16(&mut numbers);
+    /// if cfg!(target_endian = "little") {
+    ///     assert_eq!(numbers, [5u16.swap_bytes(), 65000u16.swap_bytes()]);
+    /// } else {
+    ///     assert_eq!(numbers, [5, 65000]);
+    /// }
+    /// ```
+    fn from_slice_u16(numbers: &mut [u16]);
+
+    /// Converts the given slice of unsigned 32 bit integers to a particular
+    /// endianness.
+    ///
+    /// If the endianness matches the endianness of the host platform, then
+    /// this is a no-op.
+    ///
+    /// # Examples
+    ///
+    /// Convert the host platform's endianness to big-endian:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, BigEndian};
+    ///
+    /// let mut numbers = [5, 65000];
+    /// BigEndian::from_slice_u32(&mut numbers);
+    /// if cfg!(target_endian = "little") {
+    ///     assert_eq!(numbers, [5u32.swap_bytes(), 65000u32.swap_bytes()]);
+    /// } else {
+    ///     assert_eq!(numbers, [5, 65000]);
+    /// }
+    /// ```
+    fn from_slice_u32(numbers: &mut [u32]);
+
+    /// Converts the given slice of unsigned 64 bit integers to a particular
+    /// endianness.
+    ///
+    /// If the endianness matches the endianness of the host platform, then
+    /// this is a no-op.
+    ///
+    /// # Examples
+    ///
+    /// Convert the host platform's endianness to big-endian:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, BigEndian};
+    ///
+    /// let mut numbers = [5, 65000];
+    /// BigEndian::from_slice_u64(&mut numbers);
+    /// if cfg!(target_endian = "little") {
+    ///     assert_eq!(numbers, [5u64.swap_bytes(), 65000u64.swap_bytes()]);
+    /// } else {
+    ///     assert_eq!(numbers, [5, 65000]);
+    /// }
+    /// ```
+    fn from_slice_u64(numbers: &mut [u64]);
+
+    /// Converts the given slice of unsigned 128 bit integers to a particular
+    /// endianness.
+    ///
+    /// If the endianness matches the endianness of the host platform, then
+    /// this is a no-op.
+    ///
+    /// # Examples
+    ///
+    /// Convert the host platform's endianness to big-endian:
+    ///
+    /// ```rust
+    /// #![feature(i128_type)]
+    ///
+    /// use byteorder::{ByteOrder, BigEndian};
+    ///
+    /// let mut numbers = [5, 65000];
+    /// BigEndian::from_slice_u128(&mut numbers);
+    /// if cfg!(target_endian = "little") {
+    ///     assert_eq!(numbers, [5u128.swap_bytes(), 65000u128.swap_bytes()]);
+    /// } else {
+    ///     assert_eq!(numbers, [5, 65000]);
+    /// }
+    /// ```
+    #[cfg(feature = "i128")]
+    fn from_slice_u128(numbers: &mut [u128]);
+
+    /// Converts the given slice of signed 16 bit integers to a particular
+    /// endianness.
+    ///
+    /// If the endianness matches the endianness of the host platform, then
+    /// this is a no-op.
+    ///
+    /// # Examples
+    ///
+    /// Convert the host platform's endianness to big-endian:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, BigEndian};
+    ///
+    /// let mut numbers = [5, 65000];
+    /// BigEndian::from_slice_i16(&mut numbers);
+    /// if cfg!(target_endian = "little") {
+    ///     assert_eq!(numbers, [5i16.swap_bytes(), 65000i16.swap_bytes()]);
+    /// } else {
+    ///     assert_eq!(numbers, [5, 65000]);
+    /// }
+    /// ```
+    #[inline]
+    fn from_slice_i16(numbers: &mut [i16]) {
+        Self::from_slice_u16(unsafe { transmute(numbers) });
+    }
+
+    /// Converts the given slice of signed 32 bit integers to a particular
+    /// endianness.
+    ///
+    /// If the endianness matches the endianness of the host platform, then
+    /// this is a no-op.
+    ///
+    /// # Examples
+    ///
+    /// Convert the host platform's endianness to big-endian:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, BigEndian};
+    ///
+    /// let mut numbers = [5, 65000];
+    /// BigEndian::from_slice_i32(&mut numbers);
+    /// if cfg!(target_endian = "little") {
+    ///     assert_eq!(numbers, [5i32.swap_bytes(), 65000i32.swap_bytes()]);
+    /// } else {
+    ///     assert_eq!(numbers, [5, 65000]);
+    /// }
+    /// ```
+    #[inline]
+    fn from_slice_i32(numbers: &mut [i32]) {
+        Self::from_slice_u32(unsafe { transmute(numbers) });
+    }
+
+    /// Converts the given slice of signed 64 bit integers to a particular
+    /// endianness.
+    ///
+    /// If the endianness matches the endianness of the host platform, then
+    /// this is a no-op.
+    ///
+    /// # Examples
+    ///
+    /// Convert the host platform's endianness to big-endian:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, BigEndian};
+    ///
+    /// let mut numbers = [5, 65000];
+    /// BigEndian::from_slice_i64(&mut numbers);
+    /// if cfg!(target_endian = "little") {
+    ///     assert_eq!(numbers, [5i64.swap_bytes(), 65000i64.swap_bytes()]);
+    /// } else {
+    ///     assert_eq!(numbers, [5, 65000]);
+    /// }
+    /// ```
+    #[inline]
+    fn from_slice_i64(numbers: &mut [i64]) {
+        Self::from_slice_u64(unsafe { transmute(numbers) });
+    }
+
+    /// Converts the given slice of signed 128 bit integers to a particular
+    /// endianness.
+    ///
+    /// If the endianness matches the endianness of the host platform, then
+    /// this is a no-op.
+    ///
+    /// # Examples
+    ///
+    /// Convert the host platform's endianness to big-endian:
+    ///
+    /// ```rust
+    /// #![feature(i128_type)]
+    ///
+    /// use byteorder::{ByteOrder, BigEndian};
+    ///
+    /// let mut numbers = [5, 65000];
+    /// BigEndian::from_slice_i128(&mut numbers);
+    /// if cfg!(target_endian = "little") {
+    ///     assert_eq!(numbers, [5i128.swap_bytes(), 65000i128.swap_bytes()]);
+    /// } else {
+    ///     assert_eq!(numbers, [5, 65000]);
+    /// }
+    /// ```
+    #[cfg(feature = "i128")]
+    #[inline]
+    fn from_slice_i128(numbers: &mut [i128]) {
+        Self::from_slice_u128(unsafe { transmute(numbers) });
+    }
+
+    /// Converts the given slice of IEEE754 single-precision (4 bytes) floating
+    /// point numbers to a particular endianness.
+    ///
+    /// If the endianness matches the endianness of the host platform, then
+    /// this is a no-op.
+    ///
+    /// Note that the results of this operation are guaranteed to be defined.
+    /// In particular, this method may replace signaling NaN values with
+    /// quiet NaN values.
+    fn from_slice_f32(numbers: &mut [f32]);
+
+    /// Converts the given slice of IEEE754 double-precision (8 bytes) floating
+    /// point numbers to a particular endianness.
+    ///
+    /// If the endianness matches the endianness of the host platform, then
+    /// this is a no-op.
+    ///
+    /// Note that the results of this operation are guaranteed to be defined.
+    /// In particular, this method may replace signaling NaN values with
+    /// quiet NaN values.
+    fn from_slice_f64(numbers: &mut [f64]);
 }
 
 /// Defines big-endian serialization.
@@ -1697,6 +1921,63 @@ impl ByteOrder for BigEndian {
             write_slice!(src, dst, u128, 16, Self::write_u128);
         }
     }
+
+    #[inline]
+    fn from_slice_u16(numbers: &mut [u16]) {
+        if cfg!(target_endian = "little") {
+            for n in numbers {
+                *n = n.to_be();
+            }
+        }
+    }
+
+    #[inline]
+    fn from_slice_u32(numbers: &mut [u32]) {
+        if cfg!(target_endian = "little") {
+            for n in numbers {
+                *n = n.to_be();
+            }
+        }
+    }
+
+    #[inline]
+    fn from_slice_u64(numbers: &mut [u64]) {
+        if cfg!(target_endian = "little") {
+            for n in numbers {
+                *n = n.to_be();
+            }
+        }
+    }
+
+    #[cfg(feature = "i128")]
+    #[inline]
+    fn from_slice_u128(numbers: &mut [u128]) {
+        if cfg!(target_endian = "little") {
+            for n in numbers {
+                *n = n.to_be();
+            }
+        }
+    }
+
+    #[inline]
+    fn from_slice_f32(numbers: &mut [f32]) {
+        if cfg!(target_endian = "little") {
+            for n in numbers {
+                let int: u32 = unsafe { transmute(*n) };
+                *n = safe_u32_bits_to_f32(int.to_be());
+            }
+        }
+    }
+
+    #[inline]
+    fn from_slice_f64(numbers: &mut [f64]) {
+        if cfg!(target_endian = "little") {
+            for n in numbers {
+                let int: u64 = unsafe { transmute(*n) };
+                *n = safe_u64_bits_to_f64(int.to_be());
+            }
+        }
+    }
 }
 
 impl ByteOrder for LittleEndian {
@@ -1841,6 +2122,63 @@ impl ByteOrder for LittleEndian {
             write_slice_native!(src, dst, u128, 16);
         } else {
             write_slice!(src, dst, u128, 16, Self::write_u128);
+        }
+    }
+
+    #[inline]
+    fn from_slice_u16(numbers: &mut [u16]) {
+        if cfg!(target_endian = "big") {
+            for n in numbers {
+                *n = n.to_le();
+            }
+        }
+    }
+
+    #[inline]
+    fn from_slice_u32(numbers: &mut [u32]) {
+        if cfg!(target_endian = "big") {
+            for n in numbers {
+                *n = n.to_le();
+            }
+        }
+    }
+
+    #[inline]
+    fn from_slice_u64(numbers: &mut [u64]) {
+        if cfg!(target_endian = "big") {
+            for n in numbers {
+                *n = n.to_le();
+            }
+        }
+    }
+
+    #[cfg(feature = "i128")]
+    #[inline]
+    fn from_slice_u128(numbers: &mut [u128]) {
+        if cfg!(target_endian = "big") {
+            for n in numbers {
+                *n = n.to_le();
+            }
+        }
+    }
+
+    #[inline]
+    fn from_slice_f32(numbers: &mut [f32]) {
+        if cfg!(target_endian = "big") {
+            for n in numbers {
+                let int: u32 = unsafe { transmute(*n) };
+                *n = safe_u32_bits_to_f32(int.to_le());
+            }
+        }
+    }
+
+    #[inline]
+    fn from_slice_f64(numbers: &mut [f64]) {
+        if cfg!(target_endian = "big") {
+            for n in numbers {
+                let int: u64 = unsafe { transmute(*n) };
+                *n = safe_u64_bits_to_f64(int.to_le());
+            }
         }
     }
 }
