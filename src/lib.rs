@@ -1707,11 +1707,8 @@ macro_rules! read_num_bytes {
         assert!($size == ::core::mem::size_of::<$ty>());
         assert!($size <= $src.len());
         let mut data: $ty = 0;
-        unsafe {
-            copy_nonoverlapping(
-                $src.as_ptr(),
-                &mut data as *mut $ty as *mut u8,
-                $size);
+        for i in 0..$size {
+            data |= $src[i] as $ty << 8*i;
         }
         data.$which()
     });
@@ -1720,26 +1717,18 @@ macro_rules! read_num_bytes {
 macro_rules! write_num_bytes {
     ($ty:ty, $size:expr, $n:expr, $dst:expr, $which:ident) => ({
         assert!($size <= $dst.len());
-        unsafe {
-            // N.B. https://github.com/rust-lang/rust/issues/22776
-            let bytes = transmute::<_, [u8; $size]>($n.$which());
-            copy_nonoverlapping((&bytes).as_ptr(), $dst.as_mut_ptr(), $size);
+        let bytes = $n.$which();
+        for i in 0..$size {
+            $dst[i] = (bytes >> 8*i) as u8;
         }
     });
 }
 
 macro_rules! read_slice {
-    ($src:expr, $dst:expr, $size:expr, $which:ident) => {{
+    ($src:expr, $dst:expr, $size:expr, $read:expr) => {{
         assert_eq!($src.len(), $size * $dst.len());
-
-        unsafe {
-            copy_nonoverlapping(
-                $src.as_ptr(),
-                $dst.as_mut_ptr() as *mut u8,
-                $src.len());
-        }
-        for v in $dst.iter_mut() {
-            *v = v.$which();
+        for (chunk, dst) in $src.chunks($size).zip($dst.iter_mut()) {
+            *dst = $read(chunk);
         }
     }};
 }
@@ -1748,12 +1737,10 @@ macro_rules! write_slice_native {
     ($src:expr, $dst:expr, $ty:ty, $size:expr) => {{
         assert!($size == ::core::mem::size_of::<$ty>());
         assert_eq!($size * $src.len(), $dst.len());
-
-        unsafe {
-            copy_nonoverlapping(
-                $src.as_ptr() as *const u8,
-                $dst.as_mut_ptr(),
-                $dst.len());
+        for i in 0..$src.len() {
+            for j in 0..$size {
+                $dst[(i*$size)+j] = ($src[i] >> 8*j) as u8;
+            }
         }
     }};
 }
@@ -1762,7 +1749,6 @@ macro_rules! write_slice {
     ($src:expr, $dst:expr, $ty:ty, $size:expr, $write:expr) => ({
         assert!($size == ::core::mem::size_of::<$ty>());
         assert_eq!($size * $src.len(), $dst.len());
-
         for (&n, chunk) in $src.iter().zip($dst.chunks_mut($size)) {
             $write(chunk, n);
         }
@@ -1866,23 +1852,23 @@ impl ByteOrder for BigEndian {
 
     #[inline]
     fn read_u16_into(src: &[u8], dst: &mut [u16]) {
-        read_slice!(src, dst, 2, to_be);
+        read_slice!(src, dst, 2, Self::read_u16);
     }
 
     #[inline]
     fn read_u32_into(src: &[u8], dst: &mut [u32]) {
-        read_slice!(src, dst, 4, to_be);
+        read_slice!(src, dst, 4, Self::read_u32);
     }
 
     #[inline]
     fn read_u64_into(src: &[u8], dst: &mut [u64]) {
-        read_slice!(src, dst, 8, to_be);
+        read_slice!(src, dst, 8, Self::read_u64);
     }
 
     #[cfg(feature = "i128")]
     #[inline]
     fn read_u128_into(src: &[u8], dst: &mut [u128]) {
-        read_slice!(src, dst, 16, to_be);
+        read_slice!(src, dst, 16, Self::read_u128);
     }
 
     #[inline]
@@ -2069,23 +2055,23 @@ impl ByteOrder for LittleEndian {
 
     #[inline]
     fn read_u16_into(src: &[u8], dst: &mut [u16]) {
-        read_slice!(src, dst, 2, to_le);
+        read_slice!(src, dst, 2, Self::read_u16);
     }
 
     #[inline]
     fn read_u32_into(src: &[u8], dst: &mut [u32]) {
-        read_slice!(src, dst, 4, to_le);
+        read_slice!(src, dst, 4, Self::read_u32);
     }
 
     #[inline]
     fn read_u64_into(src: &[u8], dst: &mut [u64]) {
-        read_slice!(src, dst, 8, to_le);
+        read_slice!(src, dst, 8, Self::read_u64);
     }
 
     #[cfg(feature = "i128")]
     #[inline]
     fn read_u128_into(src: &[u8], dst: &mut [u128]) {
-        read_slice!(src, dst, 16, to_le);
+        read_slice!(src, dst, 16, Self::read_u128);
     }
 
     #[inline]
