@@ -185,6 +185,11 @@ pub trait ByteOrder
     : Clone + Copy + Debug + Default + Eq + Hash + Ord + PartialEq + PartialOrd
     + private::Sealed
 {
+    /// Value of byte order usable in runtime.
+    ///
+    /// It allows one to write generic code based on `: Byteorder` bound.
+    const BYTE_ORDER: RTByteOrder;
+
     /// Reads an unsigned 16 bit integer from `buf`.
     ///
     /// # Panics
@@ -1702,6 +1707,21 @@ pub type NativeEndian = LittleEndian;
 #[cfg(target_endian = "big")]
 pub type NativeEndian = BigEndian;
 
+/// Run-time-defined byte order.
+///
+/// This enum can be used for defining byte order run-time as well as in
+/// some implementations.
+///
+/// Most of the times byte order is statically known, but there are few
+/// cases in which it's useful.
+#[derive(Copy, Clone, Eq, PartialEq, Hash)]
+pub enum RTByteOrder {
+    /// Big endian
+    BE,
+    /// Little endian
+    LE,
+}
+
 macro_rules! read_num_bytes {
     ($ty:ty, $size:expr, $src:expr, $which:ident) => ({
         assert!($size == ::core::mem::size_of::<$ty>());
@@ -1770,6 +1790,8 @@ macro_rules! write_slice {
 }
 
 impl ByteOrder for BigEndian {
+    const BYTE_ORDER: RTByteOrder = RTByteOrder::BE;
+
     #[inline]
     fn read_u16(buf: &[u8]) -> u16 {
         read_num_bytes!(u16, 2, buf, to_be)
@@ -1981,6 +2003,8 @@ impl ByteOrder for BigEndian {
 }
 
 impl ByteOrder for LittleEndian {
+    const BYTE_ORDER: RTByteOrder = RTByteOrder::LE;
+
     #[inline]
     fn read_u16(buf: &[u8]) -> u16 {
         read_num_bytes!(u16, 2, buf, to_le)
