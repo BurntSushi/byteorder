@@ -2865,9 +2865,8 @@ mod stdtests {
                     fn prop(n: $ty_int) -> bool {
                         let mut wtr = vec![];
                         wtr.$write::<BigEndian>(n.clone()).unwrap();
-                        let mut rdr = Vec::new();
-                        rdr.extend(wtr[wtr.len()-$bytes..].iter().map(|&x| x));
-                        let mut rdr = Cursor::new(rdr);
+                        let offset = wtr.len() - $bytes;
+                        let mut rdr = Cursor::new(&mut wtr[offset..]);
                         n == rdr.$read::<BigEndian>($bytes).unwrap()
                     }
                     qc_sized(prop as fn($ty_int) -> bool, $max);
@@ -2889,7 +2888,12 @@ mod stdtests {
                     fn prop(n: $ty_int) -> bool {
                         let mut wtr = vec![];
                         wtr.$write::<NativeEndian>(n.clone()).unwrap();
-                        let mut rdr = Cursor::new(wtr);
+                        let offset = if cfg!(target_endian = "big") {
+                            wtr.len() - $bytes
+                        } else {
+                            0
+                        };
+                        let mut rdr = Cursor::new(&mut wtr[offset..]);
                         n == rdr.$read::<NativeEndian>($bytes).unwrap()
                     }
                     qc_sized(prop as fn($ty_int) -> bool, $max);
