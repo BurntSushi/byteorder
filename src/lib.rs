@@ -2185,40 +2185,12 @@ impl ByteOrder for LittleEndian {
 
 #[inline]
 fn safe_u32_bits_to_f32(u: u32) -> f32 {
-    use core::f32::NAN;
-
-    const EXP_MASK: u32 = 0x7F800000;
-    const FRACT_MASK: u32 = 0x007FFFFF;
-
-    if u & EXP_MASK == EXP_MASK && u & FRACT_MASK != 0 {
-        // While IEEE 754-2008 specifies encodings for quiet NaNs and
-        // signaling ones, certains MIPS and PA-RISC CPUs treat signaling
-        // NaNs differently. Therefore, to be safe, we pass a known quiet
-        // NaN if u is any kind of NaN. The check above only assumes
-        // IEEE 754-1985 to be valid.
-        NAN
-    } else {
-        unsafe { transmute(u) }
-    }
+    unsafe { transmute(u) }
 }
 
 #[inline]
 fn safe_u64_bits_to_f64(u: u64) -> f64 {
-    use core::f64::NAN;
-
-    const EXP_MASK: u64 = 0x7FF0000000000000;
-    const FRACT_MASK: u64 = 0x000FFFFFFFFFFFFF;
-
-    if u & EXP_MASK == EXP_MASK && u & FRACT_MASK != 0 {
-        // While IEEE 754-2008 specifies encodings for quiet NaNs and
-        // signaling ones, certains MIPS and PA-RISC CPUs treat signaling
-        // NaNs differently. Therefore, to be safe, we pass a known quiet
-        // NaN if u is any kind of NaN. The check above only assumes
-        // IEEE 754-1985 to be valid.
-        NAN
-    } else {
-        unsafe { transmute(u) }
-    }
+    unsafe { transmute(u) }
 }
 
 #[cfg(test)]
