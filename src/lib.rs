@@ -2768,35 +2768,6 @@ mod test {
         let n = LittleEndian::read_uint(&[1, 2, 3, 4, 5, 6, 7, 8], 5);
         assert_eq!(n, 0x0504030201);
     }
-
-    #[test]
-    fn read_snan() {
-        use core::f32;
-        use core::f64;
-        use core::mem::transmute;
-
-        use {ByteOrder, BigEndian, LittleEndian};
-
-        let sf = BigEndian::read_f32(&[0xFF, 0x80, 0x00, 0x01]);
-        let sbits: u32 = unsafe { transmute(sf) };
-        assert_eq!(sbits, unsafe { transmute(f32::NAN) });
-        assert_eq!(sf.classify(), ::core::num::FpCategory::Nan);
-
-        let df = BigEndian::read_f64(&[0x7F, 0xF0, 0, 0, 0, 0, 0, 0x01]);
-        let dbits: u64 = unsafe { ::core::mem::transmute(df) };
-        assert_eq!(dbits, unsafe { transmute(f64::NAN) });
-        assert_eq!(df.classify(), ::core::num::FpCategory::Nan);
-
-        let sf = LittleEndian::read_f32(&[0x01, 0x00, 0x80, 0xFF]);
-        let sbits: u32 = unsafe { transmute(sf) };
-        assert_eq!(sbits, unsafe { transmute(f32::NAN) });
-        assert_eq!(sf.classify(), ::core::num::FpCategory::Nan);
-
-        let df = LittleEndian::read_f64(&[0x01, 0, 0, 0, 0, 0, 0xF0, 0x7F]);
-        let dbits: u64 = unsafe { ::core::mem::transmute(df) };
-        assert_eq!(dbits, unsafe { transmute(f64::NAN) });
-        assert_eq!(df.classify(), ::core::num::FpCategory::Nan);
-    }
 }
 
 #[cfg(test)]
