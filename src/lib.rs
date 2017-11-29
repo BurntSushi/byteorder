@@ -40,7 +40,7 @@ assert_eq!(wtr, vec![5, 2, 0, 3]);
 #![cfg_attr(not(feature = "std"), no_std)]
 #![cfg_attr(feature = "i128", feature(i128_type))]
 #![cfg_attr(all(feature = "i128", test), feature(i128))]
-#![doc(html_root_url = "https://docs.rs/byteorder/1.0.0")]
+#![doc(html_root_url = "https://docs.rs/byteorder/1.1.0")]
 
 #[cfg(feature = "std")]
 extern crate core;
@@ -611,9 +611,6 @@ pub trait ByteOrder
 
     /// Reads a IEEE754 single-precision (4 bytes) floating point number.
     ///
-    /// The return value is always defined; signaling NaN's may be turned into
-    /// quiet NaN's.
-    ///
     /// # Panics
     ///
     /// Panics when `buf.len() < 4`.
@@ -632,13 +629,10 @@ pub trait ByteOrder
     /// ```
     #[inline]
     fn read_f32(buf: &[u8]) -> f32 {
-        safe_u32_bits_to_f32(Self::read_u32(buf))
+        unsafe { transmute(Self::read_u32(buf)) }
     }
 
     /// Reads a IEEE754 double-precision (8 bytes) floating point number.
-    ///
-    /// The return value is always defined; signaling NaN's may be turned into
-    /// quiet NaN's.
     ///
     /// # Panics
     ///
@@ -658,7 +652,7 @@ pub trait ByteOrder
     /// ```
     #[inline]
     fn read_f64(buf: &[u8]) -> f64 {
-        safe_u64_bits_to_f64(Self::read_u64(buf))
+        unsafe { transmute(Self::read_u64(buf)) }
     }
 
     /// Writes a signed 16 bit integer `n` to `buf`.
@@ -1066,12 +1060,6 @@ pub trait ByteOrder
     /// Reads IEEE754 single-precision (4 bytes) floating point numbers from
     /// `src` into `dst`.
     ///
-    /// Note that this does not perform any checks on the floating point
-    /// conversion. In particular, if the `src` data encodes an undefined
-    /// floating point value for your environment, then the result may be
-    /// undefined behavior. For example, this function may produce signaling
-    /// NaN floating point values.
-    ///
     /// # Panics
     ///
     /// Panics when `src.len() != 4*dst.len()`.
@@ -1088,24 +1076,16 @@ pub trait ByteOrder
     /// LittleEndian::write_f32_into(&numbers_given, &mut bytes);
     ///
     /// let mut numbers_got = [0.0; 4];
-    /// unsafe {
-    ///     LittleEndian::read_f32_into_unchecked(&bytes, &mut numbers_got);
-    /// }
+    /// LittleEndian::read_f32_into_unchecked(&bytes, &mut numbers_got);
     /// assert_eq!(numbers_given, numbers_got);
     /// ```
     #[inline]
-    unsafe fn read_f32_into_unchecked(src: &[u8], dst: &mut [f32]) {
-        Self::read_u32_into(src, transmute(dst));
+    fn read_f32_into_unchecked(src: &[u8], dst: &mut [f32]) {
+        Self::read_u32_into(src, unsafe { transmute(dst) });
     }
 
     /// Reads IEEE754 single-precision (4 bytes) floating point numbers from
     /// `src` into `dst`.
-    ///
-    /// Note that this does not perform any checks on the floating point
-    /// conversion. In particular, if the `src` data encodes an undefined
-    /// floating point value for your environment, then the result may be
-    /// undefined behavior. For example, this function may produce signaling
-    /// NaN floating point values.
     ///
     /// # Panics
     ///
@@ -1123,14 +1103,12 @@ pub trait ByteOrder
     /// LittleEndian::write_f64_into(&numbers_given, &mut bytes);
     ///
     /// let mut numbers_got = [0.0; 4];
-    /// unsafe {
-    ///     LittleEndian::read_f64_into_unchecked(&bytes, &mut numbers_got);
-    /// }
+    /// LittleEndian::read_f64_into_unchecked(&bytes, &mut numbers_got);
     /// assert_eq!(numbers_given, numbers_got);
     /// ```
     #[inline]
-    unsafe fn read_f64_into_unchecked(src: &[u8], dst: &mut [f64]) {
-        Self::read_u64_into(src, transmute(dst));
+    fn read_f64_into_unchecked(src: &[u8], dst: &mut [f64]) {
+        Self::read_u64_into(src, unsafe { transmute(dst) });
     }
 
     /// Writes unsigned 16 bit integers from `src` into `dst`.
@@ -1590,10 +1568,6 @@ pub trait ByteOrder
     ///
     /// If the endianness matches the endianness of the host platform, then
     /// this is a no-op.
-    ///
-    /// Note that the results of this operation are guaranteed to be defined.
-    /// In particular, this method may replace signaling NaN values with
-    /// quiet NaN values.
     fn from_slice_f32(numbers: &mut [f32]);
 
     /// Converts the given slice of IEEE754 double-precision (8 bytes) floating
@@ -1601,10 +1575,6 @@ pub trait ByteOrder
     ///
     /// If the endianness matches the endianness of the host platform, then
     /// this is a no-op.
-    ///
-    /// Note that the results of this operation are guaranteed to be defined.
-    /// In particular, this method may replace signaling NaN values with
-    /// quiet NaN values.
     fn from_slice_f64(numbers: &mut [f64]);
 }
 
@@ -1964,7 +1934,7 @@ impl ByteOrder for BigEndian {
         if cfg!(target_endian = "little") {
             for n in numbers {
                 let int: u32 = unsafe { transmute(*n) };
-                *n = safe_u32_bits_to_f32(int.to_be());
+                *n = unsafe { transmute(int.to_be()) };
             }
         }
     }
@@ -1974,7 +1944,7 @@ impl ByteOrder for BigEndian {
         if cfg!(target_endian = "little") {
             for n in numbers {
                 let int: u64 = unsafe { transmute(*n) };
-                *n = safe_u64_bits_to_f64(int.to_be());
+                *n = unsafe { transmute(int.to_be()) };
             }
         }
     }
@@ -2167,7 +2137,7 @@ impl ByteOrder for LittleEndian {
         if cfg!(target_endian = "big") {
             for n in numbers {
                 let int: u32 = unsafe { transmute(*n) };
-                *n = safe_u32_bits_to_f32(int.to_le());
+                *n = unsafe { transmute(int.to_le()) };
             }
         }
     }
@@ -2177,20 +2147,10 @@ impl ByteOrder for LittleEndian {
         if cfg!(target_endian = "big") {
             for n in numbers {
                 let int: u64 = unsafe { transmute(*n) };
-                *n = safe_u64_bits_to_f64(int.to_le());
+                *n = unsafe { transmute(int.to_le()) };
             }
         }
     }
-}
-
-#[inline]
-fn safe_u32_bits_to_f32(u: u32) -> f32 {
-    unsafe { transmute(u) }
-}
-
-#[inline]
-fn safe_u64_bits_to_f64(u: u64) -> f64 {
-    unsafe { transmute(u) }
 }
 
 #[cfg(test)]
