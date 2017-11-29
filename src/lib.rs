@@ -40,7 +40,7 @@ assert_eq!(wtr, vec![5, 2, 0, 3]);
 #![cfg_attr(not(feature = "std"), no_std)]
 #![cfg_attr(feature = "i128", feature(i128_type))]
 #![cfg_attr(all(feature = "i128", test), feature(i128))]
-#![doc(html_root_url = "https://docs.rs/byteorder/1.2.0")]
+#![doc(html_root_url = "https://docs.rs/byteorder/1.2.1")]
 
 #[cfg(feature = "std")]
 extern crate core;

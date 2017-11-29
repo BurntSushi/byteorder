@@ -1,3 +1,11 @@
+1.2.1
+=====
+This patch release removes more unnecessary uses of `unsafe` that
+were overlooked in the prior `1.2.0` release. In particular, the
+`ReadBytesExt::read_{f32,f64}_into_checked` methods have been deprecated and
+replaced by more appropriately named `read_{f32,f64}_into` methods.
+
+
 1.2.0
 =====
 The most prominent change in this release of `byteorder` is the removal of
