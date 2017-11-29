@@ -1,3 +1,17 @@
+1.2.0
+=====
+The most prominent change in this release of `byteorder` is the removal of
+unnecessary signaling NaN masking, and in turn, the `unsafe` annotations
+associated with methods that didn't do masking. See
+[#103](https://github.com/BurntSushi/byteorder/issues/103)
+for more details.
+
+* [BUG #102](https://github.com/BurntSushi/byteorder/issues/102):
+  Fix big endian tests.
+* [BUG #103](https://github.com/BurntSushi/byteorder/issues/103):
+  Remove sNaN masking.
+
+
 1.1.0
 =====
 This release of `byteorder` features a number of fixes and improvements, mostly
