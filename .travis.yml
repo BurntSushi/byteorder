@@ -1,21 +1,39 @@
 language: rust
-rust:
-  - 1.12.0
-  - stable
-  - beta
-  - nightly
+
+matrix:
+  include:
+    - rust: 1.12.0
+    - rust: stable
+    - rust: beta
+    - rust: nightly
+    - env: CROSS_TARGET=mips64-unknown-linux-gnuabi64
+      rust: stable
+      services: docker
+      sudo: required
+
+before_script:
+  - if [ ! -z "$CROSS_TARGET" ]; then
+      rustup target add $CROSS_TARGET;
+      cargo install cross --force;
+      export CARGO_CMD="cross";
+      export TARGET_PARAM="--target $CROSS_TARGET";
+    else
+      export CARGO_CMD=cargo;
+      export TARGET_PARAM="";
+    fi
+
 script:
-  - cargo build --verbose
-  - cargo doc
-  - cargo test --verbose
-  - cargo test --verbose --no-default-features --lib
+  - $CARGO_CMD build $TARGET_PARAM --verbose 
+  - $CARGO_CMD doc $TARGET_PARAM
+  - $CARGO_CMD test $TARGET_PARAM --verbose
+  - $CARGO_CMD test $TARGET_PARAM --verbose --no-default-features --lib
   - if [ "$TRAVIS_RUST_VERSION" = "nightly" ]; then
-      cargo test --verbose --features i128;
-      cargo test --verbose --no-default-features --features i128 --lib;
-      cargo bench --verbose --no-run;
-      cargo bench --verbose --no-run --no-default-features;
-      cargo bench --verbose --no-run --features i128;
-      cargo bench --verbose --no-run --no-default-features --features i128;
+      $CARGO_CMD test $TARGET_PARAM --verbose --features i128;
+      $CARGO_CMD test $TARGET_PARAM --verbose --no-default-features --features i128 --lib;
+      $CARGO_CMD bench $TARGET_PARAM --verbose --no-run;
+      $CARGO_CMD bench $TARGET_PARAM --verbose --no-run --no-default-features;
+      $CARGO_CMD bench $TARGET_PARAM --verbose --no-run --features i128;
+      $CARGO_CMD bench $TARGET_PARAM --verbose --no-run --no-default-features --features i128;
     fi
 branches:
   only:
