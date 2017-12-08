@@ -860,6 +860,7 @@ pub trait ReadBytesExt: io::Read {
     /// assert_eq!([f32::consts::PI, 1.0], dst);
     /// ```
     #[inline]
+    #[deprecated(since="1.2.0", note="please use `read_f32_into` instead")]
     fn read_f32_into_unchecked<T: ByteOrder>(
         &mut self,
         dst: &mut [f32],
@@ -953,6 +954,7 @@ pub trait ReadBytesExt: io::Read {
     /// assert_eq!([f64::consts::PI, 1.0], dst);
     /// ```
     #[inline]
+    #[deprecated(since="1.2.0", note="please use `read_f64_into` instead")]
     fn read_f64_into_unchecked<T: ByteOrder>(
         &mut self,
         dst: &mut [f64],
