@@ -149,7 +149,7 @@ mod private {
     impl Sealed for super::BigEndian {}
 }
 
-/// ByteOrder describes types that can serialize integers as bytes.
+/// `ByteOrder` describes types that can serialize integers as bytes.
 ///
 /// Note that `Self` does not appear anywhere in this trait's definition!
 /// Therefore, in order to use it, you'll need to use syntax like
@@ -1638,7 +1638,7 @@ pub type LE = LittleEndian;
 ///
 /// Network byte order is defined by [RFC 1700][1] to be big-endian, and is
 /// referred to in several protocol specifications.  This type is an alias of
-/// BigEndian.
+/// `BigEndian`.
 ///
 /// [1]: https://tools.ietf.org/html/rfc1700
 ///
