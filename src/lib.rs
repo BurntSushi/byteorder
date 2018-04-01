@@ -1,17 +1,24 @@
 /*!
 This crate provides convenience methods for encoding and decoding numbers
-in either big-endian or little-endian order.
+in either [big-endian or little-endian order].
 
-The organization of the crate is pretty simple. A trait, `ByteOrder`, specifies
+The organization of the crate is pretty simple. A trait, [`ByteOrder`], specifies
 byte conversion methods for each type of number in Rust (sans numbers that have
-a platform dependent size like `usize` and `isize`). Two types, `BigEndian`
-and `LittleEndian` implement these methods. Finally, `ReadBytesExt` and
-`WriteBytesExt` provide convenience methods available to all types that
-implement `Read` and `Write`.
+a platform dependent size like `usize` and `isize`). Two types, [`BigEndian`]
+and [`LittleEndian`] implement these methods. Finally, [`ReadBytesExt`] and
+[`WriteBytesExt`] provide convenience methods available to all types that
+implement [`Read`] and [`Write`].
+
+An alias, [`NetworkEndian`], for [`BigEndian`] is provided to help improve
+code clarity.
+
+An additional alias, [`NativeEndian`], is provided for the endianness of the
+local platform. This is convenient when serializing data for use and
+conversions are not desired.
 
 # Examples
 
-Read unsigned 16 bit big-endian integers from a `Read` type:
+Read unsigned 16 bit big-endian integers from a [`Read`] type:
 
 ```rust
 use std::io::Cursor;
@@ -24,7 +31,7 @@ assert_eq!(517, rdr.read_u16::<BigEndian>().unwrap());
 assert_eq!(768, rdr.read_u16::<BigEndian>().unwrap());
 ```
 
-Write unsigned 16 bit little-endian integers to a `Write` type:
+Write unsigned 16 bit little-endian integers to a [`Write`] type:
 
 ```rust
 use byteorder::{LittleEndian, WriteBytesExt};
@@ -34,6 +41,24 @@ wtr.write_u16::<LittleEndian>(517).unwrap();
 wtr.write_u16::<LittleEndian>(768).unwrap();
 assert_eq!(wtr, vec![5, 2, 0, 3]);
 ```
+
+# Optional Features
+
+This crate optionally provides support for 128 bit values (`i128` and `u128`)
+when built with the `i128` feature enabled.
+
+This crate can also be used without the standard library.
+
+[big-endian or little-endian order]: https://en.wikipedia.org/wiki/Endianness
+[`ByteOrder`]: trait.ByteOrder.html
+[`BigEndian`]: enum.BigEndian.html
+[`LittleEndian`]: enum.LittleEndian.html
+[`ReadBytesExt`]: trait.ReadBytesExt.html
+[`WriteBytesExt`]: trait.WriteBytesExt.html
+[`NetworkEndian`]: type.NetworkEndian.html
+[`NativeEndian`]: type.NativeEndian.html
+[`Read`]: https://doc.rust-lang.org/std/io/trait.Read.html
+[`Write`]: https://doc.rust-lang.org/std/io/trait.Write.html
 */
 
 #![deny(missing_docs)]
@@ -155,8 +180,8 @@ mod private {
 /// Therefore, in order to use it, you'll need to use syntax like
 /// `T::read_u16(&[0, 1])` where `T` implements `ByteOrder`.
 ///
-/// This crate provides two types that implement `ByteOrder`: `BigEndian`
-/// and `LittleEndian`.
+/// This crate provides two types that implement `ByteOrder`: [`BigEndian`]
+/// and [`LittleEndian`].
 /// This trait is sealed and cannot be implemented for callers to avoid
 /// breaking backwards compatibility when adding new derived traits.
 ///
@@ -181,6 +206,9 @@ mod private {
 /// BigEndian::write_i16(&mut buf, -50_000);
 /// assert_eq!(-50_000, BigEndian::read_i16(&buf));
 /// ```
+///
+/// [`BigEndian`]: enum.BigEndian.html
+/// [`LittleEndian`]: enum.LittleEndian.html
 pub trait ByteOrder
     : Clone + Copy + Debug + Default + Eq + Hash + Ord + PartialEq + PartialOrd
     + private::Sealed
@@ -1653,7 +1681,9 @@ impl Default for BigEndian {
     }
 }
 
-/// A type alias for `BigEndian`.
+/// A type alias for [`BigEndian`].
+///
+/// [`BigEndian`]: enum.BigEndian.html
 pub type BE = BigEndian;
 
 /// Defines little-endian serialization.
@@ -1681,14 +1711,16 @@ impl Default for LittleEndian {
     }
 }
 
-/// A type alias for `LittleEndian`.
+/// A type alias for [`LittleEndian`].
+///
+/// [`LittleEndian`]: enum.LittleEndian.html
 pub type LE = LittleEndian;
 
 /// Defines network byte order serialization.
 ///
 /// Network byte order is defined by [RFC 1700][1] to be big-endian, and is
 /// referred to in several protocol specifications.  This type is an alias of
-/// `BigEndian`.
+/// [`BigEndian`].
 ///
 /// [1]: https://tools.ietf.org/html/rfc1700
 ///
@@ -1706,12 +1738,18 @@ pub type LE = LittleEndian;
 /// BigEndian::write_i16(&mut buf, -50_000);
 /// assert_eq!(-50_000, NetworkEndian::read_i16(&buf));
 /// ```
+///
+/// [`BigEndian`]: enum.BigEndian.html
 pub type NetworkEndian = BigEndian;
 
 /// Defines system native-endian serialization.
 ///
 /// Note that this type has no value constructor. It is used purely at the
 /// type level.
+///
+/// On this platform, this is an alias for [`LittleEndian`].
+///
+/// [`LittleEndian`]: enum.LittleEndian.html
 #[cfg(target_endian = "little")]
 pub type NativeEndian = LittleEndian;
 
@@ -1719,6 +1757,10 @@ pub type NativeEndian = LittleEndian;
 ///
 /// Note that this type has no value constructor. It is used purely at the
 /// type level.
+///
+/// On this platform, this is an alias for [`BigEndian`].
+///
+/// [`BigEndian`]: enum.BigEndian.html
 #[cfg(target_endian = "big")]
 pub type NativeEndian = BigEndian;
 
