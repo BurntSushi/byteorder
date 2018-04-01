@@ -623,7 +623,7 @@ pub trait ReadBytesExt: io::Read {
         dst: &mut [u128],
     ) -> Result<()> {
         {
-            let mut buf = unsafe { slice_to_u8_mut(dst) };
+            let buf = unsafe { slice_to_u8_mut(dst) };
             try!(self.read_exact(buf));
         }
         T::from_slice_u128(dst);
@@ -773,7 +773,7 @@ pub trait ReadBytesExt: io::Read {
         dst: &mut [i128],
     ) -> Result<()> {
         {
-            let mut buf = unsafe { slice_to_u8_mut(dst) };
+            let buf = unsafe { slice_to_u8_mut(dst) };
             try!(self.read_exact(buf));
         }
         T::from_slice_i128(dst);
