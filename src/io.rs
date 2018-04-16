@@ -1255,6 +1255,71 @@ pub trait WriteBytesExt: io::Write {
         T::write_f64(&mut buf, n);
         self.write_all(&buf)
     }
+
+    ///Writes a slice of i8 to the underlying writer
+    fn write_i8_from<T: ByteOrder>(&mut self, src: &[i8]) -> Result<()> {
+    {
+        let buf = unsafe { slice_to_u8(src) };
+        try!(self.write(buf));
+    }
+    Ok(())
+    }
+    ///Writes a slice of u8 to the underlying writer
+    fn write_u8_from<T: ByteOrder>(&mut self, src: &[u8]) -> Result<()> {
+    {
+        let buf = unsafe { slice_to_u8(src) };
+        try!(self.write(buf));
+    }
+    Ok(())
+    }
+    ///Writes a slice of i16 to the underlying writer
+    fn write_i16_from<T: ByteOrder>(&mut self, src: &[i16]) -> Result<()> {
+    {
+        let buf = unsafe { slice_to_u8(src) };
+        try!(self.write(buf));
+    }
+    Ok(())
+    }
+    ///Writes a slice of u16 to the underlying writer
+    fn write_u16_from<T: ByteOrder>(&mut self, src: &[u16]) -> Result<()> {
+    {
+        let buf = unsafe { slice_to_u8(src) };
+        try!(self.write(buf));
+    }
+    Ok(())
+    }
+    ///Writes a slice of i32 to the underlying writer
+    fn write_i32_from<T: ByteOrder>(&mut self, src: &[i32]) -> Result<()> {
+    {
+        let buf = unsafe { slice_to_u8(src) };
+        try!(self.write(buf));
+    }
+    Ok(())
+    }
+    ///Writes a slice of u32 to the underlying writer
+    fn write_u32_from<T: ByteOrder>(&mut self, src: &[u32]) -> Result<()> {
+    {
+        let buf = unsafe { slice_to_u8(src) };
+        try!(self.write(buf));
+    }
+    Ok(())
+    }
+    ///Writes a slice of i64 to the underlying writer
+    fn write_i64_from<T: ByteOrder>(&mut self, src: &[i64]) -> Result<()> {
+    {
+        let buf = unsafe { slice_to_u8(src) };
+        try!(self.write(buf));
+    }
+    Ok(())
+    }
+    ///Writes a slice of u64 to the underlying writer
+    fn write_u64_from<T: ByteOrder>(&mut self, src: &[u64]) -> Result<()> {
+    {
+        let buf = unsafe { slice_to_u8(src) };
+        try!(self.write(buf));
+    }
+    Ok(())
+    }
 }
 
 /// All types that implement `Write` get methods defined in `WriteBytesExt`
@@ -1266,6 +1331,14 @@ impl<W: io::Write + ?Sized> WriteBytesExt for W {}
 ///
 /// This function is wildly unsafe because it permits arbitrary modification of
 /// the binary representation of any `Copy` type. Use with care.
+unsafe fn slice_to_u8<T: Copy>(slice: &[T]) -> &[u8] {
+    use std::slice;
+    use std::mem::size_of;
+
+    let len = size_of::<T>() * slice.len();
+    slice::from_raw_parts(slice.as_ptr() as *const u8, len)
+}
+
 unsafe fn slice_to_u8_mut<T: Copy>(slice: &mut [T]) -> &mut [u8] {
     use std::mem::size_of;
 
