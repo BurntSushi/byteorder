@@ -1260,7 +1260,7 @@ pub trait WriteBytesExt: io::Write {
     fn write_i8_from<T: ByteOrder>(&mut self, src: &[i8]) -> Result<()> {
     {
         let buf = unsafe { slice_to_u8(src) };
-        try!(self.write(buf));
+        try!(self.write_all(buf));
     }
     Ok(())
     }
@@ -1268,7 +1268,7 @@ pub trait WriteBytesExt: io::Write {
     fn write_u8_from<T: ByteOrder>(&mut self, src: &[u8]) -> Result<()> {
     {
         let buf = unsafe { slice_to_u8(src) };
-        try!(self.write(buf));
+        try!(self.write_all(buf));
     }
     Ok(())
     }
@@ -1276,7 +1276,7 @@ pub trait WriteBytesExt: io::Write {
     fn write_i16_from<T: ByteOrder>(&mut self, src: &[i16]) -> Result<()> {
     {
         let buf = unsafe { slice_to_u8(src) };
-        try!(self.write(buf));
+        try!(self.write_all(buf));
     }
     Ok(())
     }
@@ -1284,7 +1284,7 @@ pub trait WriteBytesExt: io::Write {
     fn write_u16_from<T: ByteOrder>(&mut self, src: &[u16]) -> Result<()> {
     {
         let buf = unsafe { slice_to_u8(src) };
-        try!(self.write(buf));
+        try!(self.write_all(buf));
     }
     Ok(())
     }
@@ -1292,7 +1292,7 @@ pub trait WriteBytesExt: io::Write {
     fn write_i32_from<T: ByteOrder>(&mut self, src: &[i32]) -> Result<()> {
     {
         let buf = unsafe { slice_to_u8(src) };
-        try!(self.write(buf));
+        try!(self.write_all(buf));
     }
     Ok(())
     }
@@ -1300,7 +1300,7 @@ pub trait WriteBytesExt: io::Write {
     fn write_u32_from<T: ByteOrder>(&mut self, src: &[u32]) -> Result<()> {
     {
         let buf = unsafe { slice_to_u8(src) };
-        try!(self.write(buf));
+        try!(self.write_all(buf));
     }
     Ok(())
     }
@@ -1308,7 +1308,7 @@ pub trait WriteBytesExt: io::Write {
     fn write_i64_from<T: ByteOrder>(&mut self, src: &[i64]) -> Result<()> {
     {
         let buf = unsafe { slice_to_u8(src) };
-        try!(self.write(buf));
+        try!(self.write_all(buf));
     }
     Ok(())
     }
@@ -1316,7 +1316,7 @@ pub trait WriteBytesExt: io::Write {
     fn write_u64_from<T: ByteOrder>(&mut self, src: &[u64]) -> Result<()> {
     {
         let buf = unsafe { slice_to_u8(src) };
-        try!(self.write(buf));
+        try!(self.write_all(buf));
     }
     Ok(())
     }
@@ -1326,10 +1326,10 @@ pub trait WriteBytesExt: io::Write {
 /// for free.
 impl<W: io::Write + ?Sized> WriteBytesExt for W {}
 
-/// Convert a slice of T (where T is plain old data) to its mutable binary
+/// Convert a slice of T (where T is plain old data) to its immutable/mutable binary
 /// representation.
 ///
-/// This function is wildly unsafe because it permits arbitrary modification of
+/// These function are wildly unsafe because they permit arbitrary modification of
 /// the binary representation of any `Copy` type. Use with care.
 unsafe fn slice_to_u8<T: Copy>(slice: &[T]) -> &[u8] {
     use std::slice;
