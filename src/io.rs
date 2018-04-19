@@ -1256,7 +1256,13 @@ pub trait WriteBytesExt: io::Write {
         self.write_all(&buf)
     }
 
-    ///Writes a slice of i8 to the underlying writer
+    /// Writes a slice of i8 to the underlying writer
+    ///
+    /// # Errors
+	///
+	/// This method returns the same errors as [`Write::write_all`]
+	///
+    /// [`Write::write_all`]: https://doc.rust-lang.org/std/io/trait.Write.html#method.write_all
     fn write_i8_from<T: ByteOrder>(&mut self, src: &[i8]) -> Result<()> {
     {
         let buf = unsafe { slice_to_u8(src) };
@@ -1264,58 +1270,108 @@ pub trait WriteBytesExt: io::Write {
     }
     Ok(())
     }
-    ///Writes a slice of u8 to the underlying writer
+
+    /// Writes a slice of u8 to the underlying writer
     fn write_u8_from<T: ByteOrder>(&mut self, src: &[u8]) -> Result<()> {
     {
-        let buf = unsafe { slice_to_u8(src) };
-        try!(self.write_all(buf));
+        try!(self.write_all(src));
     }
     Ok(())
     }
-    ///Writes a slice of i16 to the underlying writer
+
+    /// Writes a slice of i16 to the underlying writer
     fn write_i16_from<T: ByteOrder>(&mut self, src: &[i16]) -> Result<()> {
     {
-        let buf = unsafe { slice_to_u8(src) };
+        let mut src_copy: Vec<i16> = vec![0; src.len()];
+        src_copy.copy_from_slice(src);
+        T::from_slice_i16(&mut src_copy);
+        let buf = unsafe { slice_to_u8(&src_copy) };
         try!(self.write_all(buf));
     }
     Ok(())
     }
-    ///Writes a slice of u16 to the underlying writer
+
+    /// Writes a slice of u16 to the underlying writer
     fn write_u16_from<T: ByteOrder>(&mut self, src: &[u16]) -> Result<()> {
     {
-        let buf = unsafe { slice_to_u8(src) };
+        let mut src_copy: Vec<u16> = vec![0; src.len()];
+        src_copy.copy_from_slice(src);
+        T::from_slice_u16(&mut src_copy);
+        let buf = unsafe { slice_to_u8(&src_copy) };
         try!(self.write_all(buf));
     }
     Ok(())
     }
-    ///Writes a slice of i32 to the underlying writer
+
+    /// Writes a slice of i32 to the underlying writer
     fn write_i32_from<T: ByteOrder>(&mut self, src: &[i32]) -> Result<()> {
     {
-        let buf = unsafe { slice_to_u8(src) };
+        let mut src_copy: Vec<i32> = vec![0; src.len()];
+        src_copy.copy_from_slice(src);
+        T::from_slice_i32(&mut src_copy);
+        let buf = unsafe { slice_to_u8(&src_copy) };
         try!(self.write_all(buf));
     }
     Ok(())
     }
-    ///Writes a slice of u32 to the underlying writer
+
+    /// Writes a slice of u32 to the underlying writer
     fn write_u32_from<T: ByteOrder>(&mut self, src: &[u32]) -> Result<()> {
     {
-        let buf = unsafe { slice_to_u8(src) };
+        let mut src_copy: Vec<u32> = vec![0; src.len()];
+        src_copy.copy_from_slice(src);
+        T::from_slice_u32(&mut src_copy);
+        let buf = unsafe { slice_to_u8(&src_copy) };
         try!(self.write_all(buf));
     }
     Ok(())
     }
-    ///Writes a slice of i64 to the underlying writer
+
+    /// Writes a slice of i64 to the underlying writer
     fn write_i64_from<T: ByteOrder>(&mut self, src: &[i64]) -> Result<()> {
     {
-        let buf = unsafe { slice_to_u8(src) };
+        let mut src_copy: Vec<i64> = vec![0; src.len()];
+        src_copy.copy_from_slice(src);
+        T::from_slice_i64(&mut src_copy);
+        let buf = unsafe { slice_to_u8(&src_copy) };
         try!(self.write_all(buf));
     }
     Ok(())
     }
-    ///Writes a slice of u64 to the underlying writer
+
+    /// Writes a slice of u64 to the underlying writer
     fn write_u64_from<T: ByteOrder>(&mut self, src: &[u64]) -> Result<()> {
     {
-        let buf = unsafe { slice_to_u8(src) };
+        let mut src_copy: Vec<u64> = vec![0; src.len()];
+        src_copy.copy_from_slice(src);
+        T::from_slice_u64(&mut src_copy);
+        let buf = unsafe { slice_to_u8(&src_copy) };
+        try!(self.write_all(buf));
+    }
+    Ok(())
+    }
+
+    /// Writes a slice of i128 to the underlying writer
+    #[cfg(feature = "i128")]
+    fn write_i128_from<T: ByteOrder>(&mut self, src: &[i128]) -> Result<()> {
+    {
+        let mut src_copy: Vec<i128> = vec![0; src.len()];
+        src_copy.copy_from_slice(src);
+        T::from_slice_i128(&mut src_copy);
+        let buf = unsafe { slice_to_u8(&src_copy) };
+        try!(self.write_all(buf));
+    }
+    Ok(())
+    }
+
+    /// Writes a slice of u128 to the underlying writer
+    #[cfg(feature = "u128")]
+    fn write_u128_from<T: ByteOrder>(&mut self, src: &[u128]) -> Result<()> {
+    {
+        let mut src_copy: Vec<u128> = vec![0; src.len()];
+        src_copy.copy_from_slice(src);
+        T::from_slice_u128(&mut src_copy);
+        let buf = unsafe { slice_to_u8(&src_copy) };
         try!(self.write_all(buf));
     }
     Ok(())
