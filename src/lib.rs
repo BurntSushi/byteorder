@@ -63,8 +63,6 @@ This crate can also be used without the standard library.
 
 #![deny(missing_docs)]
 #![cfg_attr(not(feature = "std"), no_std)]
-#![cfg_attr(feature = "i128", feature(i128_type))]
-#![cfg_attr(all(feature = "i128", test), feature(i128))]
 #![doc(html_root_url = "https://docs.rs/byteorder/1.2.1")]
 
 #[cfg(feature = "std")]
@@ -1495,8 +1493,6 @@ pub trait ByteOrder
     /// Convert the host platform's endianness to big-endian:
     ///
     /// ```rust
-    /// #![feature(i128_type)]
-    ///
     /// use byteorder::{ByteOrder, BigEndian};
     ///
     /// let mut numbers = [5, 65000];
@@ -1592,8 +1588,6 @@ pub trait ByteOrder
     /// Convert the host platform's endianness to big-endian:
     ///
     /// ```rust
-    /// #![feature(i128_type)]
-    ///
     /// use byteorder::{ByteOrder, BigEndian};
     ///
     /// let mut numbers = [5, 65000];

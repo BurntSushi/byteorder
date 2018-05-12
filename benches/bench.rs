@@ -1,4 +1,3 @@
-#![cfg_attr(feature = "i128", feature(i128))]
 #![feature(test)]
 
 extern crate byteorder;
