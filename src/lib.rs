@@ -258,6 +258,27 @@ pub trait ByteOrder
     /// ```
     fn read_u32(buf: &[u8]) -> u32;
 
+    /// Reads an unsigned 48 bit integer from `buf`, stored in u64.
+    ///
+    /// # Panics
+    ///
+    /// Panics when `buf.len() < 6`.
+    ///
+    /// # Examples
+    ///
+    /// Write and read 48 bit `u64` numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut buf = [0; 6];
+    /// LittleEndian::write_u48(&mut buf, 1_000_000_000_000);
+    /// assert_eq!(1_000_000_000_000, LittleEndian::read_u48(&buf));
+    /// ```
+    fn read_u48(buf: &[u8]) -> u64 {
+        Self::read_uint(buf, 6) as u64
+    }
+
     /// Reads an unsigned 64 bit integer from `buf`.
     ///
     /// # Panics
@@ -396,6 +417,27 @@ pub trait ByteOrder
     /// assert_eq!(1_000_000, LittleEndian::read_u32(&buf));
     /// ```
     fn write_u32(buf: &mut [u8], n: u32);
+
+    /// Writes an unsigned 48 bit integer `n` to `buf`, stored in u64.
+    ///
+    /// # Panics
+    ///
+    /// Panics when `buf.len() < 6`.
+    ///
+    /// # Examples
+    ///
+    /// Write and read 48 bit `u64` numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut buf = [0; 6];
+    /// LittleEndian::write_u48(&mut buf, 1_000_000_000_000);
+    /// assert_eq!(1_000_000_000_000, LittleEndian::read_u48(&buf));
+    /// ```
+    fn write_u48(buf: &mut [u8], n: u64) {
+        Self::write_uint(buf, n as u64, 6)
+    }
 
     /// Writes an unsigned 64 bit integer `n` to `buf`.
     ///
@@ -541,6 +583,28 @@ pub trait ByteOrder
     #[inline]
     fn read_i32(buf: &[u8]) -> i32 {
         Self::read_u32(buf) as i32
+    }
+
+    /// Reads a signed 48 bit integer from `buf`, stored in i64.
+    ///
+    /// # Panics
+    ///
+    /// Panics when `buf.len() < 6`.
+    ///
+    /// # Examples
+    ///
+    /// Write and read 48 bit `i64` numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut buf = [0; 6];
+    /// LittleEndian::write_i48(&mut buf, -1_000_000_000_000);
+    /// assert_eq!(-1_000_000_000_000, LittleEndian::read_i48(&buf));
+    /// ```
+    #[inline]
+    fn read_i48(buf: &[u8]) -> i64 {
+        Self::read_int(buf, 6) as i64
     }
 
     /// Reads a signed 64 bit integer from `buf`.
@@ -745,6 +809,28 @@ pub trait ByteOrder
     #[inline]
     fn write_i32(buf: &mut [u8], n: i32) {
         Self::write_u32(buf, n as u32)
+    }
+
+    /// Writes a signed 48 bit integer `n` to `buf`, stored in i64.
+    ///
+    /// # Panics
+    ///
+    /// Panics when `buf.len() < 6`.
+    ///
+    /// # Examples
+    ///
+    /// Write and read 48 bit `i64` numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut buf = [0; 6];
+    /// LittleEndian::write_i48(&mut buf, -1_000_000_000_000);
+    /// assert_eq!(-1_000_000_000_000, LittleEndian::read_i48(&buf));
+    /// ```
+    #[inline]
+    fn write_i48(buf: &mut [u8], n: i64) {
+        Self::write_int(buf, n as i64, 6)
     }
 
     /// Writes a signed 64 bit integer `n` to `buf`.
@@ -2226,6 +2312,8 @@ mod test {
 
     pub const U24_MAX: u32 = 16_777_215;
     pub const I24_MAX: i32 = 8_388_607;
+    pub const U48_MAX: u64 = 281_474_976_710_655;
+    pub const I48_MAX: i64 = 140_737_488_355_327;
 
     pub const U64_MAX: u64 = ::core::u64::MAX;
     pub const I64_MAX: u64 = ::core::i64::MAX as u64;
@@ -2370,6 +2458,8 @@ mod test {
     qc_byte_order!(prop_i24, i32, ::test::I24_MAX as u64, read_i24, write_i24);
     qc_byte_order!(prop_u32, u32, ::core::u32::MAX as u64, read_u32, write_u32);
     qc_byte_order!(prop_i32, i32, ::core::i32::MAX as u64, read_i32, write_i32);
+    qc_byte_order!(prop_u48, u64, ::test::U48_MAX as u64, read_u48, write_u48);
+    qc_byte_order!(prop_i48, i64, ::test::I48_MAX as u64, read_i48, write_i48);
     qc_byte_order!(prop_u64, u64, ::core::u64::MAX as u64, read_u64, write_u64);
     qc_byte_order!(prop_i64, i64, ::core::i64::MAX as u64, read_i64, write_i64);
     qc_byte_order!(prop_f32, f32, ::core::u64::MAX as u64, read_f32, write_f32);
