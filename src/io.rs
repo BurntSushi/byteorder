@@ -244,6 +244,58 @@ pub trait ReadBytesExt: io::Read {
         Ok(T::read_i32(&buf))
     }
 
+    /// Reads an unsigned 48 bit integer from the underlying reader.
+    ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Read::read_exact`].
+    ///
+    /// [`Read::read_exact`]: https://doc.rust-lang.org/std/io/trait.Read.html#method.read_exact
+    ///
+    /// # Examples
+    ///
+    /// Read unsigned 48 bit big-endian integers from a `Read`:
+    ///
+    /// ```rust
+    /// use std::io::Cursor;
+    /// use byteorder::{BigEndian, ReadBytesExt};
+    ///
+    /// let mut rdr = Cursor::new(vec![0xb6, 0x71, 0x6b, 0xdc, 0x2b, 0x31]);
+    /// assert_eq!(200598257150769, rdr.read_u48::<BigEndian>().unwrap());
+    /// ```
+    #[inline]
+    fn read_u48<T: ByteOrder>(&mut self) -> Result<u64> {
+        let mut buf = [0; 6];
+        try!(self.read_exact(&mut buf));
+        Ok(T::read_u48(&buf))
+    }
+
+    /// Reads a signed 48 bit integer from the underlying reader.
+    ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Read::read_exact`].
+    ///
+    /// [`Read::read_exact`]: https://doc.rust-lang.org/std/io/trait.Read.html#method.read_exact
+    ///
+    /// # Examples
+    ///
+    /// Read signed 48 bit big-endian integers from a `Read`:
+    ///
+    /// ```rust
+    /// use std::io::Cursor;
+    /// use byteorder::{BigEndian, ReadBytesExt};
+    ///
+    /// let mut rdr = Cursor::new(vec![0x9d, 0x71, 0xab, 0xe7, 0x97, 0x8f]);
+    /// assert_eq!(-108363435763825, rdr.read_i48::<BigEndian>().unwrap());
+    /// ```
+    #[inline]
+    fn read_i48<T: ByteOrder>(&mut self) -> Result<i64> {
+        let mut buf = [0; 6];
+        try!(self.read_exact(&mut buf));
+        Ok(T::read_i48(&buf))
+    }
+
     /// Reads an unsigned 64 bit integer from the underlying reader.
     ///
     /// # Errors
@@ -1105,6 +1157,34 @@ pub trait WriteBytesExt: io::Write {
     fn write_i32<T: ByteOrder>(&mut self, n: i32) -> Result<()> {
         let mut buf = [0; 4];
         T::write_i32(&mut buf, n);
+        self.write_all(&buf)
+    }
+
+    /// Writes an unsigned 48 bit integer to the underlying writer.
+    ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Write::write_all`].
+    ///
+    /// [`Write::write_all`]: https://doc.rust-lang.org/std/io/trait.Write.html#method.write_all
+    #[inline]
+    fn write_u48<T: ByteOrder>(&mut self, n: u64) -> Result<()> {
+        let mut buf = [0; 6];
+        T::write_u48(&mut buf, n);
+        self.write_all(&buf)
+    }
+
+    /// Writes a signed 48 bit integer to the underlying writer.
+    ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Write::write_all`].
+    ///
+    /// [`Write::write_all`]: https://doc.rust-lang.org/std/io/trait.Write.html#method.write_all
+    #[inline]
+    fn write_i48<T: ByteOrder>(&mut self, n: i64) -> Result<()> {
+        let mut buf = [0; 6];
+        T::write_i48(&mut buf, n);
         self.write_all(&buf)
     }
 
