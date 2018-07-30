@@ -43,7 +43,7 @@ pub trait ReadBytesExt: io::Read {
     ///
     /// ```rust
     /// use std::io::Cursor;
-    /// use byteorder::{BigEndian, ReadBytesExt};
+    /// use byteorder::ReadBytesExt;
     ///
     /// let mut rdr = Cursor::new(vec![2, 5]);
     /// assert_eq!(2, rdr.read_u8().unwrap());
@@ -69,11 +69,11 @@ pub trait ReadBytesExt: io::Read {
     ///
     /// # Examples
     ///
-    /// Read unsigned 8 bit integers from a `Read`:
+    /// Read signed 8 bit integers from a `Read`:
     ///
     /// ```rust
     /// use std::io::Cursor;
-    /// use byteorder::{BigEndian, ReadBytesExt};
+    /// use byteorder::ReadBytesExt;
     ///
     /// let mut rdr = Cursor::new(vec![0x02, 0xfb]);
     /// assert_eq!(2, rdr.read_i8().unwrap());
