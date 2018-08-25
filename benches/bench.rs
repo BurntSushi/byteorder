@@ -261,12 +261,15 @@ macro_rules! bench_slice {
 
             use byteorder::{ByteOrder, BigEndian, LittleEndian};
             use rand::{self, Rng};
+            use rand::distributions;
             use test::Bencher;
 
             #[bench]
             fn read_big_endian(b: &mut Bencher) {
-                let mut numbers: Vec<$numty> =
-                    rand::thread_rng().gen_iter().take(100000).collect();
+                let mut numbers: Vec<$numty> = rand::thread_rng()
+                    .sample_iter(&distributions::Standard)
+                    .take(100000)
+                    .collect();
                 let mut bytes = vec![0; numbers.len() * size_of::<$numty>()];
                 BigEndian::$write(&numbers, &mut bytes);
 
@@ -278,8 +281,10 @@ macro_rules! bench_slice {
 
             #[bench]
             fn read_little_endian(b: &mut Bencher) {
-                let mut numbers: Vec<$numty> =
-                    rand::thread_rng().gen_iter().take(100000).collect();
+                let mut numbers: Vec<$numty> = rand::thread_rng()
+                    .sample_iter(&distributions::Standard)
+                    .take(100000)
+                    .collect();
                 let mut bytes = vec![0; numbers.len() * size_of::<$numty>()];
                 LittleEndian::$write(&numbers, &mut bytes);
 
@@ -291,8 +296,10 @@ macro_rules! bench_slice {
 
             #[bench]
             fn write_big_endian(b: &mut Bencher) {
-                let numbers: Vec<$numty> =
-                    rand::thread_rng().gen_iter().take(100000).collect();
+                let numbers: Vec<$numty> = rand::thread_rng()
+                    .sample_iter(&distributions::Standard)
+                    .take(100000)
+                    .collect();
                 let mut bytes = vec![0; numbers.len() * size_of::<$numty>()];
 
                 b.bytes = bytes.len() as u64;
@@ -303,8 +310,10 @@ macro_rules! bench_slice {
 
             #[bench]
             fn write_little_endian(b: &mut Bencher) {
-                let numbers: Vec<$numty> =
-                    rand::thread_rng().gen_iter().take(100000).collect();
+                let numbers: Vec<$numty> = rand::thread_rng()
+                    .sample_iter(&distributions::Standard)
+                    .take(100000)
+                    .collect();
                 let mut bytes = vec![0; numbers.len() * size_of::<$numty>()];
 
                 b.bytes = bytes.len() as u64;

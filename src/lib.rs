@@ -2306,7 +2306,7 @@ mod test {
     extern crate rand;
 
     use self::quickcheck::{QuickCheck, StdGen, Testable};
-    use self::rand::thread_rng;
+    use self::rand::{Rng, thread_rng};
     #[cfg(feature = "i128")] use self::quickcheck::{Arbitrary, Gen};
 
     pub const U24_MAX: u32 = 16_777_215;
