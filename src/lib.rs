@@ -63,7 +63,6 @@ This crate can also be used without the standard library.
 
 #![deny(missing_docs)]
 #![cfg_attr(not(feature = "std"), no_std)]
-#![doc(html_root_url = "https://docs.rs/byteorder/1.2.1")]
 
 #[cfg(feature = "std")]
 extern crate core;

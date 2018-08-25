@@ -1,6 +1,5 @@
 [package]
 name = "byteorder"
-# NB: When modifying, also modify html_root_url in lib.rs
 version = "1.2.4"  #:version
 authors = ["Andrew Gallant <jamslam@gmail.com>"]
 description = "Library for reading/writing numbers in big-endian and little-endian."
@@ -17,8 +16,8 @@ name = "byteorder"
 bench = false
 
 [dev-dependencies]
-quickcheck = { version = "0.6", default-features = false }
-rand = "0.4"
+quickcheck = { version = "0.7", default-features = false }
+rand = "0.5"
 
 [features]
 default = ["std"]
