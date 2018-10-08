@@ -9,7 +9,7 @@ repository = "https://github.com/BurntSushi/byteorder"
 readme = "README.md"
 categories = ["encoding", "parsing"]
 keywords = ["byte", "endian", "big-endian", "little-endian", "binary"]
-license = "Unlicense/MIT"
+license = "Unlicense OR MIT"
 
 [lib]
 name = "byteorder"
