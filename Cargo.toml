@@ -10,6 +10,7 @@ readme = "README.md"
 categories = ["encoding", "parsing"]
 keywords = ["byte", "endian", "big-endian", "little-endian", "binary"]
 license = "Unlicense OR MIT"
+exclude = ["/ci/*"]
 
 [lib]
 name = "byteorder"
