@@ -4,7 +4,7 @@ set -ex
 
 # Setup some variables for executing cargo commands.
 # Things are a little different if we're testing with cross.
-if [ ! z "$CROSS_TARGET" ]; then
+if [ ! -z "$CROSS_TARGET" ]; then
   rustup target add "$CROSS_TARGET"
   cargo install cross --force
   export CARGO_CMD="cross"
