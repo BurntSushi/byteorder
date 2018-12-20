@@ -718,7 +718,7 @@ pub trait ByteOrder
     /// ```
     #[inline]
     fn read_f32(buf: &[u8]) -> f32 {
-        unsafe { *(&Self::read_u32(buf) as *const u32 as *const f32) }
+        f32::from_bits(Self::read_u32(buf))
     }
 
     /// Reads a IEEE754 double-precision (8 bytes) floating point number.
@@ -741,7 +741,7 @@ pub trait ByteOrder
     /// ```
     #[inline]
     fn read_f64(buf: &[u8]) -> f64 {
-        unsafe { *(&Self::read_u64(buf) as *const u64 as *const f64) }
+        f64::from_bits(Self::read_u64(buf))
     }
 
     /// Writes a signed 16 bit integer `n` to `buf`.
@@ -944,7 +944,7 @@ pub trait ByteOrder
     /// ```
     #[inline]
     fn write_f32(buf: &mut [u8], n: f32) {
-        let n = unsafe { *(&n as *const f32 as *const u32) };
+        let n = n.to_bits();
         Self::write_u32(buf, n)
     }
 
@@ -968,7 +968,7 @@ pub trait ByteOrder
     /// ```
     #[inline]
     fn write_f64(buf: &mut [u8], n: f64) {
-        let n = unsafe { *(&n as *const f64 as *const u64) };
+        let n = n.to_bits();
         Self::write_u64(buf, n)
     }
 
@@ -2072,10 +2072,8 @@ impl ByteOrder for BigEndian {
     fn from_slice_f32(numbers: &mut [f32]) {
         if cfg!(target_endian = "little") {
             for n in numbers {
-                unsafe {
-                    let int = *(n as *const f32 as *const u32);
-                    *n = *(&int.to_be() as *const u32 as *const f32);
-                }
+                let int = n.to_bits();
+                *n = f32::from_bits(int.to_be());
             }
         }
     }
@@ -2084,10 +2082,8 @@ impl ByteOrder for BigEndian {
     fn from_slice_f64(numbers: &mut [f64]) {
         if cfg!(target_endian = "little") {
             for n in numbers {
-                unsafe {
-                    let int = *(n as *const f64 as *const u64);
-                    *n = *(&int.to_be() as *const u64 as *const f64);
-                }
+                let int = n.to_bits();
+                *n = f64::from_bits(int.to_be());
             }
         }
     }
@@ -2279,10 +2275,8 @@ impl ByteOrder for LittleEndian {
     fn from_slice_f32(numbers: &mut [f32]) {
         if cfg!(target_endian = "big") {
             for n in numbers {
-                unsafe {
-                    let int = *(n as *const f32 as *const u32);
-                    *n = *(&int.to_le() as *const u32 as *const f32);
-                }
+                let int = n.to_bits();
+                *n = f32::from_bits(int.to_le());
             }
         }
     }
@@ -2291,10 +2285,8 @@ impl ByteOrder for LittleEndian {
     fn from_slice_f64(numbers: &mut [f64]) {
         if cfg!(target_endian = "big") {
             for n in numbers {
-                unsafe {
-                    let int = *(n as *const f64 as *const u64);
-                    *n = *(&int.to_le() as *const u64 as *const f64);
-                }
+                let int = n.to_bits();
+                *n = f64::from_bits(int.to_le());
             }
         }
     }
