@@ -23,6 +23,10 @@ rand = "0.6"
 [features]
 default = ["std"]
 std = []
+
+# This feature is no longer used and is DEPRECATED. This crate now
+# automatically enables i128 support for Rust compilers that support it. The
+# feature will be removed if and when a new major version is released.
 i128 = []
 
 [profile.bench]
