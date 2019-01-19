@@ -17,8 +17,8 @@ name = "byteorder"
 bench = false
 
 [dev-dependencies]
-quickcheck = { version = "0.7", default-features = false }
-rand = "0.5"
+quickcheck = { version = "0.8", default-features = false }
+rand = "0.6"
 
 [features]
 default = ["std"]
