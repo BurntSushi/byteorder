@@ -1201,17 +1201,82 @@ pub trait ByteOrder
     /// LittleEndian::write_f32_into(&numbers_given, &mut bytes);
     ///
     /// let mut numbers_got = [0.0; 4];
-    /// LittleEndian::read_f32_into_unchecked(&bytes, &mut numbers_got);
+    /// LittleEndian::read_f32_into(&bytes, &mut numbers_got);
     /// assert_eq!(numbers_given, numbers_got);
     /// ```
     #[inline]
-    fn read_f32_into_unchecked(src: &[u8], dst: &mut [f32]) {
+    fn read_f32_into(src: &[u8], dst: &mut [f32]) {
         let dst = unsafe {
             slice::from_raw_parts_mut(dst.as_mut_ptr() as *mut u32, dst.len())
         };
         Self::read_u32_into(src, dst);
     }
 
+    /// **DEPRECATED**.
+    ///
+    /// This method is deprecated. Use `read_f32_into` instead.
+    /// Reads IEEE754 single-precision (4 bytes) floating point numbers from
+    /// `src` into `dst`.
+    ///
+    /// # Panics
+    ///
+    /// Panics when `src.len() != 4*dst.len()`.
+    ///
+    /// # Examples
+    ///
+    /// Write and read `f32` numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut bytes = [0; 16];
+    /// let numbers_given = [1.0, 2.0, 31.312e31, -11.32e19];
+    /// LittleEndian::write_f32_into(&numbers_given, &mut bytes);
+    ///
+    /// let mut numbers_got = [0.0; 4];
+    /// LittleEndian::read_f32_into_unchecked(&bytes, &mut numbers_got);
+    /// assert_eq!(numbers_given, numbers_got);
+    /// ```
+    #[inline]
+    #[deprecated(since="1.3.0", note="please use `read_f32_into` instead")]
+    fn read_f32_into_unchecked(src: &[u8], dst: &mut [f32]) {
+        Self::read_f32_into(src, dst);
+    }
+
+    /// Reads IEEE754 single-precision (4 bytes) floating point numbers from
+    /// `src` into `dst`.
+    ///
+    /// # Panics
+    ///
+    /// Panics when `src.len() != 8*dst.len()`.
+    ///
+    /// # Examples
+    ///
+    /// Write and read `f64` numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut bytes = [0; 32];
+    /// let numbers_given = [1.0, 2.0, 31.312e311, -11.32e91];
+    /// LittleEndian::write_f64_into(&numbers_given, &mut bytes);
+    ///
+    /// let mut numbers_got = [0.0; 4];
+    /// LittleEndian::read_f64_into(&bytes, &mut numbers_got);
+    /// assert_eq!(numbers_given, numbers_got);
+    /// ```
+    #[inline]
+    fn read_f64_into(src: &[u8], dst: &mut [f64]) {
+        let dst = unsafe {
+            slice::from_raw_parts_mut(dst.as_mut_ptr() as *mut u64, dst.len())
+        };
+        Self::read_u64_into(src, dst);
+    }
+
+    /// **DEPRECATED**.
+    ///
+    /// This method is deprecated. Use `read_f64_into` instead.
+    ///
     /// Reads IEEE754 single-precision (4 bytes) floating point numbers from
     /// `src` into `dst`.
     ///
@@ -1235,11 +1300,9 @@ pub trait ByteOrder
     /// assert_eq!(numbers_given, numbers_got);
     /// ```
     #[inline]
+    #[deprecated(since="1.3.0", note="please use `read_f64_into` instead")]
     fn read_f64_into_unchecked(src: &[u8], dst: &mut [f64]) {
-        let dst = unsafe {
-            slice::from_raw_parts_mut(dst.as_mut_ptr() as *mut u64, dst.len())
-        };
-        Self::read_u64_into(src, dst);
+        Self::read_f64_into(src, dst);
     }
 
     /// Writes unsigned 16 bit integers from `src` into `dst`.
@@ -1468,7 +1531,7 @@ pub trait ByteOrder
     ///
     /// let mut numbers_got = [0.0; 4];
     /// unsafe {
-    ///     LittleEndian::read_f32_into_unchecked(&bytes, &mut numbers_got);
+    ///     LittleEndian::read_f32_into(&bytes, &mut numbers_got);
     /// }
     /// assert_eq!(numbers_given, numbers_got);
     /// ```
@@ -1499,7 +1562,7 @@ pub trait ByteOrder
     ///
     /// let mut numbers_got = [0.0; 4];
     /// unsafe {
-    ///     LittleEndian::read_f64_into_unchecked(&bytes, &mut numbers_got);
+    ///     LittleEndian::read_f64_into(&bytes, &mut numbers_got);
     /// }
     /// assert_eq!(numbers_given, numbers_got);
     /// ```
@@ -3246,7 +3309,7 @@ mod stdtests {
         prop_slice_i128, Wi128<i128>, read_i128_into, write_i128_into, 0);
 
     qc_slice!(
-        prop_slice_f32, f32, read_f32_into_unchecked, write_f32_into, 0.0);
+        prop_slice_f32, f32, read_f32_into, write_f32_into, 0.0);
     qc_slice!(
-        prop_slice_f64, f64, read_f64_into_unchecked, write_f64_into, 0.0);
+        prop_slice_f64, f64, read_f64_into, write_f64_into, 0.0);
 }
