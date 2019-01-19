@@ -1197,7 +1197,7 @@ pub trait ByteOrder
     /// use byteorder::{ByteOrder, LittleEndian};
     ///
     /// let mut bytes = [0; 16];
-    /// let numbers_given = [1.0, 2.0, 31.312e311, -11.32e91];
+    /// let numbers_given = [1.0, 2.0, 31.312e31, -11.32e19];
     /// LittleEndian::write_f32_into(&numbers_given, &mut bytes);
     ///
     /// let mut numbers_got = [0.0; 4];
@@ -1463,7 +1463,7 @@ pub trait ByteOrder
     /// use byteorder::{ByteOrder, LittleEndian};
     ///
     /// let mut bytes = [0; 16];
-    /// let numbers_given = [1.0, 2.0, 31.312e311, -11.32e91];
+    /// let numbers_given = [1.0, 2.0, 31.312e31, -11.32e19];
     /// LittleEndian::write_f32_into(&numbers_given, &mut bytes);
     ///
     /// let mut numbers_got = [0.0; 4];
