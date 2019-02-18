@@ -1852,27 +1852,30 @@ pub type LE = LittleEndian;
 /// [`BigEndian`]: enum.BigEndian.html
 pub type NetworkEndian = BigEndian;
 
-/// Defines system native-endian serialization.
-///
-/// Note that this type has no value constructor. It is used purely at the
-/// type level.
-///
-/// On this platform, this is an alias for [`LittleEndian`].
-///
-/// [`LittleEndian`]: enum.LittleEndian.html
-#[cfg(target_endian = "little")]
-pub type NativeEndian = LittleEndian;
+macro_rules! define_native_endian {
+    (#[$m:meta] $t:ty) => {
+        /// Defines system native-endian serialization.
+        ///
+        /// Note that this type has no value constructor. It is used purely at the
+        /// type level.
+        ///
+        /// On this platform, this is an alias for
+        #[cfg_attr(target_endian = "little", doc = " [`LittleEndian`].")]
+        #[cfg_attr(target_endian = "big", doc = " [`BigEndian`].")]
+        ///
+        /// [`LittleEndian`]: enum.LittleEndian.html
+        /// [`BigEndian`]: enum.BigEndian.html
+        #[$m] pub type NativeEndian = $t;
+    }
+}
 
-/// Defines system native-endian serialization.
-///
-/// Note that this type has no value constructor. It is used purely at the
-/// type level.
-///
-/// On this platform, this is an alias for [`BigEndian`].
-///
-/// [`BigEndian`]: enum.BigEndian.html
-#[cfg(target_endian = "big")]
-pub type NativeEndian = BigEndian;
+define_native_endian! {
+    #[cfg(target_endian = "big")] BigEndian
+}
+
+define_native_endian! {
+    #[cfg(target_endian = "little")] LittleEndian
+}
 
 macro_rules! read_num_bytes {
     ($ty:ty, $size:expr, $src:expr, $which:ident) => ({
