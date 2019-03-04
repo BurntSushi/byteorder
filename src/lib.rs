@@ -200,8 +200,8 @@ mod private {
 /// use byteorder::{ByteOrder, BigEndian};
 ///
 /// let mut buf = [0; 2];
-/// BigEndian::write_i16(&mut buf, -50_000);
-/// assert_eq!(-50_000, BigEndian::read_i16(&buf));
+/// BigEndian::write_i16(&mut buf, -5_000);
+/// assert_eq!(-5_000, BigEndian::read_i16(&buf));
 /// ```
 ///
 /// [`BigEndian`]: enum.BigEndian.html
@@ -372,8 +372,8 @@ pub trait ByteOrder
     /// use byteorder::{ByteOrder, LittleEndian};
     ///
     /// let mut buf = [0; 2];
-    /// LittleEndian::write_u16(&mut buf, 1_000_000);
-    /// assert_eq!(1_000_000, LittleEndian::read_u16(&buf));
+    /// LittleEndian::write_u16(&mut buf, 1_000);
+    /// assert_eq!(1_000, LittleEndian::read_u16(&buf));
     /// ```
     fn write_u16(buf: &mut [u8], n: u16);
 
@@ -1079,7 +1079,7 @@ pub trait ByteOrder
     /// use byteorder::{ByteOrder, LittleEndian};
     ///
     /// let mut bytes = [0; 8];
-    /// let numbers_given = [1, 2, 0xf00f, 0xffee];
+    /// let numbers_given = [1, 2, 0x0f, 0xee];
     /// LittleEndian::write_i16_into(&numbers_given, &mut bytes);
     ///
     /// let mut numbers_got = [0; 4];
@@ -1258,7 +1258,7 @@ pub trait ByteOrder
     /// use byteorder::{ByteOrder, LittleEndian};
     ///
     /// let mut bytes = [0; 32];
-    /// let numbers_given = [1.0, 2.0, 31.312e311, -11.32e91];
+    /// let numbers_given = [1.0, 2.0, 31.312e211, -11.32e91];
     /// LittleEndian::write_f64_into(&numbers_given, &mut bytes);
     ///
     /// let mut numbers_got = [0.0; 4];
@@ -1292,7 +1292,7 @@ pub trait ByteOrder
     /// use byteorder::{ByteOrder, LittleEndian};
     ///
     /// let mut bytes = [0; 32];
-    /// let numbers_given = [1.0, 2.0, 31.312e311, -11.32e91];
+    /// let numbers_given = [1.0, 2.0, 31.312e211, -11.32e91];
     /// LittleEndian::write_f64_into(&numbers_given, &mut bytes);
     ///
     /// let mut numbers_got = [0.0; 4];
@@ -1412,7 +1412,7 @@ pub trait ByteOrder
     /// use byteorder::{ByteOrder, LittleEndian};
     ///
     /// let mut bytes = [0; 8];
-    /// let numbers_given = [1, 2, 0xf00f, 0xffee];
+    /// let numbers_given = [1, 2, 0x0f, 0xee];
     /// LittleEndian::write_i16_into(&numbers_given, &mut bytes);
     ///
     /// let mut numbers_got = [0; 4];
@@ -1557,7 +1557,7 @@ pub trait ByteOrder
     /// use byteorder::{ByteOrder, LittleEndian};
     ///
     /// let mut bytes = [0; 32];
-    /// let numbers_given = [1.0, 2.0, 31.312e311, -11.32e91];
+    /// let numbers_given = [1.0, 2.0, 31.312e211, -11.32e91];
     /// LittleEndian::write_f64_into(&numbers_given, &mut bytes);
     ///
     /// let mut numbers_got = [0.0; 4];
@@ -1663,9 +1663,9 @@ pub trait ByteOrder
     /// ```rust
     /// use byteorder::{ByteOrder, BigEndian};
     ///
-    /// let mut numbers = [5, 65000];
+    /// let mut numbers = [5, 6500];
     /// BigEndian::from_slice_i16(&mut numbers);
-    /// assert_eq!(numbers, [5i16.to_be(), 65000i16.to_be()]);
+    /// assert_eq!(numbers, [5i16.to_be(), 6500i16.to_be()]);
     /// ```
     #[inline]
     fn from_slice_i16(src: &mut [i16]) {
@@ -1845,8 +1845,8 @@ pub type LE = LittleEndian;
 /// use byteorder::{ByteOrder, NetworkEndian, BigEndian};
 ///
 /// let mut buf = [0; 2];
-/// BigEndian::write_i16(&mut buf, -50_000);
-/// assert_eq!(-50_000, NetworkEndian::read_i16(&buf));
+/// BigEndian::write_i16(&mut buf, -5_000);
+/// assert_eq!(-5_000, NetworkEndian::read_i16(&buf));
 /// ```
 ///
 /// [`BigEndian`]: enum.BigEndian.html
