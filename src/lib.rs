@@ -67,6 +67,13 @@ This crate can also be used without the standard library.
 #[cfg(feature = "std")]
 extern crate core;
 
+#[cfg(test)]
+#[macro_use]
+extern crate doc_comment;
+
+#[cfg(test)]
+doctest!("../README.md");
+
 use core::fmt::Debug;
 use core::hash::Hash;
 use core::ptr::copy_nonoverlapping;
