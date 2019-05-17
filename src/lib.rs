@@ -1,6 +1,6 @@
 /*!
-This crate provides convenience methods for encoding and decoding numbers
-in either [big-endian or little-endian order].
+This crate provides convenience methods for encoding and decoding numbers in
+either [big-endian or little-endian order].
 
 The organization of the crate is pretty simple. A trait, [`ByteOrder`], specifies
 byte conversion methods for each type of number in Rust (sans numbers that have
@@ -48,6 +48,12 @@ This crate optionally provides support for 128 bit values (`i128` and `u128`)
 when built with the `i128` feature enabled.
 
 This crate can also be used without the standard library.
+
+# Alternatives
+
+Note that as of Rust 1.32, the standard numeric types provide built-in methods
+like `to_le_bytes` and `from_le_bytes`, which support some of the same use
+cases.
 
 [big-endian or little-endian order]: https://en.wikipedia.org/wiki/Endianness
 [`ByteOrder`]: trait.ByteOrder.html
