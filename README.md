@@ -1,5 +1,8 @@
-This crate provides convenience methods for encoding and decoding numbers in
-either big-endian or little-endian order.
+This crate provides convenience methods for encoding and decoding
+numbers in either big-endian or little-endian order. Note that as of
+Rust 1.32, the standard numeric types provide built-in methods like
+`to_le_bytes` and `from_le_bytes`, which support some of the same use
+cases.
 
 [![Build status](https://api.travis-ci.org/BurntSushi/byteorder.svg)](https://travis-ci.org/BurntSushi/byteorder)
 [![](http://meritbadge.herokuapp.com/byteorder)](https://crates.io/crates/byteorder)
