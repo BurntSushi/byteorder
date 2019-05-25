@@ -19,7 +19,7 @@ fn main() {
 }
 
 fn enable_i128(version: Version) {
-    if version < (Version { major: 1, minor: 26, patch: 0 }) {
+    if version < (Version { major: 1, minor: 26, patch: 0, stable: true }) {
         return;
     }
 
@@ -31,6 +31,7 @@ struct Version {
     major: u32,
     minor: u32,
     patch: u32,
+    stable: bool,
 }
 
 impl Version {
@@ -82,6 +83,8 @@ impl Version {
         }
         let patch = try!(num.parse::<u32>().map_err(|e| e.to_string()));
 
-        Ok(Version { major: major, minor: minor, patch: patch })
+        let stable = !parts[2].contains("-nightly") && !parts[2].contains("-beta");
+
+        Ok(Version { major: major, minor: minor, patch: patch, stable: stable })
     }
 }
