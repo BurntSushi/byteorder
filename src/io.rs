@@ -535,38 +535,6 @@ pub trait ReadBytesExt: io::Read {
         Ok(T::read_f64(&buf))
     }
 
-    /// Reads a sequence of unsigned 8 bit integers from the underlying reader.
-    ///
-    /// The given buffer is either filled completely or an error is returned.
-    /// If an error is returned, the contents of `dst` are unspecified.
-    ///
-    /// Note that since each `u8` is a single byte, no byte order conversions
-    /// are used. It is included for completeness.
-    ///
-    /// # Errors
-    ///
-    /// This method returns the same errors as [`Read::read_exact`].
-    ///
-    /// [`Read::read_exact`]: https://doc.rust-lang.org/std/io/trait.Read.html#method.read_exact
-    ///
-    /// # Examples
-    ///
-    /// Read a sequence of unsigned 8 bit integers from a `Read`:
-    ///
-    /// ```rust
-    /// use std::io::Cursor;
-    /// use byteorder::{BigEndian, ReadBytesExt};
-    ///
-    /// let mut rdr = Cursor::new(vec![2, 5, 3]);
-    /// let mut dst = [0; 3];
-    /// rdr.read_u8_into(&mut dst).unwrap();
-    /// assert_eq!([2, 5, 3], dst);
-    /// ```
-    #[inline]
-    fn read_u8_into(&mut self, dst: &mut [u8]) -> Result<()> {
-        self.read_exact(dst)
-    }
-
     /// Reads a sequence of unsigned 16 bit integers from the underlying
     /// reader.
     ///
