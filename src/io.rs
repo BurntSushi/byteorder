@@ -691,7 +691,10 @@ pub trait ReadBytesExt: io::Read {
     /// If an error is returned, the contents of `dst` are unspecified.
     ///
     /// Note that since each `i8` is a single byte, no byte order conversions
-    /// are used. It is included for completeness.
+    /// are used. This method is included because it provides a safe, simple
+    /// way for the caller to read into a `&mut [i8]` buffer. (Without this
+    /// method, the caller would have to either use `unsafe` code or convert
+    /// each byte to `i8` individually.)
     ///
     /// # Errors
     ///
