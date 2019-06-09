@@ -31,6 +31,10 @@ struct Version {
     major: u32,
     minor: u32,
     patch: u32,
+    // true if version is in stable release channel, false if beta or rc
+    // release channel
+    // Note: stable version is greater than unstable one in derivered Ord
+    // implementation
     stable: bool,
 }
 
@@ -83,8 +87,15 @@ impl Version {
         }
         let patch = try!(num.parse::<u32>().map_err(|e| e.to_string()));
 
-        let stable = !parts[2].contains("-nightly") && !parts[2].contains("-beta");
+        let stable =
+            !parts[2].contains("-nightly") &&
+            !parts[2].contains("-beta");
 
-        Ok(Version { major: major, minor: minor, patch: patch, stable: stable })
+        Ok(Version {
+            major: major,
+            minor: minor,
+            patch: patch,
+            stable: stable
+        })
     }
 }
