@@ -31,8 +31,8 @@ struct Version {
     major: u32,
     minor: u32,
     patch: u32,
-    // true if version is in stable release channel, false if beta or rc
-    // release channel
+    // true if version is in stable release channel, false if beta or nightly
+    // channel
     // Note: stable version is greater than unstable one in derivered Ord
     // implementation
     stable: bool,
