@@ -62,7 +62,7 @@ impl Version {
             }
             num.push(c);
         }
-        let major = num.parse::<u32>().map_err(|e| e.to_string())?;
+        let major = try!(num.parse::<u32>().map_err(|e| e.to_string()));
 
         num.clear();
         for c in parts[1].chars() {
@@ -71,7 +71,7 @@ impl Version {
             }
             num.push(c);
         }
-        let minor = num.parse::<u32>().map_err(|e| e.to_string())?;
+        let minor = try!(num.parse::<u32>().map_err(|e| e.to_string()));
 
         num.clear();
         for c in parts[2].chars() {
@@ -80,7 +80,7 @@ impl Version {
             }
             num.push(c);
         }
-        let patch = num.parse::<u32>().map_err(|e| e.to_string())?;
+        let patch = try!(num.parse::<u32>().map_err(|e| e.to_string()));
 
         Ok(Version { major: major, minor: minor, patch: patch })
     }
