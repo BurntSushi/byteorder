@@ -1954,6 +1954,13 @@ macro_rules! write_slice {
     });
 }
 
+#[repr(align(8))]
+struct Align8<T>(T);
+
+#[cfg(byteorder_i128)]
+#[repr(align(16))]
+struct Align16<T>(T);
+
 impl ByteOrder for BigEndian {
     #[inline]
     fn read_u16(buf: &[u8]) -> u16 {
@@ -1979,11 +1986,15 @@ impl ByteOrder for BigEndian {
     #[inline]
     fn read_uint(buf: &[u8], nbytes: usize) -> u64 {
         assert!(1 <= nbytes && nbytes <= 8 && nbytes <= buf.len());
-        let mut out = [0u8; 8];
-        let ptr_out = out.as_mut_ptr();
+        let mut out = Align8([0u8; 8]);
+        let ptr_out = out.0.as_mut_ptr();
         unsafe {
             copy_nonoverlapping(
-                buf.as_ptr(), ptr_out.offset((8 - nbytes) as isize), nbytes);
+                buf.as_ptr(), ptr_out.add(8 - nbytes), nbytes);
+
+            // The use of the Align8 wrapper forces ptr_out to
+            // have 8-byte alignment, but clippy can't detect this.
+            #[allow(clippy::cast_ptr_alignment)]
             (*(ptr_out as *const u64)).to_be()
         }
     }
@@ -1992,11 +2003,15 @@ impl ByteOrder for BigEndian {
     #[inline]
     fn read_uint128(buf: &[u8], nbytes: usize) -> u128 {
         assert!(1 <= nbytes && nbytes <= 16 && nbytes <= buf.len());
-        let mut out = [0u8; 16];
-        let ptr_out = out.as_mut_ptr();
+        let mut out = Align16([0u8; 16]);
+        let ptr_out = out.0.as_mut_ptr();
         unsafe {
             copy_nonoverlapping(
-                buf.as_ptr(), ptr_out.offset((16 - nbytes) as isize), nbytes);
+                buf.as_ptr(), ptr_out.add(16 - nbytes), nbytes);
+
+            // The use of the Align16 wrapper forces ptr_out to
+            // have 16-byte alignment, but clippy can't detect this.
+            #[allow(clippy::cast_ptr_alignment)]
             (*(ptr_out as *const u128)).to_be()
         }
     }
@@ -2029,7 +2044,7 @@ impl ByteOrder for BigEndian {
         unsafe {
             let bytes = *(&n.to_be() as *const u64 as *const [u8; 8]);
             copy_nonoverlapping(
-                bytes.as_ptr().offset((8 - nbytes) as isize),
+                bytes.as_ptr().add(8 - nbytes),
                 buf.as_mut_ptr(),
                 nbytes);
         }
@@ -2043,7 +2058,7 @@ impl ByteOrder for BigEndian {
         unsafe {
             let bytes = *(&n.to_be() as *const u128 as *const [u8; 16]);
             copy_nonoverlapping(
-                bytes.as_ptr().offset((16 - nbytes) as isize),
+                bytes.as_ptr().add(16 - nbytes),
                 buf.as_mut_ptr(),
                 nbytes);
         }
@@ -2194,10 +2209,14 @@ impl ByteOrder for LittleEndian {
     #[inline]
     fn read_uint(buf: &[u8], nbytes: usize) -> u64 {
         assert!(1 <= nbytes && nbytes <= 8 && nbytes <= buf.len());
-        let mut out = [0u8; 8];
-        let ptr_out = out.as_mut_ptr();
+        let mut out = Align8([0u8; 8]);
+        let ptr_out = out.0.as_mut_ptr();
         unsafe {
             copy_nonoverlapping(buf.as_ptr(), ptr_out, nbytes);
+
+            // The use of the Align8 wrapper forces ptr_out to
+            // have 8-byte alignment, but clippy can't detect this.
+            #[allow(clippy::cast_ptr_alignment)]
             (*(ptr_out as *const u64)).to_le()
         }
     }
@@ -2206,10 +2225,14 @@ impl ByteOrder for LittleEndian {
     #[inline]
     fn read_uint128(buf: &[u8], nbytes: usize) -> u128 {
         assert!(1 <= nbytes && nbytes <= 16 && nbytes <= buf.len());
-        let mut out = [0u8; 16];
-        let ptr_out = out.as_mut_ptr();
+        let mut out = Align16([0u8; 16]);
+        let ptr_out = out.0.as_mut_ptr();
         unsafe {
             copy_nonoverlapping(buf.as_ptr(), ptr_out, nbytes);
+
+            // The use of the Align16 wrapper forces ptr_out to
+            // have 16-byte alignment, but clippy can't detect this.
+            #[allow(clippy::cast_ptr_alignment)]
             (*(ptr_out as *const u128)).to_le()
         }
     }
@@ -2461,7 +2484,7 @@ mod test {
                     fn prop(n: $ty_int) -> bool {
                         let mut buf = [0; 16];
                         BigEndian::$write(&mut buf, n.clone(), $bytes);
-                        n == BigEndian::$read(&mut buf[..$bytes], $bytes)
+                        n == BigEndian::$read(&buf[..$bytes], $bytes)
                     }
                     qc_sized(prop as fn($ty_int) -> bool, $max);
                 }
@@ -2471,7 +2494,7 @@ mod test {
                     fn prop(n: $ty_int) -> bool {
                         let mut buf = [0; 16];
                         LittleEndian::$write(&mut buf, n.clone(), $bytes);
-                        n == LittleEndian::$read(&mut buf[..$bytes], $bytes)
+                        n == LittleEndian::$read(&buf[..$bytes], $bytes)
                     }
                     qc_sized(prop as fn($ty_int) -> bool, $max);
                 }
@@ -2481,7 +2504,7 @@ mod test {
                     fn prop(n: $ty_int) -> bool {
                         let mut buf = [0; 16];
                         NativeEndian::$write(&mut buf, n.clone(), $bytes);
-                        n == NativeEndian::$read(&mut buf[..$bytes], $bytes)
+                        n == NativeEndian::$read(&buf[..$bytes], $bytes)
                     }
                     qc_sized(prop as fn($ty_int) -> bool, $max);
                 }
@@ -2956,7 +2979,7 @@ mod test {
     fn uint_bigger_buffer() {
         use {ByteOrder, LittleEndian};
         let n = LittleEndian::read_uint(&[1, 2, 3, 4, 5, 6, 7, 8], 5);
-        assert_eq!(n, 0x0504030201);
+        assert_eq!(n, 0x05_0403_0201);
     }
 }
 
