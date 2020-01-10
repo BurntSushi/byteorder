@@ -1979,26 +1979,26 @@ impl ByteOrder for BigEndian {
     #[inline]
     fn read_uint(buf: &[u8], nbytes: usize) -> u64 {
         assert!(1 <= nbytes && nbytes <= 8 && nbytes <= buf.len());
-        let mut out = [0u8; 8];
-        let ptr_out = out.as_mut_ptr();
+        let mut out = 0u64;
+        let ptr_out = &mut out as *mut u64 as *mut u8;
         unsafe {
             copy_nonoverlapping(
                 buf.as_ptr(), ptr_out.offset((8 - nbytes) as isize), nbytes);
-            (*(ptr_out as *const u64)).to_be()
         }
+        out.to_be()
     }
 
     #[cfg(byteorder_i128)]
     #[inline]
     fn read_uint128(buf: &[u8], nbytes: usize) -> u128 {
         assert!(1 <= nbytes && nbytes <= 16 && nbytes <= buf.len());
-        let mut out = [0u8; 16];
-        let ptr_out = out.as_mut_ptr();
+        let mut out: u128 = 0;
+        let ptr_out = &mut out as *mut u128 as *mut u8;
         unsafe {
             copy_nonoverlapping(
                 buf.as_ptr(), ptr_out.offset((16 - nbytes) as isize), nbytes);
-            (*(ptr_out as *const u128)).to_be()
         }
+        out.to_be()
     }
 
     #[inline]
@@ -2194,24 +2194,24 @@ impl ByteOrder for LittleEndian {
     #[inline]
     fn read_uint(buf: &[u8], nbytes: usize) -> u64 {
         assert!(1 <= nbytes && nbytes <= 8 && nbytes <= buf.len());
-        let mut out = [0u8; 8];
-        let ptr_out = out.as_mut_ptr();
+        let mut out = 0u64;
+        let ptr_out = &mut out as *mut u64 as *mut u8;
         unsafe {
             copy_nonoverlapping(buf.as_ptr(), ptr_out, nbytes);
-            (*(ptr_out as *const u64)).to_le()
         }
+        out.to_le()
     }
 
     #[cfg(byteorder_i128)]
     #[inline]
     fn read_uint128(buf: &[u8], nbytes: usize) -> u128 {
         assert!(1 <= nbytes && nbytes <= 16 && nbytes <= buf.len());
-        let mut out = [0u8; 16];
-        let ptr_out = out.as_mut_ptr();
+        let mut out: u128 = 0;
+        let ptr_out = &mut out as *mut u128 as *mut u8;
         unsafe {
             copy_nonoverlapping(buf.as_ptr(), ptr_out, nbytes);
-            (*(ptr_out as *const u128)).to_le()
         }
+        out.to_le()
     }
 
     #[inline]
