@@ -2461,7 +2461,7 @@ mod test {
                     fn prop(n: $ty_int) -> bool {
                         let mut buf = [0; 16];
                         BigEndian::$write(&mut buf, n.clone(), $bytes);
-                        n == BigEndian::$read(&mut buf[..$bytes], $bytes)
+                        n == BigEndian::$read(&buf[..$bytes], $bytes)
                     }
                     qc_sized(prop as fn($ty_int) -> bool, $max);
                 }
@@ -2471,7 +2471,7 @@ mod test {
                     fn prop(n: $ty_int) -> bool {
                         let mut buf = [0; 16];
                         LittleEndian::$write(&mut buf, n.clone(), $bytes);
-                        n == LittleEndian::$read(&mut buf[..$bytes], $bytes)
+                        n == LittleEndian::$read(&buf[..$bytes], $bytes)
                     }
                     qc_sized(prop as fn($ty_int) -> bool, $max);
                 }
@@ -2481,7 +2481,7 @@ mod test {
                     fn prop(n: $ty_int) -> bool {
                         let mut buf = [0; 16];
                         NativeEndian::$write(&mut buf, n.clone(), $bytes);
-                        n == NativeEndian::$read(&mut buf[..$bytes], $bytes)
+                        n == NativeEndian::$read(&buf[..$bytes], $bytes)
                     }
                     qc_sized(prop as fn($ty_int) -> bool, $max);
                 }
@@ -2500,7 +2500,7 @@ mod test {
                         let bytes = size_of::<$ty_int>();
                         let mut buf = [0; 16];
                         BigEndian::$write(&mut buf[16 - bytes..], n.clone());
-                        n == BigEndian::$read(&mut buf[16 - bytes..])
+                        n == BigEndian::$read(&buf[16 - bytes..])
                     }
                     qc_sized(prop as fn($ty_int) -> bool, $max - 1);
                 }
@@ -2511,7 +2511,7 @@ mod test {
                         let bytes = size_of::<$ty_int>();
                         let mut buf = [0; 16];
                         LittleEndian::$write(&mut buf[..bytes], n.clone());
-                        n == LittleEndian::$read(&mut buf[..bytes])
+                        n == LittleEndian::$read(&buf[..bytes])
                     }
                     qc_sized(prop as fn($ty_int) -> bool, $max - 1);
                 }
@@ -2522,7 +2522,7 @@ mod test {
                         let bytes = size_of::<$ty_int>();
                         let mut buf = [0; 16];
                         NativeEndian::$write(&mut buf[..bytes], n.clone());
-                        n == NativeEndian::$read(&mut buf[..bytes])
+                        n == NativeEndian::$read(&buf[..bytes])
                     }
                     qc_sized(prop as fn($ty_int) -> bool, $max - 1);
                 }
@@ -2956,7 +2956,7 @@ mod test {
     fn uint_bigger_buffer() {
         use {ByteOrder, LittleEndian};
         let n = LittleEndian::read_uint(&[1, 2, 3, 4, 5, 6, 7, 8], 5);
-        assert_eq!(n, 0x0504030201);
+        assert_eq!(n, 0x05_0403_0201);
     }
 }
 
