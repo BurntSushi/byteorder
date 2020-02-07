@@ -67,6 +67,9 @@ cases.
 [`Write`]: https://doc.rust-lang.org/std/io/trait.Write.html
 */
 
+// For the 'try!' macro, until we bump MSRV past 1.12.
+#![allow(deprecated)]
+
 #![deny(missing_docs)]
 #![cfg_attr(not(feature = "std"), no_std)]
 

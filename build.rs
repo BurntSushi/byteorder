@@ -1,3 +1,6 @@
+// For the 'try!' macro, until we bump MSRV past 1.12.
+#![allow(deprecated)]
+
 use std::env;
 use std::ffi::OsString;
 use std::io::{self, Write};
