@@ -1411,6 +1411,40 @@ pub trait ByteOrder
     #[cfg(byteorder_i128)]
     fn write_u128_into(src: &[u128], dst: &mut [u8]);
 
+    /// Writes signed 8 bit integers from `src` into `dst`.
+    ///
+    /// Note that since each `i8` is a single byte, no byte order conversions
+    /// are used. This method is included because it provides a safe, simple
+    /// way for the caller to write from a `&[i8]` buffer. (Without this
+    /// method, the caller would have to either use `unsafe` code or convert
+    /// each byte to `u8` individually.)
+    ///
+    /// # Panics
+    ///
+    /// Panics when `buf.len() != src.len()`.
+    ///
+    /// # Examples
+    ///
+    /// Write and read `i8` numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian, ReadBytesExt};
+    ///
+    /// let mut bytes = [0; 4];
+    /// let numbers_given = [1, 2, 0xf, 0xe];
+    /// LittleEndian::write_i8_into(&numbers_given, &mut bytes);
+    ///
+    /// let mut numbers_got = [0; 4];
+    /// bytes.as_ref().read_i8_into(&mut numbers_got);
+    /// assert_eq!(numbers_given, numbers_got);
+    /// ```
+    fn write_i8_into(src: &[i8], dst: &mut [u8]) {
+        let src = unsafe {
+            slice::from_raw_parts(src.as_ptr() as *const u8, src.len())
+        };
+        dst.copy_from_slice(src);
+    }
+
     /// Writes signed 16 bit integers from `src` into `dst`.
     ///
     /// # Panics
