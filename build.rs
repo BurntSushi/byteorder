@@ -14,7 +14,8 @@ fn main() {
                 &mut io::stderr(),
                 "failed to parse `rustc --version`: {}",
                 err
-            ).unwrap();
+            )
+            .unwrap();
             return;
         }
     };
@@ -39,11 +40,8 @@ struct Version {
 impl Version {
     fn read() -> Result<Version, String> {
         let rustc = env::var_os("RUSTC").unwrap_or(OsString::from("rustc"));
-        let output = Command::new(&rustc)
-            .arg("--version")
-            .output()
-            .unwrap()
-            .stdout;
+        let output =
+            Command::new(&rustc).arg("--version").output().unwrap().stdout;
         Version::parse(&String::from_utf8(output).unwrap())
     }
 
