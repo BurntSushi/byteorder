@@ -29,8 +29,6 @@ If you want to augment existing `Read` and `Write` traits, then import the
 extension methods like so:
 
 ```rust
-extern crate byteorder;
-
 use byteorder::{ReadBytesExt, WriteBytesExt, BigEndian, LittleEndian};
 ```
 
