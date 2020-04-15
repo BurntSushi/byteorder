@@ -1266,6 +1266,33 @@ pub trait WriteBytesExt: io::Write {
         self.write_all(&buf)
     }
 
+    /// Writes a sequence of unsigned 32 bit integers to the underlying writer.
+    ///
+    /// # Errors
+    ///
+    /// This method returns the same errors as [`Write::write_all`].
+    ///
+    /// [`Write::write_all`]: https://doc.rust-lang.org/std/io/trait.Write.html#method.write_all
+    ///
+    /// # Examples
+    ///
+    /// Write a sequence of unsigned 32 bit big-endian integers to a `Write`:
+    ///
+    /// ```rust
+    /// use byteorder::{BigEndian, WriteBytesExt};
+    ///
+    /// let src = vec![255, 65284];
+    ///
+    /// let mut wtr = Vec::new();
+    /// wtr.write_u32_from::<BigEndian>(&src).unwrap();
+    /// assert_eq!(&wtr, &[255, 0, 0, 0, 4, 255, 0, 0]);
+    /// ```
+    #[inline]
+    fn write_u32_from<T: ByteOrder>(&mut self, src: &[u32]) -> Result<()> {
+        let buf = unsafe { slice_to_u8(src) };
+        self.write_all(&buf)
+    }
+
     /// Writes a signed 32 bit integer to the underlying writer.
     ///
     /// # Errors
@@ -1596,4 +1623,15 @@ unsafe fn slice_to_u8_mut<T: Copy>(slice: &mut [T]) -> &mut [u8] {
 
     let len = size_of::<T>() * slice.len();
     slice::from_raw_parts_mut(slice.as_mut_ptr() as *mut u8, len)
+}
+
+/// Convert a slice of T (where T is plain old data) to its binary representation.
+///
+/// This function is wildly unsafe because it permits arbitrary modification of
+/// the binary representation of any `Copy` type. Use with care.
+unsafe fn slice_to_u8<T: Copy>(slice: &[T]) -> &[u8] {
+    use std::mem::size_of;
+
+    let len = size_of::<T>() * slice.len();
+    slice::from_raw_parts(slice.as_ptr() as *const u8, len)
 }
