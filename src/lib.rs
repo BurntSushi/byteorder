@@ -67,21 +67,13 @@ cases.
 [`Write`]: https://doc.rust-lang.org/std/io/trait.Write.html
 */
 
-// For the 'try!' macro, until we bump MSRV past 1.12.
-#![allow(deprecated)]
 #![deny(missing_docs)]
 #![cfg_attr(not(feature = "std"), no_std)]
 
-#[cfg(feature = "std")]
-extern crate core;
-
-use core::fmt::Debug;
-use core::hash::Hash;
-use core::ptr::copy_nonoverlapping;
-use core::slice;
+use core::{fmt::Debug, hash::Hash, ptr::copy_nonoverlapping, slice};
 
 #[cfg(feature = "std")]
-pub use io::{ReadBytesExt, WriteBytesExt};
+pub use crate::io::{ReadBytesExt, WriteBytesExt};
 
 #[cfg(feature = "std")]
 mod io;
@@ -92,7 +84,6 @@ fn extend_sign(val: u64, nbytes: usize) -> i64 {
     (val << shift) as i64 >> shift
 }
 
-#[cfg(byteorder_i128)]
 #[inline]
 fn extend_sign128(val: u128, nbytes: usize) -> i128 {
     let shift = (16 - nbytes) * 8;
@@ -105,7 +96,6 @@ fn unextend_sign(val: i64, nbytes: usize) -> u64 {
     (val << shift) as u64 >> shift
 }
 
-#[cfg(byteorder_i128)]
 #[inline]
 fn unextend_sign128(val: i128, nbytes: usize) -> u128 {
     let shift = (16 - nbytes) * 8;
@@ -133,7 +123,6 @@ fn pack_size(n: u64) -> usize {
     }
 }
 
-#[cfg(byteorder_i128)]
 #[inline]
 fn pack_size128(n: u128) -> usize {
     if n < 1 << 8 {
@@ -330,7 +319,6 @@ pub trait ByteOrder:
     /// LittleEndian::write_u128(&mut buf, 1_000_000);
     /// assert_eq!(1_000_000, LittleEndian::read_u128(&buf));
     /// ```
-    #[cfg(byteorder_i128)]
     fn read_u128(buf: &[u8]) -> u128;
 
     /// Reads an unsigned n-bytes integer from `buf`.
@@ -371,7 +359,6 @@ pub trait ByteOrder:
     /// LittleEndian::write_uint128(&mut buf, 1_000_000, 3);
     /// assert_eq!(1_000_000, LittleEndian::read_uint128(&buf, 3));
     /// ```
-    #[cfg(byteorder_i128)]
     fn read_uint128(buf: &[u8], nbytes: usize) -> u128;
 
     /// Writes an unsigned 16 bit integer `n` to `buf`.
@@ -490,7 +477,6 @@ pub trait ByteOrder:
     /// LittleEndian::write_u128(&mut buf, 1_000_000);
     /// assert_eq!(1_000_000, LittleEndian::read_u128(&buf));
     /// ```
-    #[cfg(byteorder_i128)]
     fn write_u128(buf: &mut [u8], n: u128);
 
     /// Writes an unsigned integer `n` to `buf` using only `nbytes`.
@@ -531,7 +517,6 @@ pub trait ByteOrder:
     /// LittleEndian::write_uint128(&mut buf, 1_000_000, 3);
     /// assert_eq!(1_000_000, LittleEndian::read_uint128(&buf, 3));
     /// ```
-    #[cfg(byteorder_i128)]
     fn write_uint128(buf: &mut [u8], n: u128, nbytes: usize);
 
     /// Reads a signed 16 bit integer from `buf`.
@@ -661,7 +646,6 @@ pub trait ByteOrder:
     /// LittleEndian::write_i128(&mut buf, -1_000_000_000);
     /// assert_eq!(-1_000_000_000, LittleEndian::read_i128(&buf));
     /// ```
-    #[cfg(byteorder_i128)]
     #[inline]
     fn read_i128(buf: &[u8]) -> i128 {
         Self::read_u128(buf) as i128
@@ -708,7 +692,6 @@ pub trait ByteOrder:
     /// LittleEndian::write_int128(&mut buf, -1_000, 3);
     /// assert_eq!(-1_000, LittleEndian::read_int128(&buf, 3));
     /// ```
-    #[cfg(byteorder_i128)]
     #[inline]
     fn read_int128(buf: &[u8], nbytes: usize) -> i128 {
         extend_sign128(Self::read_uint128(buf, nbytes), nbytes)
@@ -887,7 +870,6 @@ pub trait ByteOrder:
     /// LittleEndian::write_i128(&mut buf, -1_000_000_000);
     /// assert_eq!(-1_000_000_000, LittleEndian::read_i128(&buf));
     /// ```
-    #[cfg(byteorder_i128)]
     #[inline]
     fn write_i128(buf: &mut [u8], n: i128) {
         Self::write_u128(buf, n as u128)
@@ -934,7 +916,6 @@ pub trait ByteOrder:
     /// LittleEndian::write_int128(&mut buf, -1_000, 3);
     /// assert_eq!(-1_000, LittleEndian::read_int128(&buf, 3));
     /// ```
-    #[cfg(byteorder_i128)]
     #[inline]
     fn write_int128(buf: &mut [u8], n: i128, nbytes: usize) {
         Self::write_uint128(buf, unextend_sign128(n, nbytes), nbytes)
@@ -1078,7 +1059,6 @@ pub trait ByteOrder:
     /// LittleEndian::read_u128_into(&bytes, &mut numbers_got);
     /// assert_eq!(numbers_given, numbers_got);
     /// ```
-    #[cfg(byteorder_i128)]
     fn read_u128_into(src: &[u8], dst: &mut [u128]);
 
     /// Reads signed 16 bit integers from `src` to `dst`.
@@ -1189,7 +1169,6 @@ pub trait ByteOrder:
     /// LittleEndian::read_i128_into(&bytes, &mut numbers_got);
     /// assert_eq!(numbers_given, numbers_got);
     /// ```
-    #[cfg(byteorder_i128)]
     #[inline]
     fn read_i128_into(src: &[u8], dst: &mut [i128]) {
         let dst = unsafe {
@@ -1411,7 +1390,6 @@ pub trait ByteOrder:
     /// LittleEndian::read_u128_into(&bytes, &mut numbers_got);
     /// assert_eq!(numbers_given, numbers_got);
     /// ```
-    #[cfg(byteorder_i128)]
     fn write_u128_into(src: &[u128], dst: &mut [u8]);
 
     /// Writes signed 8 bit integers from `src` into `dst`.
@@ -1553,7 +1531,6 @@ pub trait ByteOrder:
     /// LittleEndian::read_i128_into(&bytes, &mut numbers_got);
     /// assert_eq!(numbers_given, numbers_got);
     /// ```
-    #[cfg(byteorder_i128)]
     fn write_i128_into(src: &[i128], dst: &mut [u8]) {
         let src = unsafe {
             slice::from_raw_parts(src.as_ptr() as *const u128, src.len())
@@ -1697,7 +1674,6 @@ pub trait ByteOrder:
     /// BigEndian::from_slice_u128(&mut numbers);
     /// assert_eq!(numbers, [5u128.to_be(), 65000u128.to_be()]);
     /// ```
-    #[cfg(byteorder_i128)]
     fn from_slice_u128(numbers: &mut [u128]);
 
     /// Converts the given slice of signed 16 bit integers to a particular
@@ -1792,7 +1768,6 @@ pub trait ByteOrder:
     /// BigEndian::from_slice_i128(&mut numbers);
     /// assert_eq!(numbers, [5i128.to_be(), 65000i128.to_be()]);
     /// ```
-    #[cfg(byteorder_i128)]
     #[inline]
     fn from_slice_i128(src: &mut [i128]) {
         let src = unsafe {
@@ -2010,7 +1985,6 @@ impl ByteOrder for BigEndian {
         read_num_bytes!(u64, 8, buf, to_be)
     }
 
-    #[cfg(byteorder_i128)]
     #[inline]
     fn read_u128(buf: &[u8]) -> u128 {
         read_num_bytes!(u128, 16, buf, to_be)
@@ -2031,7 +2005,6 @@ impl ByteOrder for BigEndian {
         out.to_be()
     }
 
-    #[cfg(byteorder_i128)]
     #[inline]
     fn read_uint128(buf: &[u8], nbytes: usize) -> u128 {
         assert!(1 <= nbytes && nbytes <= 16 && nbytes <= buf.len());
@@ -2062,7 +2035,6 @@ impl ByteOrder for BigEndian {
         write_num_bytes!(u64, 8, n, buf, to_be);
     }
 
-    #[cfg(byteorder_i128)]
     #[inline]
     fn write_u128(buf: &mut [u8], n: u128) {
         write_num_bytes!(u128, 16, n, buf, to_be);
@@ -2082,7 +2054,6 @@ impl ByteOrder for BigEndian {
         }
     }
 
-    #[cfg(byteorder_i128)]
     #[inline]
     fn write_uint128(buf: &mut [u8], n: u128, nbytes: usize) {
         assert!(pack_size128(n) <= nbytes && nbytes <= 16);
@@ -2112,7 +2083,6 @@ impl ByteOrder for BigEndian {
         read_slice!(src, dst, 8, to_be);
     }
 
-    #[cfg(byteorder_i128)]
     #[inline]
     fn read_u128_into(src: &[u8], dst: &mut [u128]) {
         read_slice!(src, dst, 16, to_be);
@@ -2145,7 +2115,6 @@ impl ByteOrder for BigEndian {
         }
     }
 
-    #[cfg(byteorder_i128)]
     #[inline]
     fn write_u128_into(src: &[u128], dst: &mut [u8]) {
         if cfg!(target_endian = "big") {
@@ -2182,7 +2151,6 @@ impl ByteOrder for BigEndian {
         }
     }
 
-    #[cfg(byteorder_i128)]
     #[inline]
     fn from_slice_u128(numbers: &mut [u128]) {
         if cfg!(target_endian = "little") {
@@ -2233,7 +2201,6 @@ impl ByteOrder for LittleEndian {
         read_num_bytes!(u64, 8, buf, to_le)
     }
 
-    #[cfg(byteorder_i128)]
     #[inline]
     fn read_u128(buf: &[u8]) -> u128 {
         read_num_bytes!(u128, 16, buf, to_le)
@@ -2250,7 +2217,6 @@ impl ByteOrder for LittleEndian {
         out.to_le()
     }
 
-    #[cfg(byteorder_i128)]
     #[inline]
     fn read_uint128(buf: &[u8], nbytes: usize) -> u128 {
         assert!(1 <= nbytes && nbytes <= 16 && nbytes <= buf.len());
@@ -2277,7 +2243,6 @@ impl ByteOrder for LittleEndian {
         write_num_bytes!(u64, 8, n, buf, to_le);
     }
 
-    #[cfg(byteorder_i128)]
     #[inline]
     fn write_u128(buf: &mut [u8], n: u128) {
         write_num_bytes!(u128, 16, n, buf, to_le);
@@ -2293,7 +2258,6 @@ impl ByteOrder for LittleEndian {
         }
     }
 
-    #[cfg(byteorder_i128)]
     #[inline]
     fn write_uint128(buf: &mut [u8], n: u128, nbytes: usize) {
         assert!(pack_size128(n as u128) <= nbytes && nbytes <= 16);
@@ -2319,7 +2283,6 @@ impl ByteOrder for LittleEndian {
         read_slice!(src, dst, 8, to_le);
     }
 
-    #[cfg(byteorder_i128)]
     #[inline]
     fn read_u128_into(src: &[u8], dst: &mut [u128]) {
         read_slice!(src, dst, 16, to_le);
@@ -2352,7 +2315,6 @@ impl ByteOrder for LittleEndian {
         }
     }
 
-    #[cfg(byteorder_i128)]
     #[inline]
     fn write_u128_into(src: &[u128], dst: &mut [u8]) {
         if cfg!(target_endian = "little") {
@@ -2389,7 +2351,6 @@ impl ByteOrder for LittleEndian {
         }
     }
 
-    #[cfg(byteorder_i128)]
     #[inline]
     fn from_slice_u128(numbers: &mut [u128]) {
         if cfg!(target_endian = "big") {
@@ -2426,15 +2387,8 @@ impl ByteOrder for LittleEndian {
 
 #[cfg(test)]
 mod test {
-    extern crate quickcheck;
-    extern crate rand;
-
-    #[cfg(byteorder_i128)]
-    use self::quickcheck::{Arbitrary, Gen};
-    use self::quickcheck::{QuickCheck, StdGen, Testable};
-    use self::rand::thread_rng;
-    #[cfg(byteorder_i128)]
-    use self::rand::Rng;
+    use quickcheck::{Arbitrary, Gen, QuickCheck, StdGen, Testable};
+    use rand::{thread_rng, Rng};
 
     pub const U24_MAX: u32 = 16_777_215;
     pub const I24_MAX: i32 = 8_388_607;
@@ -2456,7 +2410,6 @@ mod test {
     #[derive(Clone, Debug)]
     pub struct Wi128<T>(pub T);
 
-    #[cfg(byteorder_i128)]
     impl<T: Clone> Wi128<T> {
         pub fn clone(&self) -> T {
             self.0.clone()
@@ -2469,7 +2422,6 @@ mod test {
         }
     }
 
-    #[cfg(byteorder_i128)]
     impl Arbitrary for Wi128<u128> {
         fn arbitrary<G: Gen>(gen: &mut G) -> Wi128<u128> {
             let max = calc_max!(::core::u128::MAX, gen.size(), 16);
@@ -2479,7 +2431,6 @@ mod test {
         }
     }
 
-    #[cfg(byteorder_i128)]
     impl Arbitrary for Wi128<i128> {
         fn arbitrary<G: Gen>(gen: &mut G) -> Wi128<i128> {
             let max = calc_max!(::core::i128::MAX, gen.size(), 16);
@@ -2503,7 +2454,9 @@ mod test {
             mod $name {
                 #[allow(unused_imports)]
                 use super::{qc_sized, Wi128};
-                use {BigEndian, ByteOrder, LittleEndian, NativeEndian};
+                use crate::{
+                    BigEndian, ByteOrder, LittleEndian, NativeEndian,
+                };
 
                 #[test]
                 fn big_endian() {
@@ -2541,8 +2494,10 @@ mod test {
             mod $name {
                 #[allow(unused_imports)]
                 use super::{qc_sized, Wi128};
+                use crate::{
+                    BigEndian, ByteOrder, LittleEndian, NativeEndian,
+                };
                 use core::mem::size_of;
-                use {BigEndian, ByteOrder, LittleEndian, NativeEndian};
 
                 #[test]
                 fn big_endian() {
@@ -2594,8 +2549,20 @@ mod test {
         read_i16,
         write_i16
     );
-    qc_byte_order!(prop_u24, u32, ::test::U24_MAX as u64, read_u24, write_u24);
-    qc_byte_order!(prop_i24, i32, ::test::I24_MAX as u64, read_i24, write_i24);
+    qc_byte_order!(
+        prop_u24,
+        u32,
+        crate::test::U24_MAX as u64,
+        read_u24,
+        write_u24
+    );
+    qc_byte_order!(
+        prop_i24,
+        i32,
+        crate::test::I24_MAX as u64,
+        read_i24,
+        write_i24
+    );
     qc_byte_order!(
         prop_u32,
         u32,
@@ -2610,8 +2577,20 @@ mod test {
         read_i32,
         write_i32
     );
-    qc_byte_order!(prop_u48, u64, ::test::U48_MAX as u64, read_u48, write_u48);
-    qc_byte_order!(prop_i48, i64, ::test::I48_MAX as u64, read_i48, write_i48);
+    qc_byte_order!(
+        prop_u48,
+        u64,
+        crate::test::U48_MAX as u64,
+        read_u48,
+        write_u48
+    );
+    qc_byte_order!(
+        prop_i48,
+        i64,
+        crate::test::I48_MAX as u64,
+        read_i48,
+        write_i48
+    );
     qc_byte_order!(
         prop_u64,
         u64,
@@ -2641,9 +2620,7 @@ mod test {
         write_f64
     );
 
-    #[cfg(byteorder_i128)]
     qc_byte_order!(prop_u128, Wi128<u128>, 16 + 1, read_u128, write_u128);
-    #[cfg(byteorder_i128)]
     qc_byte_order!(prop_i128, Wi128<i128>, 16 + 1, read_i128, write_i128);
 
     qc_byte_order!(
@@ -2711,7 +2688,6 @@ mod test {
         write_uint
     );
 
-    #[cfg(byteorder_i128)]
     qc_byte_order!(
         prop_uint128_1,
         Wi128<u128>,
@@ -2720,7 +2696,6 @@ mod test {
         read_uint128,
         write_uint128
     );
-    #[cfg(byteorder_i128)]
     qc_byte_order!(
         prop_uint128_2,
         Wi128<u128>,
@@ -2729,7 +2704,6 @@ mod test {
         read_uint128,
         write_uint128
     );
-    #[cfg(byteorder_i128)]
     qc_byte_order!(
         prop_uint128_3,
         Wi128<u128>,
@@ -2738,7 +2712,6 @@ mod test {
         read_uint128,
         write_uint128
     );
-    #[cfg(byteorder_i128)]
     qc_byte_order!(
         prop_uint128_4,
         Wi128<u128>,
@@ -2747,7 +2720,6 @@ mod test {
         read_uint128,
         write_uint128
     );
-    #[cfg(byteorder_i128)]
     qc_byte_order!(
         prop_uint128_5,
         Wi128<u128>,
@@ -2756,7 +2728,6 @@ mod test {
         read_uint128,
         write_uint128
     );
-    #[cfg(byteorder_i128)]
     qc_byte_order!(
         prop_uint128_6,
         Wi128<u128>,
@@ -2765,7 +2736,6 @@ mod test {
         read_uint128,
         write_uint128
     );
-    #[cfg(byteorder_i128)]
     qc_byte_order!(
         prop_uint128_7,
         Wi128<u128>,
@@ -2774,7 +2744,6 @@ mod test {
         read_uint128,
         write_uint128
     );
-    #[cfg(byteorder_i128)]
     qc_byte_order!(
         prop_uint128_8,
         Wi128<u128>,
@@ -2783,7 +2752,6 @@ mod test {
         read_uint128,
         write_uint128
     );
-    #[cfg(byteorder_i128)]
     qc_byte_order!(
         prop_uint128_9,
         Wi128<u128>,
@@ -2792,7 +2760,6 @@ mod test {
         read_uint128,
         write_uint128
     );
-    #[cfg(byteorder_i128)]
     qc_byte_order!(
         prop_uint128_10,
         Wi128<u128>,
@@ -2801,7 +2768,6 @@ mod test {
         read_uint128,
         write_uint128
     );
-    #[cfg(byteorder_i128)]
     qc_byte_order!(
         prop_uint128_11,
         Wi128<u128>,
@@ -2810,7 +2776,6 @@ mod test {
         read_uint128,
         write_uint128
     );
-    #[cfg(byteorder_i128)]
     qc_byte_order!(
         prop_uint128_12,
         Wi128<u128>,
@@ -2819,7 +2784,6 @@ mod test {
         read_uint128,
         write_uint128
     );
-    #[cfg(byteorder_i128)]
     qc_byte_order!(
         prop_uint128_13,
         Wi128<u128>,
@@ -2828,7 +2792,6 @@ mod test {
         read_uint128,
         write_uint128
     );
-    #[cfg(byteorder_i128)]
     qc_byte_order!(
         prop_uint128_14,
         Wi128<u128>,
@@ -2837,7 +2800,6 @@ mod test {
         read_uint128,
         write_uint128
     );
-    #[cfg(byteorder_i128)]
     qc_byte_order!(
         prop_uint128_15,
         Wi128<u128>,
@@ -2846,7 +2808,6 @@ mod test {
         read_uint128,
         write_uint128
     );
-    #[cfg(byteorder_i128)]
     qc_byte_order!(
         prop_uint128_16,
         Wi128<u128>,
@@ -2921,7 +2882,6 @@ mod test {
         write_int
     );
 
-    #[cfg(byteorder_i128)]
     qc_byte_order!(
         prop_int128_1,
         Wi128<i128>,
@@ -2930,7 +2890,6 @@ mod test {
         read_int128,
         write_int128
     );
-    #[cfg(byteorder_i128)]
     qc_byte_order!(
         prop_int128_2,
         Wi128<i128>,
@@ -2939,7 +2898,6 @@ mod test {
         read_int128,
         write_int128
     );
-    #[cfg(byteorder_i128)]
     qc_byte_order!(
         prop_int128_3,
         Wi128<i128>,
@@ -2948,7 +2906,6 @@ mod test {
         read_int128,
         write_int128
     );
-    #[cfg(byteorder_i128)]
     qc_byte_order!(
         prop_int128_4,
         Wi128<i128>,
@@ -2957,7 +2914,6 @@ mod test {
         read_int128,
         write_int128
     );
-    #[cfg(byteorder_i128)]
     qc_byte_order!(
         prop_int128_5,
         Wi128<i128>,
@@ -2966,7 +2922,6 @@ mod test {
         read_int128,
         write_int128
     );
-    #[cfg(byteorder_i128)]
     qc_byte_order!(
         prop_int128_6,
         Wi128<i128>,
@@ -2975,7 +2930,6 @@ mod test {
         read_int128,
         write_int128
     );
-    #[cfg(byteorder_i128)]
     qc_byte_order!(
         prop_int128_7,
         Wi128<i128>,
@@ -2984,7 +2938,6 @@ mod test {
         read_int128,
         write_int128
     );
-    #[cfg(byteorder_i128)]
     qc_byte_order!(
         prop_int128_8,
         Wi128<i128>,
@@ -2993,7 +2946,6 @@ mod test {
         read_int128,
         write_int128
     );
-    #[cfg(byteorder_i128)]
     qc_byte_order!(
         prop_int128_9,
         Wi128<i128>,
@@ -3002,7 +2954,6 @@ mod test {
         read_int128,
         write_int128
     );
-    #[cfg(byteorder_i128)]
     qc_byte_order!(
         prop_int128_10,
         Wi128<i128>,
@@ -3011,7 +2962,6 @@ mod test {
         read_int128,
         write_int128
     );
-    #[cfg(byteorder_i128)]
     qc_byte_order!(
         prop_int128_11,
         Wi128<i128>,
@@ -3020,7 +2970,6 @@ mod test {
         read_int128,
         write_int128
     );
-    #[cfg(byteorder_i128)]
     qc_byte_order!(
         prop_int128_12,
         Wi128<i128>,
@@ -3029,7 +2978,6 @@ mod test {
         read_int128,
         write_int128
     );
-    #[cfg(byteorder_i128)]
     qc_byte_order!(
         prop_int128_13,
         Wi128<i128>,
@@ -3038,7 +2986,6 @@ mod test {
         read_int128,
         write_int128
     );
-    #[cfg(byteorder_i128)]
     qc_byte_order!(
         prop_int128_14,
         Wi128<i128>,
@@ -3047,7 +2994,6 @@ mod test {
         read_int128,
         write_int128
     );
-    #[cfg(byteorder_i128)]
     qc_byte_order!(
         prop_int128_15,
         Wi128<i128>,
@@ -3056,7 +3002,6 @@ mod test {
         read_int128,
         write_int128
     );
-    #[cfg(byteorder_i128)]
     qc_byte_order!(
         prop_int128_16,
         Wi128<i128>,
@@ -3075,7 +3020,9 @@ mod test {
         ($name:ident, $maximally_small:expr, $zero:expr,
          $read:ident, $write:ident) => {
             mod $name {
-                use {BigEndian, ByteOrder, LittleEndian, NativeEndian};
+                use crate::{
+                    BigEndian, ByteOrder, LittleEndian, NativeEndian,
+                };
 
                 #[test]
                 #[should_panic]
@@ -3122,7 +3069,9 @@ mod test {
         };
         ($name:ident, $maximally_small:expr, $read:ident) => {
             mod $name {
-                use {BigEndian, ByteOrder, LittleEndian, NativeEndian};
+                use crate::{
+                    BigEndian, ByteOrder, LittleEndian, NativeEndian,
+                };
 
                 #[test]
                 #[should_panic]
@@ -3156,9 +3105,7 @@ mod test {
     too_small!(small_i64, 7, 0, read_i64, write_i64);
     too_small!(small_f32, 3, 0.0, read_f32, write_f32);
     too_small!(small_f64, 7, 0.0, read_f64, write_f64);
-    #[cfg(byteorder_i128)]
     too_small!(small_u128, 15, 0, read_u128, write_u128);
-    #[cfg(byteorder_i128)]
     too_small!(small_i128, 15, 0, read_i128, write_i128);
 
     too_small!(small_uint_1, 1, read_uint);
@@ -3169,35 +3116,20 @@ mod test {
     too_small!(small_uint_6, 6, read_uint);
     too_small!(small_uint_7, 7, read_uint);
 
-    #[cfg(byteorder_i128)]
     too_small!(small_uint128_1, 1, read_uint128);
-    #[cfg(byteorder_i128)]
     too_small!(small_uint128_2, 2, read_uint128);
-    #[cfg(byteorder_i128)]
     too_small!(small_uint128_3, 3, read_uint128);
-    #[cfg(byteorder_i128)]
     too_small!(small_uint128_4, 4, read_uint128);
-    #[cfg(byteorder_i128)]
     too_small!(small_uint128_5, 5, read_uint128);
-    #[cfg(byteorder_i128)]
     too_small!(small_uint128_6, 6, read_uint128);
-    #[cfg(byteorder_i128)]
     too_small!(small_uint128_7, 7, read_uint128);
-    #[cfg(byteorder_i128)]
     too_small!(small_uint128_8, 8, read_uint128);
-    #[cfg(byteorder_i128)]
     too_small!(small_uint128_9, 9, read_uint128);
-    #[cfg(byteorder_i128)]
     too_small!(small_uint128_10, 10, read_uint128);
-    #[cfg(byteorder_i128)]
     too_small!(small_uint128_11, 11, read_uint128);
-    #[cfg(byteorder_i128)]
     too_small!(small_uint128_12, 12, read_uint128);
-    #[cfg(byteorder_i128)]
     too_small!(small_uint128_13, 13, read_uint128);
-    #[cfg(byteorder_i128)]
     too_small!(small_uint128_14, 14, read_uint128);
-    #[cfg(byteorder_i128)]
     too_small!(small_uint128_15, 15, read_uint128);
 
     too_small!(small_int_1, 1, read_int);
@@ -3208,35 +3140,20 @@ mod test {
     too_small!(small_int_6, 6, read_int);
     too_small!(small_int_7, 7, read_int);
 
-    #[cfg(byteorder_i128)]
     too_small!(small_int128_1, 1, read_int128);
-    #[cfg(byteorder_i128)]
     too_small!(small_int128_2, 2, read_int128);
-    #[cfg(byteorder_i128)]
     too_small!(small_int128_3, 3, read_int128);
-    #[cfg(byteorder_i128)]
     too_small!(small_int128_4, 4, read_int128);
-    #[cfg(byteorder_i128)]
     too_small!(small_int128_5, 5, read_int128);
-    #[cfg(byteorder_i128)]
     too_small!(small_int128_6, 6, read_int128);
-    #[cfg(byteorder_i128)]
     too_small!(small_int128_7, 7, read_int128);
-    #[cfg(byteorder_i128)]
     too_small!(small_int128_8, 8, read_int128);
-    #[cfg(byteorder_i128)]
     too_small!(small_int128_9, 9, read_int128);
-    #[cfg(byteorder_i128)]
     too_small!(small_int128_10, 10, read_int128);
-    #[cfg(byteorder_i128)]
     too_small!(small_int128_11, 11, read_int128);
-    #[cfg(byteorder_i128)]
     too_small!(small_int128_12, 12, read_int128);
-    #[cfg(byteorder_i128)]
     too_small!(small_int128_13, 13, read_int128);
-    #[cfg(byteorder_i128)]
     too_small!(small_int128_14, 14, read_int128);
-    #[cfg(byteorder_i128)]
     too_small!(small_int128_15, 15, read_int128);
 
     // Test that reading/writing slices enforces the correct lengths.
@@ -3244,7 +3161,9 @@ mod test {
         ($name:ident, $read:ident, $write:ident,
          $num_bytes:expr, $numbers:expr) => {
             mod $name {
-                use {BigEndian, ByteOrder, LittleEndian, NativeEndian};
+                use crate::{
+                    BigEndian, ByteOrder, LittleEndian, NativeEndian,
+                };
 
                 #[test]
                 #[should_panic]
@@ -3384,7 +3303,6 @@ mod test {
         [0, 0]
     );
 
-    #[cfg(byteorder_i128)]
     slice_lengths!(
         slice_len_too_small_u128,
         read_u128_into,
@@ -3392,7 +3310,6 @@ mod test {
         31,
         [0, 0]
     );
-    #[cfg(byteorder_i128)]
     slice_lengths!(
         slice_len_too_big_u128,
         read_u128_into,
@@ -3400,7 +3317,6 @@ mod test {
         33,
         [0, 0]
     );
-    #[cfg(byteorder_i128)]
     slice_lengths!(
         slice_len_too_small_i128,
         read_i128_into,
@@ -3408,7 +3324,6 @@ mod test {
         31,
         [0, 0]
     );
-    #[cfg(byteorder_i128)]
     slice_lengths!(
         slice_len_too_big_i128,
         read_i128_into,
@@ -3419,7 +3334,7 @@ mod test {
 
     #[test]
     fn uint_bigger_buffer() {
-        use {ByteOrder, LittleEndian};
+        use crate::{ByteOrder, LittleEndian};
         let n = LittleEndian::read_uint(&[1, 2, 3, 4, 5, 6, 7, 8], 5);
         assert_eq!(n, 0x05_0403_0201);
     }
@@ -3452,13 +3367,13 @@ mod stdtests {
         ($name:ident, $ty_int:ty, $max:expr,
          $bytes:expr, $read:ident, $write:ident) => {
             mod $name {
-                use std::io::Cursor;
                 #[allow(unused_imports)]
-                use test::{qc_sized, Wi128};
-                use {
+                use crate::test::{qc_sized, Wi128};
+                use crate::{
                     BigEndian, LittleEndian, NativeEndian, ReadBytesExt,
                     WriteBytesExt,
                 };
+                use std::io::Cursor;
 
                 #[test]
                 fn big_endian() {
@@ -3502,13 +3417,13 @@ mod stdtests {
         };
         ($name:ident, $ty_int:ty, $max:expr, $read:ident, $write:ident) => {
             mod $name {
-                use std::io::Cursor;
                 #[allow(unused_imports)]
-                use test::{qc_sized, Wi128};
-                use {
+                use crate::test::{qc_sized, Wi128};
+                use crate::{
                     BigEndian, LittleEndian, NativeEndian, ReadBytesExt,
                     WriteBytesExt,
                 };
+                use std::io::Cursor;
 
                 #[test]
                 fn big_endian() {
@@ -3603,15 +3518,13 @@ mod stdtests {
         write_f64
     );
 
-    #[cfg(byteorder_i128)]
     qc_bytes_ext!(prop_ext_u128, Wi128<u128>, 16 + 1, read_u128, write_u128);
-    #[cfg(byteorder_i128)]
     qc_bytes_ext!(prop_ext_i128, Wi128<i128>, 16 + 1, read_i128, write_i128);
 
     qc_bytes_ext!(
         prop_ext_uint_1,
         u64,
-        calc_max!(::test::U64_MAX, 1),
+        calc_max!(crate::test::U64_MAX, 1),
         1,
         read_uint,
         write_u64
@@ -3619,7 +3532,7 @@ mod stdtests {
     qc_bytes_ext!(
         prop_ext_uint_2,
         u64,
-        calc_max!(::test::U64_MAX, 2),
+        calc_max!(crate::test::U64_MAX, 2),
         2,
         read_uint,
         write_u64
@@ -3627,7 +3540,7 @@ mod stdtests {
     qc_bytes_ext!(
         prop_ext_uint_3,
         u64,
-        calc_max!(::test::U64_MAX, 3),
+        calc_max!(crate::test::U64_MAX, 3),
         3,
         read_uint,
         write_u64
@@ -3635,7 +3548,7 @@ mod stdtests {
     qc_bytes_ext!(
         prop_ext_uint_4,
         u64,
-        calc_max!(::test::U64_MAX, 4),
+        calc_max!(crate::test::U64_MAX, 4),
         4,
         read_uint,
         write_u64
@@ -3643,7 +3556,7 @@ mod stdtests {
     qc_bytes_ext!(
         prop_ext_uint_5,
         u64,
-        calc_max!(::test::U64_MAX, 5),
+        calc_max!(crate::test::U64_MAX, 5),
         5,
         read_uint,
         write_u64
@@ -3651,7 +3564,7 @@ mod stdtests {
     qc_bytes_ext!(
         prop_ext_uint_6,
         u64,
-        calc_max!(::test::U64_MAX, 6),
+        calc_max!(crate::test::U64_MAX, 6),
         6,
         read_uint,
         write_u64
@@ -3659,7 +3572,7 @@ mod stdtests {
     qc_bytes_ext!(
         prop_ext_uint_7,
         u64,
-        calc_max!(::test::U64_MAX, 7),
+        calc_max!(crate::test::U64_MAX, 7),
         7,
         read_uint,
         write_u64
@@ -3667,13 +3580,12 @@ mod stdtests {
     qc_bytes_ext!(
         prop_ext_uint_8,
         u64,
-        calc_max!(::test::U64_MAX, 8),
+        calc_max!(crate::test::U64_MAX, 8),
         8,
         read_uint,
         write_u64
     );
 
-    #[cfg(byteorder_i128)]
     qc_bytes_ext!(
         prop_ext_uint128_1,
         Wi128<u128>,
@@ -3682,7 +3594,6 @@ mod stdtests {
         read_uint128,
         write_u128
     );
-    #[cfg(byteorder_i128)]
     qc_bytes_ext!(
         prop_ext_uint128_2,
         Wi128<u128>,
@@ -3691,7 +3602,6 @@ mod stdtests {
         read_uint128,
         write_u128
     );
-    #[cfg(byteorder_i128)]
     qc_bytes_ext!(
         prop_ext_uint128_3,
         Wi128<u128>,
@@ -3700,7 +3610,6 @@ mod stdtests {
         read_uint128,
         write_u128
     );
-    #[cfg(byteorder_i128)]
     qc_bytes_ext!(
         prop_ext_uint128_4,
         Wi128<u128>,
@@ -3709,7 +3618,6 @@ mod stdtests {
         read_uint128,
         write_u128
     );
-    #[cfg(byteorder_i128)]
     qc_bytes_ext!(
         prop_ext_uint128_5,
         Wi128<u128>,
@@ -3718,7 +3626,6 @@ mod stdtests {
         read_uint128,
         write_u128
     );
-    #[cfg(byteorder_i128)]
     qc_bytes_ext!(
         prop_ext_uint128_6,
         Wi128<u128>,
@@ -3727,7 +3634,6 @@ mod stdtests {
         read_uint128,
         write_u128
     );
-    #[cfg(byteorder_i128)]
     qc_bytes_ext!(
         prop_ext_uint128_7,
         Wi128<u128>,
@@ -3736,7 +3642,6 @@ mod stdtests {
         read_uint128,
         write_u128
     );
-    #[cfg(byteorder_i128)]
     qc_bytes_ext!(
         prop_ext_uint128_8,
         Wi128<u128>,
@@ -3745,7 +3650,6 @@ mod stdtests {
         read_uint128,
         write_u128
     );
-    #[cfg(byteorder_i128)]
     qc_bytes_ext!(
         prop_ext_uint128_9,
         Wi128<u128>,
@@ -3754,7 +3658,6 @@ mod stdtests {
         read_uint128,
         write_u128
     );
-    #[cfg(byteorder_i128)]
     qc_bytes_ext!(
         prop_ext_uint128_10,
         Wi128<u128>,
@@ -3763,7 +3666,6 @@ mod stdtests {
         read_uint128,
         write_u128
     );
-    #[cfg(byteorder_i128)]
     qc_bytes_ext!(
         prop_ext_uint128_11,
         Wi128<u128>,
@@ -3772,7 +3674,6 @@ mod stdtests {
         read_uint128,
         write_u128
     );
-    #[cfg(byteorder_i128)]
     qc_bytes_ext!(
         prop_ext_uint128_12,
         Wi128<u128>,
@@ -3781,7 +3682,6 @@ mod stdtests {
         read_uint128,
         write_u128
     );
-    #[cfg(byteorder_i128)]
     qc_bytes_ext!(
         prop_ext_uint128_13,
         Wi128<u128>,
@@ -3790,7 +3690,6 @@ mod stdtests {
         read_uint128,
         write_u128
     );
-    #[cfg(byteorder_i128)]
     qc_bytes_ext!(
         prop_ext_uint128_14,
         Wi128<u128>,
@@ -3799,7 +3698,6 @@ mod stdtests {
         read_uint128,
         write_u128
     );
-    #[cfg(byteorder_i128)]
     qc_bytes_ext!(
         prop_ext_uint128_15,
         Wi128<u128>,
@@ -3808,7 +3706,6 @@ mod stdtests {
         read_uint128,
         write_u128
     );
-    #[cfg(byteorder_i128)]
     qc_bytes_ext!(
         prop_ext_uint128_16,
         Wi128<u128>,
@@ -3821,7 +3718,7 @@ mod stdtests {
     qc_bytes_ext!(
         prop_ext_int_1,
         i64,
-        calc_max!(::test::I64_MAX, 1),
+        calc_max!(crate::test::I64_MAX, 1),
         1,
         read_int,
         write_i64
@@ -3829,7 +3726,7 @@ mod stdtests {
     qc_bytes_ext!(
         prop_ext_int_2,
         i64,
-        calc_max!(::test::I64_MAX, 2),
+        calc_max!(crate::test::I64_MAX, 2),
         2,
         read_int,
         write_i64
@@ -3837,7 +3734,7 @@ mod stdtests {
     qc_bytes_ext!(
         prop_ext_int_3,
         i64,
-        calc_max!(::test::I64_MAX, 3),
+        calc_max!(crate::test::I64_MAX, 3),
         3,
         read_int,
         write_i64
@@ -3845,7 +3742,7 @@ mod stdtests {
     qc_bytes_ext!(
         prop_ext_int_4,
         i64,
-        calc_max!(::test::I64_MAX, 4),
+        calc_max!(crate::test::I64_MAX, 4),
         4,
         read_int,
         write_i64
@@ -3853,7 +3750,7 @@ mod stdtests {
     qc_bytes_ext!(
         prop_ext_int_5,
         i64,
-        calc_max!(::test::I64_MAX, 5),
+        calc_max!(crate::test::I64_MAX, 5),
         5,
         read_int,
         write_i64
@@ -3861,7 +3758,7 @@ mod stdtests {
     qc_bytes_ext!(
         prop_ext_int_6,
         i64,
-        calc_max!(::test::I64_MAX, 6),
+        calc_max!(crate::test::I64_MAX, 6),
         6,
         read_int,
         write_i64
@@ -3869,7 +3766,7 @@ mod stdtests {
     qc_bytes_ext!(
         prop_ext_int_7,
         i64,
-        calc_max!(::test::I64_MAX, 1),
+        calc_max!(crate::test::I64_MAX, 1),
         7,
         read_int,
         write_i64
@@ -3877,13 +3774,12 @@ mod stdtests {
     qc_bytes_ext!(
         prop_ext_int_8,
         i64,
-        calc_max!(::test::I64_MAX, 8),
+        calc_max!(crate::test::I64_MAX, 8),
         8,
         read_int,
         write_i64
     );
 
-    #[cfg(byteorder_i128)]
     qc_bytes_ext!(
         prop_ext_int128_1,
         Wi128<i128>,
@@ -3892,7 +3788,6 @@ mod stdtests {
         read_int128,
         write_i128
     );
-    #[cfg(byteorder_i128)]
     qc_bytes_ext!(
         prop_ext_int128_2,
         Wi128<i128>,
@@ -3901,7 +3796,6 @@ mod stdtests {
         read_int128,
         write_i128
     );
-    #[cfg(byteorder_i128)]
     qc_bytes_ext!(
         prop_ext_int128_3,
         Wi128<i128>,
@@ -3910,7 +3804,6 @@ mod stdtests {
         read_int128,
         write_i128
     );
-    #[cfg(byteorder_i128)]
     qc_bytes_ext!(
         prop_ext_int128_4,
         Wi128<i128>,
@@ -3919,7 +3812,6 @@ mod stdtests {
         read_int128,
         write_i128
     );
-    #[cfg(byteorder_i128)]
     qc_bytes_ext!(
         prop_ext_int128_5,
         Wi128<i128>,
@@ -3928,7 +3820,6 @@ mod stdtests {
         read_int128,
         write_i128
     );
-    #[cfg(byteorder_i128)]
     qc_bytes_ext!(
         prop_ext_int128_6,
         Wi128<i128>,
@@ -3937,7 +3828,6 @@ mod stdtests {
         read_int128,
         write_i128
     );
-    #[cfg(byteorder_i128)]
     qc_bytes_ext!(
         prop_ext_int128_7,
         Wi128<i128>,
@@ -3946,7 +3836,6 @@ mod stdtests {
         read_int128,
         write_i128
     );
-    #[cfg(byteorder_i128)]
     qc_bytes_ext!(
         prop_ext_int128_8,
         Wi128<i128>,
@@ -3955,7 +3844,6 @@ mod stdtests {
         read_int128,
         write_i128
     );
-    #[cfg(byteorder_i128)]
     qc_bytes_ext!(
         prop_ext_int128_9,
         Wi128<i128>,
@@ -3964,7 +3852,6 @@ mod stdtests {
         read_int128,
         write_i128
     );
-    #[cfg(byteorder_i128)]
     qc_bytes_ext!(
         prop_ext_int128_10,
         Wi128<i128>,
@@ -3973,7 +3860,6 @@ mod stdtests {
         read_int128,
         write_i128
     );
-    #[cfg(byteorder_i128)]
     qc_bytes_ext!(
         prop_ext_int128_11,
         Wi128<i128>,
@@ -3982,7 +3868,6 @@ mod stdtests {
         read_int128,
         write_i128
     );
-    #[cfg(byteorder_i128)]
     qc_bytes_ext!(
         prop_ext_int128_12,
         Wi128<i128>,
@@ -3991,7 +3876,6 @@ mod stdtests {
         read_int128,
         write_i128
     );
-    #[cfg(byteorder_i128)]
     qc_bytes_ext!(
         prop_ext_int128_13,
         Wi128<i128>,
@@ -4000,7 +3884,6 @@ mod stdtests {
         read_int128,
         write_i128
     );
-    #[cfg(byteorder_i128)]
     qc_bytes_ext!(
         prop_ext_int128_14,
         Wi128<i128>,
@@ -4009,7 +3892,6 @@ mod stdtests {
         read_int128,
         write_i128
     );
-    #[cfg(byteorder_i128)]
     qc_bytes_ext!(
         prop_ext_int128_15,
         Wi128<i128>,
@@ -4018,7 +3900,6 @@ mod stdtests {
         read_int128,
         write_i128
     );
-    #[cfg(byteorder_i128)]
     qc_bytes_ext!(
         prop_ext_int128_16,
         Wi128<i128>,
@@ -4033,10 +3914,12 @@ mod stdtests {
         ($name:ident, $ty_int:ty, $read:ident, $write:ident, $zero:expr) => {
             mod $name {
                 use super::qc_unsized;
-                use core::mem::size_of;
                 #[allow(unused_imports)]
-                use test::Wi128;
-                use {BigEndian, ByteOrder, LittleEndian, NativeEndian};
+                use crate::test::Wi128;
+                use crate::{
+                    BigEndian, ByteOrder, LittleEndian, NativeEndian,
+                };
+                use core::mem::size_of;
 
                 #[test]
                 fn big_endian() {
@@ -4110,7 +3993,6 @@ mod stdtests {
     qc_slice!(prop_slice_i32, i32, read_i32_into, write_i32_into, 0);
     qc_slice!(prop_slice_u64, u64, read_u64_into, write_u64_into, 0);
     qc_slice!(prop_slice_i64, i64, read_i64_into, write_i64_into, 0);
-    #[cfg(byteorder_i128)]
     qc_slice!(
         prop_slice_u128,
         Wi128<u128>,
@@ -4118,7 +4000,6 @@ mod stdtests {
         write_u128_into,
         0
     );
-    #[cfg(byteorder_i128)]
     qc_slice!(
         prop_slice_i128,
         Wi128<i128>,
