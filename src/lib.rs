@@ -70,7 +70,9 @@ cases.
 #![deny(missing_docs)]
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use core::{fmt::Debug, hash::Hash, ptr::copy_nonoverlapping, slice};
+use core::{
+    convert::TryInto, fmt::Debug, hash::Hash, ptr::copy_nonoverlapping, slice,
+};
 
 #[cfg(feature = "std")]
 pub use crate::io::{ReadBytesExt, WriteBytesExt};
@@ -717,7 +719,7 @@ pub trait ByteOrder:
     /// ```
     #[inline]
     fn read_f32(buf: &[u8]) -> f32 {
-        unsafe { *(&Self::read_u32(buf) as *const u32 as *const f32) }
+        f32::from_bits(Self::read_u32(buf))
     }
 
     /// Reads a IEEE754 double-precision (8 bytes) floating point number.
@@ -740,7 +742,7 @@ pub trait ByteOrder:
     /// ```
     #[inline]
     fn read_f64(buf: &[u8]) -> f64 {
-        unsafe { *(&Self::read_u64(buf) as *const u64 as *const f64) }
+        f64::from_bits(Self::read_u64(buf))
     }
 
     /// Writes a signed 16 bit integer `n` to `buf`.
@@ -941,8 +943,7 @@ pub trait ByteOrder:
     /// ```
     #[inline]
     fn write_f32(buf: &mut [u8], n: f32) {
-        let n = unsafe { *(&n as *const f32 as *const u32) };
-        Self::write_u32(buf, n)
+        Self::write_u32(buf, n.to_bits())
     }
 
     /// Writes a IEEE754 double-precision (8 bytes) floating point number.
@@ -965,8 +966,7 @@ pub trait ByteOrder:
     /// ```
     #[inline]
     fn write_f64(buf: &mut [u8], n: f64) {
-        let n = unsafe { *(&n as *const f64 as *const u64) };
-        Self::write_u64(buf, n)
+        Self::write_u64(buf, n.to_bits())
     }
 
     /// Reads unsigned 16 bit integers from `src` into `dst`.
@@ -1899,22 +1899,6 @@ pub type NativeEndian = LittleEndian;
 #[cfg(target_endian = "big")]
 pub type NativeEndian = BigEndian;
 
-macro_rules! read_num_bytes {
-    ($ty:ty, $size:expr, $src:expr, $which:ident) => {{
-        assert!($size == ::core::mem::size_of::<$ty>());
-        assert!($size <= $src.len());
-        let mut data: $ty = 0;
-        unsafe {
-            copy_nonoverlapping(
-                $src.as_ptr(),
-                &mut data as *mut $ty as *mut u8,
-                $size,
-            );
-        }
-        data.$which()
-    }};
-}
-
 macro_rules! write_num_bytes {
     ($ty:ty, $size:expr, $n:expr, $dst:expr, $which:ident) => {{
         assert!($size <= $dst.len());
@@ -1972,22 +1956,22 @@ macro_rules! write_slice {
 impl ByteOrder for BigEndian {
     #[inline]
     fn read_u16(buf: &[u8]) -> u16 {
-        read_num_bytes!(u16, 2, buf, to_be)
+        u16::from_be_bytes(buf.try_into().unwrap())
     }
 
     #[inline]
     fn read_u32(buf: &[u8]) -> u32 {
-        read_num_bytes!(u32, 4, buf, to_be)
+        u32::from_be_bytes(buf.try_into().unwrap())
     }
 
     #[inline]
     fn read_u64(buf: &[u8]) -> u64 {
-        read_num_bytes!(u64, 8, buf, to_be)
+        u64::from_be_bytes(buf.try_into().unwrap())
     }
 
     #[inline]
     fn read_u128(buf: &[u8]) -> u128 {
-        read_num_bytes!(u128, 16, buf, to_be)
+        u128::from_be_bytes(buf.try_into().unwrap())
     }
 
     #[inline]
@@ -2188,22 +2172,22 @@ impl ByteOrder for BigEndian {
 impl ByteOrder for LittleEndian {
     #[inline]
     fn read_u16(buf: &[u8]) -> u16 {
-        read_num_bytes!(u16, 2, buf, to_le)
+        u16::from_le_bytes(buf.try_into().unwrap())
     }
 
     #[inline]
     fn read_u32(buf: &[u8]) -> u32 {
-        read_num_bytes!(u32, 4, buf, to_le)
+        u32::from_le_bytes(buf.try_into().unwrap())
     }
 
     #[inline]
     fn read_u64(buf: &[u8]) -> u64 {
-        read_num_bytes!(u64, 8, buf, to_le)
+        u64::from_le_bytes(buf.try_into().unwrap())
     }
 
     #[inline]
     fn read_u128(buf: &[u8]) -> u128 {
-        read_num_bytes!(u128, 16, buf, to_le)
+        u128::from_le_bytes(buf.try_into().unwrap())
     }
 
     #[inline]
