@@ -1956,22 +1956,22 @@ macro_rules! write_slice {
 impl ByteOrder for BigEndian {
     #[inline]
     fn read_u16(buf: &[u8]) -> u16 {
-        u16::from_be_bytes(buf.try_into().unwrap())
+        u16::from_be_bytes(buf[..2].try_into().unwrap())
     }
 
     #[inline]
     fn read_u32(buf: &[u8]) -> u32 {
-        u32::from_be_bytes(buf.try_into().unwrap())
+        u32::from_be_bytes(buf[..4].try_into().unwrap())
     }
 
     #[inline]
     fn read_u64(buf: &[u8]) -> u64 {
-        u64::from_be_bytes(buf.try_into().unwrap())
+        u64::from_be_bytes(buf[..8].try_into().unwrap())
     }
 
     #[inline]
     fn read_u128(buf: &[u8]) -> u128 {
-        u128::from_be_bytes(buf.try_into().unwrap())
+        u128::from_be_bytes(buf[..16].try_into().unwrap())
     }
 
     #[inline]
@@ -2172,22 +2172,22 @@ impl ByteOrder for BigEndian {
 impl ByteOrder for LittleEndian {
     #[inline]
     fn read_u16(buf: &[u8]) -> u16 {
-        u16::from_le_bytes(buf.try_into().unwrap())
+        u16::from_le_bytes(buf[..2].try_into().unwrap())
     }
 
     #[inline]
     fn read_u32(buf: &[u8]) -> u32 {
-        u32::from_le_bytes(buf.try_into().unwrap())
+        u32::from_le_bytes(buf[..4].try_into().unwrap())
     }
 
     #[inline]
     fn read_u64(buf: &[u8]) -> u64 {
-        u64::from_le_bytes(buf.try_into().unwrap())
+        u64::from_le_bytes(buf[..8].try_into().unwrap())
     }
 
     #[inline]
     fn read_u128(buf: &[u8]) -> u128 {
-        u128::from_le_bytes(buf.try_into().unwrap())
+        u128::from_le_bytes(buf[..16].try_into().unwrap())
     }
 
     #[inline]
@@ -3321,6 +3321,47 @@ mod test {
         use crate::{ByteOrder, LittleEndian};
         let n = LittleEndian::read_uint(&[1, 2, 3, 4, 5, 6, 7, 8], 5);
         assert_eq!(n, 0x05_0403_0201);
+    }
+
+    #[test]
+    fn regression173_array_impl() {
+        use crate::{BigEndian, ByteOrder, LittleEndian};
+
+        let xs = [0; 100];
+
+        let x = BigEndian::read_u16(&xs);
+        assert_eq!(x, 0);
+        let x = BigEndian::read_u32(&xs);
+        assert_eq!(x, 0);
+        let x = BigEndian::read_u64(&xs);
+        assert_eq!(x, 0);
+        let x = BigEndian::read_u128(&xs);
+        assert_eq!(x, 0);
+        let x = BigEndian::read_i16(&xs);
+        assert_eq!(x, 0);
+        let x = BigEndian::read_i32(&xs);
+        assert_eq!(x, 0);
+        let x = BigEndian::read_i64(&xs);
+        assert_eq!(x, 0);
+        let x = BigEndian::read_i128(&xs);
+        assert_eq!(x, 0);
+
+        let x = LittleEndian::read_u16(&xs);
+        assert_eq!(x, 0);
+        let x = LittleEndian::read_u32(&xs);
+        assert_eq!(x, 0);
+        let x = LittleEndian::read_u64(&xs);
+        assert_eq!(x, 0);
+        let x = LittleEndian::read_u128(&xs);
+        assert_eq!(x, 0);
+        let x = LittleEndian::read_i16(&xs);
+        assert_eq!(x, 0);
+        let x = LittleEndian::read_i32(&xs);
+        assert_eq!(x, 0);
+        let x = LittleEndian::read_i64(&xs);
+        assert_eq!(x, 0);
+        let x = LittleEndian::read_i128(&xs);
+        assert_eq!(x, 0);
     }
 }
 
