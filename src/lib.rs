@@ -1692,7 +1692,7 @@ pub trait ByteOrder:
     #[inline]
     fn from_slice_i16(src: &mut [i16]) {
         let src = unsafe {
-            slice::from_raw_parts_mut(src.as_ptr() as *mut u16, src.len())
+            slice::from_raw_parts_mut(src.as_mut_ptr() as *mut u16, src.len())
         };
         Self::from_slice_u16(src);
     }
@@ -1717,7 +1717,7 @@ pub trait ByteOrder:
     #[inline]
     fn from_slice_i32(src: &mut [i32]) {
         let src = unsafe {
-            slice::from_raw_parts_mut(src.as_ptr() as *mut u32, src.len())
+            slice::from_raw_parts_mut(src.as_mut_ptr() as *mut u32, src.len())
         };
         Self::from_slice_u32(src);
     }
@@ -1742,7 +1742,7 @@ pub trait ByteOrder:
     #[inline]
     fn from_slice_i64(src: &mut [i64]) {
         let src = unsafe {
-            slice::from_raw_parts_mut(src.as_ptr() as *mut u64, src.len())
+            slice::from_raw_parts_mut(src.as_mut_ptr() as *mut u64, src.len())
         };
         Self::from_slice_u64(src);
     }
@@ -1767,7 +1767,7 @@ pub trait ByteOrder:
     #[inline]
     fn from_slice_i128(src: &mut [i128]) {
         let src = unsafe {
-            slice::from_raw_parts_mut(src.as_ptr() as *mut u128, src.len())
+            slice::from_raw_parts_mut(src.as_mut_ptr() as *mut u128, src.len())
         };
         Self::from_slice_u128(src);
     }
