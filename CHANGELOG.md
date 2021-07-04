@@ -1,3 +1,16 @@
+1.4.3
+=====
+Unsafe macros are prefixed with `unsafe_`. That is, `write_num_bytes` is now
+called `unsafe_write_num_bytes`, and `read_slice` is renamed to
+`unsafe_read_slice`. There are no changes in the safety properties of the
+implementation. This is only about making the code a bit clearer and more
+consistent with Rust's safety story.
+
+Implementations of `ByteOrder::from_slice_i16`, `ByteOrder::from_slice_i32`,
+`ByteOrder::from_slice_i64` and `ByteOrder::from_slice_i128` are changed from
+using `as_ptr` to `as_mut_ptr` to fix errors when running with Miri.
+
+
 1.4.2
 =====
 This patch release fixes a misnamed crates.io category by renaming it from
