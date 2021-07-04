@@ -1,3 +1,46 @@
+1.4.3
+=====
+Unsafe macros are prefixed with `unsafe_`. That is, `write_num_bytes` is now
+called `unsafe_write_num_bytes`, and `read_slice` is renamed to
+`unsafe_read_slice`. There are no changes in the safety properties of the
+implementation. This is only about making the code a bit clearer and more
+consistent with Rust's safety story.
+
+Implementations of `ByteOrder::from_slice_i16`, `ByteOrder::from_slice_i32`,
+`ByteOrder::from_slice_i64` and `ByteOrder::from_slice_i128` are changed from
+using `as_ptr` to `as_mut_ptr` to fix errors when running with Miri.
+
+
+1.4.2
+=====
+This patch release fixes a misnamed crates.io category by renaming it from
+`no_std` to `no-std`.
+
+
+1.4.1
+=====
+This patch release fixes the read implementations for array to int conversions
+to avoid possible panics when slice sizes do not exactly match that what the std
+APIs (`TryInto`) expect.
+
+
+1.4.0
+=====
+This minor release moves the minimum supported Rust version to 1.41.1.
+
+The library will now use std endian conversion routines (such as `from_bits()`,
+`to_bits()`, `from_be_bytes()` and `from_le_bytes()`) instead of potentially
+unsafe casts with `as`.
+
+`quickcheck` and `rand` are bumped to `0.9.2` and `0.7`, respectively.
+
+The dev dependency on `doc_comment` is removed.
+
+The crates.io category `no_std` is added.
+
+CI is switched from Travis CI to GitHub Actions.
+
+
 1.3.4
 =====
 This patch release squashes deprecation warnings for the `try!` macro, in
