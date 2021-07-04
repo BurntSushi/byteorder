@@ -1,3 +1,9 @@
+1.4.2
+=====
+This patch release fixes a misnamed crates.io category by renaming it from
+`no_std` to `no-std`.
+
+
 1.4.1
 =====
 This patch release fixes the read implementations for array to int conversions
