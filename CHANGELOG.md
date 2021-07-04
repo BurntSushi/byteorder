@@ -1,3 +1,20 @@
+1.4.0
+=====
+This minor release moves the minimum supported Rust version to 1.41.1.
+
+The library will now use std endian conversion routines (such as `from_bits()`,
+`to_bits()`, `from_be_bytes()` and `from_le_bytes()`) instead of potentially
+unsafe casts with `as`.
+
+`quickcheck` and `rand` are bumped to `0.9.2` and `0.7`, respectively.
+
+The dev dependency on `doc_comment` is removed.
+
+The crates.io category `no_std` is added.
+
+CI is switched from Travis CI to GitHub Actions.
+
+
 1.3.4
 =====
 This patch release squashes deprecation warnings for the `try!` macro, in
