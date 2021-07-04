@@ -1,3 +1,10 @@
+1.4.1
+=====
+This patch release fixes the read implementations for array to int conversions
+to avoid possible panics when slice sizes do not exactly match that what the std
+APIs (`TryInto`) expect.
+
+
 1.4.0
 =====
 This minor release moves the minimum supported Rust version to 1.41.1.
