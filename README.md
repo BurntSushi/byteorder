@@ -4,7 +4,7 @@ This crate provides convenience methods for encoding and decoding
 numbers in either big-endian or little-endian order.
 
 [![Build status](https://github.com/BurntSushi/byteorder/workflows/ci/badge.svg)](https://github.com/BurntSushi/byteorder/actions)
-[![](https://meritbadge.herokuapp.com/byteorder)](https://crates.io/crates/byteorder)
+[![Crates.io](https://img.shields.io/crates/v/byteorder.svg)](https://crates.io/crates/byteorder)
 
 Dual-licensed under MIT or the [UNLICENSE](https://unlicense.org/).
 
