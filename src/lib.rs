@@ -1238,7 +1238,7 @@ pub trait ByteOrder:
         Self::read_f32_into(src, dst);
     }
 
-    /// Reads IEEE754 single-precision (4 bytes) floating point numbers from
+    /// Reads IEEE754 double-precision (8 bytes) floating point numbers from
     /// `src` into `dst`.
     ///
     /// # Panics
@@ -1272,7 +1272,7 @@ pub trait ByteOrder:
     ///
     /// This method is deprecated. Use `read_f64_into` instead.
     ///
-    /// Reads IEEE754 single-precision (4 bytes) floating point numbers from
+    /// Reads IEEE754 double-precision (8 bytes) floating point numbers from
     /// `src` into `dst`.
     ///
     /// # Panics
