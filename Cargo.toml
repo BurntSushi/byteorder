@@ -17,6 +17,9 @@ edition = "2018"
 name = "byteorder"
 bench = false
 
+[dependencies]
+core2 = { version = "0.3.2", default-features = false}
+
 [dev-dependencies]
 quickcheck = { version = "0.9.2", default-features = false }
 rand = "0.7"

@@ -1,7 +1,15 @@
+#[cfg(feature = "std")]
 use std::{
     io::{self, Result},
     slice,
 };
+
+#[cfg(not(feature = "std"))]
+use core2::{
+    io::{self, Result},
+};
+#[cfg(not(feature = "std"))]
+use core::slice;
 
 use crate::ByteOrder;
 
@@ -1585,7 +1593,7 @@ impl<W: io::Write + ?Sized> WriteBytesExt for W {}
 /// the binary representation of any `Copy` type. Use with care. It's intended
 /// to be called only where `T` is a numeric type.
 unsafe fn slice_to_u8_mut<T: Copy>(slice: &mut [T]) -> &mut [u8] {
-    use std::mem::size_of;
+    use core::mem::size_of;
 
     let len = size_of::<T>() * slice.len();
     slice::from_raw_parts_mut(slice.as_mut_ptr() as *mut u8, len)
