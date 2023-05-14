@@ -2248,6 +2248,9 @@ impl ByteOrder for LittleEndian {
 
     #[inline]
     fn write_uint(buf: &mut [u8], n: u64, nbytes: usize) {
+        if pack_size(n as u64) > nbytes || nbytes > 8 {
+            println!("Debug: n={}, nbytes={}, pack_size(n)={}", n, nbytes, pack_size(n as u64));
+        }
         assert!(pack_size(n as u64) <= nbytes && nbytes <= 8);
         assert!(nbytes <= buf.len());
         unsafe {
@@ -2385,73 +2388,222 @@ impl ByteOrder for LittleEndian {
 
 #[cfg(test)]
 mod test {
-    use quickcheck::{Arbitrary, Gen, QuickCheck, StdGen, Testable};
-    use rand::{thread_rng, Rng};
+    use quickcheck::{Arbitrary, Gen, QuickCheck, Testable};
+    use std::fmt::Debug;
 
-    pub const U24_MAX: u32 = 16_777_215;
-    pub const I24_MAX: i32 = 8_388_607;
-    pub const U48_MAX: u64 = 281_474_976_710_655;
-    pub const I48_MAX: i64 = 140_737_488_355_327;
+    #[derive(Clone, Debug, PartialEq)]
+    pub struct U24(pub u32);
 
-    pub const U64_MAX: u64 = ::core::u64::MAX;
-    pub const I64_MAX: u64 = ::core::i64::MAX as u64;
+    #[derive(Clone, Debug, PartialEq)]
+    pub struct I24(pub i32);
 
-    macro_rules! calc_max {
-        ($max:expr, $bytes:expr) => {
-            calc_max!($max, $bytes, 8)
-        };
-        ($max:expr, $bytes:expr, $maxbytes:expr) => {
-            ($max - 1) >> (8 * ($maxbytes - $bytes))
-        };
+    #[derive(Clone, Debug, PartialEq)]
+    pub struct U48(pub u64);
+
+    #[derive(Clone, Debug, PartialEq)]
+    pub struct I48(pub i64);
+
+    pub trait ByteUtils {
+        const BITS: usize;
+        const MAX: Self;
+        fn one() -> Self;
+        fn is_signed() -> bool;
     }
 
-    #[derive(Clone, Debug)]
-    pub struct Wi128<T>(pub T);
+    impl ByteUtils for U24 {
+        const BITS: usize = 24;
+        const MAX: Self = U24((1 << 24) - 1);
+        fn one() -> Self { U24(1) }
+        fn is_signed() -> bool { false }
+    }
 
-    impl<T: Clone> Wi128<T> {
-        pub fn clone(&self) -> T {
+    impl ByteUtils for I24 {
+        const BITS: usize = 24;
+        const MAX: Self = I24((1 << 23) - 1);
+        fn one() -> Self { I24(1) }
+        fn is_signed() -> bool { true }
+    }
+
+    impl ByteUtils for u32 {
+        const BITS: usize = u32::BITS as usize;
+        const MAX: Self = u32::MAX;
+        fn one() -> Self { 1 }
+        fn is_signed() -> bool { false }
+    }
+
+    impl ByteUtils for i32 {
+        const BITS: usize = i32::BITS as usize;
+        const MAX: Self = i32::MAX;
+        fn one() -> Self { 1 }
+        fn is_signed() -> bool { true }
+    }
+
+    impl ByteUtils for U48 {
+        const BITS: usize = 48;
+        const MAX: Self = U48((1 << 48) - 1);
+        fn one() -> Self { U48(1) }
+        fn is_signed() -> bool { false }
+    }
+
+    impl ByteUtils for I48 {
+        const BITS: usize = 48;
+        const MAX: Self = I48((1 << 47) - 1);
+        fn one() -> Self { I48(1) }
+        fn is_signed() -> bool { true }
+    }
+
+    impl ByteUtils for u64 {
+        const BITS: usize = i64::BITS as usize;
+        const MAX: Self = u64::MAX;
+        fn one() -> Self { 1 }
+        fn is_signed() -> bool { false }
+    }
+
+    impl ByteUtils for i64 {
+        const BITS: usize = i64::BITS as usize;
+        const MAX: Self = i64::MAX;
+        fn one() -> Self { 1 }
+        fn is_signed() -> bool { true }
+    }
+
+    impl ByteUtils for u128 {
+        const BITS: usize = u128::BITS as usize;
+        const MAX: Self = u128::MAX;
+        fn one() -> Self { 1 }
+        fn is_signed() -> bool { false }
+    }
+
+    impl ByteUtils for i128 {
+        const BITS: usize = i128::BITS as usize;
+        const MAX: Self = i128::MAX;
+        fn one() -> Self { 1 }
+        fn is_signed() -> bool { true }
+    }
+
+    impl U24 {
+        fn clone(&self) -> u32 {
             self.0.clone()
         }
     }
 
-    impl<T: PartialEq> PartialEq<T> for Wi128<T> {
+    impl Arbitrary for U24 {
+        fn arbitrary(g: &mut Gen) -> Self {
+            let max = (1 << U24::BITS) - 1;
+            U24(<u32>::arbitrary(g) & (max as u32))
+        }
+    }
+
+    impl I24 {
+        fn clone(&self) -> i32 {
+            self.0.clone()
+        }
+    }
+
+    impl Arbitrary for I24 {
+        fn arbitrary(g: &mut Gen) -> Self {
+            let max = (1 << (I24::BITS - 1)) - 1;
+            I24(<i32>::arbitrary(g) & max)
+        }
+    }
+
+    impl U48 {
+        fn clone(&self) -> u64 {
+            self.0.clone()
+        }
+    }
+
+    impl Arbitrary for U48 {
+        fn arbitrary(g: &mut Gen) -> Self {
+            let max = (1 << U48::BITS) - 1;
+            U48(<u64>::arbitrary(g) & max)
+        }
+    }
+
+    impl I48 {
+        fn clone(&self) -> i64 {
+            self.0.clone()
+        }
+    }
+
+    impl Arbitrary for I48 {
+        fn arbitrary(g: &mut Gen) -> Self {
+            let max = (1 << (I48::BITS - 1)) - 1;
+            I48(<i64>::arbitrary(g) & max)
+        }
+    }
+
+    #[derive(Clone, Debug)]
+    pub struct Wi<T: Clone + Debug, const BYTES: usize> {
+        value: T,
+    }
+
+    impl<T: ByteUtils + Clone + Debug, const BYTES: usize> Wi<T, BYTES> {
+        pub fn clone(&self) -> T {
+            self.value.clone()
+        }
+    }
+
+    impl<T: ByteUtils + PartialEq + Clone + Debug, const BYTES: usize> PartialEq<T> for Wi<T, BYTES> {
         fn eq(&self, other: &T) -> bool {
-            self.0.eq(other)
+            self.value.eq(other)
         }
     }
 
-    impl Arbitrary for Wi128<u128> {
-        fn arbitrary<G: Gen>(gen: &mut G) -> Wi128<u128> {
-            let max = calc_max!(::core::u128::MAX, gen.size(), 16);
-            let output = (gen.gen::<u64>() as u128)
-                | ((gen.gen::<u64>() as u128) << 64);
-            Wi128(output & (max - 1))
+    impl<T: ByteUtils + Arbitrary + Copy + std::ops::BitAnd<Output = T> + Debug + std::ops::Sub<Output = T> + std::cmp::PartialOrd + std::ops::Shl<usize, Output = T>, const BYTES: usize> Arbitrary for Wi<T, BYTES> {
+        fn arbitrary(g: &mut Gen) -> Wi<T, BYTES> {
+            println!("T::BITS: {}", T::BITS);
+            println!("BYTES: {}", BYTES);
+
+            let output: T = <T>::arbitrary(g);
+            println!("Arbitrary Wi<_, _> - first arbitrary: {:?}", output);
+
+            let max: T;
+            let shift_val: T;
+            let mask: T;
+
+            if T::is_signed() {
+                if T::BITS == BYTES * 8 {
+                    max = T::MAX;
+                    shift_val = T::one() << (BYTES * 8 - 1);
+                    mask = T::MAX;
+                } else {
+                    max = (T::one() << (BYTES * 8 - 1)) - T::one();
+                    shift_val = T::one() << (BYTES * 8);
+                    mask = shift_val - T::one();
+                }
+
+                let value = output & mask;
+                let value = if value > max { value - shift_val } else { value };
+                println!("Arbitrary Wi<_, _> - value: {:?}", value);
+                Wi { value }
+            } else {
+                if T::BITS == BYTES * 8 {
+                    max = T::MAX;
+                } else {
+                    max = (T::one() << (BYTES * 8)) - T::one();
+                }
+
+                let value = output & max;
+                println!("Arbitrary Wi<_, _> - value: {:?}", value);
+                Wi { value }
+            }
         }
     }
 
-    impl Arbitrary for Wi128<i128> {
-        fn arbitrary<G: Gen>(gen: &mut G) -> Wi128<i128> {
-            let max = calc_max!(::core::i128::MAX, gen.size(), 16);
-            let output = (gen.gen::<i64>() as i128)
-                | ((gen.gen::<i64>() as i128) << 64);
-            Wi128(output & (max - 1))
-        }
-    }
-
-    pub fn qc_sized<A: Testable>(f: A, size: u64) {
+    pub fn qc_sized<A: Testable>(f: A) {
+        let gen = Gen::from_seed(12345);
         QuickCheck::new()
-            .gen(StdGen::new(thread_rng(), size as usize))
+            .gen(gen)
             .tests(1_00)
             .max_tests(10_000)
             .quickcheck(f);
     }
 
-    macro_rules! qc_byte_order {
-        ($name:ident, $ty_int:ty, $max:expr,
-         $bytes:expr, $read:ident, $write:ident) => {
+    macro_rules! qc_byte_order_wi {
+        ($name:ident, $ty_int:ty, $bytes:expr, $read:ident, $write:ident) => {
             mod $name {
                 #[allow(unused_imports)]
-                use super::{qc_sized, Wi128};
+                use super::{qc_sized, Wi};
                 use crate::{
                     BigEndian, ByteOrder, LittleEndian, NativeEndian,
                 };
@@ -2463,7 +2615,7 @@ mod test {
                         BigEndian::$write(&mut buf, n.clone(), $bytes);
                         n == BigEndian::$read(&buf[..$bytes], $bytes)
                     }
-                    qc_sized(prop as fn($ty_int) -> bool, $max);
+                    qc_sized(prop as fn($ty_int) -> bool);
                 }
 
                 #[test]
@@ -2473,7 +2625,7 @@ mod test {
                         LittleEndian::$write(&mut buf, n.clone(), $bytes);
                         n == LittleEndian::$read(&buf[..$bytes], $bytes)
                     }
-                    qc_sized(prop as fn($ty_int) -> bool, $max);
+                    qc_sized(prop as fn($ty_int) -> bool);
                 }
 
                 #[test]
@@ -2483,15 +2635,17 @@ mod test {
                         NativeEndian::$write(&mut buf, n.clone(), $bytes);
                         n == NativeEndian::$read(&buf[..$bytes], $bytes)
                     }
-                    qc_sized(prop as fn($ty_int) -> bool, $max);
+                    qc_sized(prop as fn($ty_int) -> bool);
                 }
             }
         };
-        ($name:ident, $ty_int:ty, $max:expr,
-         $read:ident, $write:ident) => {
+    }
+
+    macro_rules! qc_byte_order {
+        ($name:ident, $ty_int:ty, $read:ident, $write:ident) => {
             mod $name {
                 #[allow(unused_imports)]
-                use super::{qc_sized, Wi128};
+                use super::{qc_sized, U24, I24, U48, I48};
                 use crate::{
                     BigEndian, ByteOrder, LittleEndian, NativeEndian,
                 };
@@ -2503,9 +2657,9 @@ mod test {
                         let bytes = size_of::<$ty_int>();
                         let mut buf = [0; 16];
                         BigEndian::$write(&mut buf[16 - bytes..], n.clone());
-                        n == BigEndian::$read(&buf[16 - bytes..])
+                        n.clone() == BigEndian::$read(&buf[16 - bytes..])
                     }
-                    qc_sized(prop as fn($ty_int) -> bool, $max - 1);
+                    qc_sized(prop as fn($ty_int) -> bool);
                 }
 
                 #[test]
@@ -2514,9 +2668,9 @@ mod test {
                         let bytes = size_of::<$ty_int>();
                         let mut buf = [0; 16];
                         LittleEndian::$write(&mut buf[..bytes], n.clone());
-                        n == LittleEndian::$read(&buf[..bytes])
+                        n.clone() == LittleEndian::$read(&buf[..bytes])
                     }
-                    qc_sized(prop as fn($ty_int) -> bool, $max - 1);
+                    qc_sized(prop as fn($ty_int) -> bool);
                 }
 
                 #[test]
@@ -2525,489 +2679,80 @@ mod test {
                         let bytes = size_of::<$ty_int>();
                         let mut buf = [0; 16];
                         NativeEndian::$write(&mut buf[..bytes], n.clone());
-                        n == NativeEndian::$read(&buf[..bytes])
+                        n.clone() == NativeEndian::$read(&buf[..bytes])
                     }
-                    qc_sized(prop as fn($ty_int) -> bool, $max - 1);
+                    qc_sized(prop as fn($ty_int) -> bool);
                 }
             }
         };
     }
 
-    qc_byte_order!(
-        prop_u16,
-        u16,
-        ::core::u16::MAX as u64,
-        read_u16,
-        write_u16
-    );
-    qc_byte_order!(
-        prop_i16,
-        i16,
-        ::core::i16::MAX as u64,
-        read_i16,
-        write_i16
-    );
-    qc_byte_order!(
-        prop_u24,
-        u32,
-        crate::test::U24_MAX as u64,
-        read_u24,
-        write_u24
-    );
-    qc_byte_order!(
-        prop_i24,
-        i32,
-        crate::test::I24_MAX as u64,
-        read_i24,
-        write_i24
-    );
-    qc_byte_order!(
-        prop_u32,
-        u32,
-        ::core::u32::MAX as u64,
-        read_u32,
-        write_u32
-    );
-    qc_byte_order!(
-        prop_i32,
-        i32,
-        ::core::i32::MAX as u64,
-        read_i32,
-        write_i32
-    );
-    qc_byte_order!(
-        prop_u48,
-        u64,
-        crate::test::U48_MAX as u64,
-        read_u48,
-        write_u48
-    );
-    qc_byte_order!(
-        prop_i48,
-        i64,
-        crate::test::I48_MAX as u64,
-        read_i48,
-        write_i48
-    );
-    qc_byte_order!(
-        prop_u64,
-        u64,
-        ::core::u64::MAX as u64,
-        read_u64,
-        write_u64
-    );
-    qc_byte_order!(
-        prop_i64,
-        i64,
-        ::core::i64::MAX as u64,
-        read_i64,
-        write_i64
-    );
-    qc_byte_order!(
-        prop_f32,
-        f32,
-        ::core::u64::MAX as u64,
-        read_f32,
-        write_f32
-    );
-    qc_byte_order!(
-        prop_f64,
-        f64,
-        ::core::i64::MAX as u64,
-        read_f64,
-        write_f64
-    );
+    qc_byte_order!(prop_u16, u16, read_u16, write_u16);
+    qc_byte_order!(prop_i16, i16, read_i16, write_i16);
+    qc_byte_order!(prop_u24, U24, read_u24, write_u24);
+    qc_byte_order!(prop_i24, I24, read_i24, write_i24);
+    qc_byte_order!(prop_u32, u32, read_u32, write_u32);
+    qc_byte_order!(prop_i32, i32, read_i32, write_i32);
+    qc_byte_order!(prop_u48, U48, read_u48, write_u48);
+    qc_byte_order!(prop_i48, I48, read_i48, write_i48);
+    qc_byte_order!(prop_u64, u64, read_u64, write_u64);
+    qc_byte_order!(prop_i64, i64, read_i64, write_i64);
+    qc_byte_order!(prop_f32, f32, read_f32, write_f32);
+    qc_byte_order!(prop_f64, f64, read_f64, write_f64);
+    qc_byte_order!(prop_u128, u128, read_u128, write_u128);
+    qc_byte_order!(prop_i128, i128, read_i128, write_i128);
 
-    qc_byte_order!(prop_u128, Wi128<u128>, 16 + 1, read_u128, write_u128);
-    qc_byte_order!(prop_i128, Wi128<i128>, 16 + 1, read_i128, write_i128);
+    qc_byte_order_wi!(prop_uint_1, Wi<u64, 1>, 1, read_uint, write_uint);
+    qc_byte_order_wi!(prop_uint_2, Wi<u64, 2>, 2, read_uint, write_uint);
+    qc_byte_order_wi!(prop_uint_3, Wi<u64, 3>, 3, read_uint, write_uint);
+    qc_byte_order_wi!(prop_uint_4, Wi<u64, 4>, 4, read_uint, write_uint);
+    qc_byte_order_wi!(prop_uint_5, Wi<u64, 5>, 5, read_uint, write_uint);
+    qc_byte_order_wi!(prop_uint_6, Wi<u64, 6>, 6, read_uint, write_uint);
+    qc_byte_order_wi!(prop_uint_7, Wi<u64, 7>, 7, read_uint, write_uint);
+    qc_byte_order_wi!(prop_uint_8, Wi<u64, 8>, 8, read_uint, write_uint);
 
-    qc_byte_order!(
-        prop_uint_1,
-        u64,
-        calc_max!(super::U64_MAX, 1),
-        1,
-        read_uint,
-        write_uint
-    );
-    qc_byte_order!(
-        prop_uint_2,
-        u64,
-        calc_max!(super::U64_MAX, 2),
-        2,
-        read_uint,
-        write_uint
-    );
-    qc_byte_order!(
-        prop_uint_3,
-        u64,
-        calc_max!(super::U64_MAX, 3),
-        3,
-        read_uint,
-        write_uint
-    );
-    qc_byte_order!(
-        prop_uint_4,
-        u64,
-        calc_max!(super::U64_MAX, 4),
-        4,
-        read_uint,
-        write_uint
-    );
-    qc_byte_order!(
-        prop_uint_5,
-        u64,
-        calc_max!(super::U64_MAX, 5),
-        5,
-        read_uint,
-        write_uint
-    );
-    qc_byte_order!(
-        prop_uint_6,
-        u64,
-        calc_max!(super::U64_MAX, 6),
-        6,
-        read_uint,
-        write_uint
-    );
-    qc_byte_order!(
-        prop_uint_7,
-        u64,
-        calc_max!(super::U64_MAX, 7),
-        7,
-        read_uint,
-        write_uint
-    );
-    qc_byte_order!(
-        prop_uint_8,
-        u64,
-        calc_max!(super::U64_MAX, 8),
-        8,
-        read_uint,
-        write_uint
-    );
+    qc_byte_order_wi!(prop_uint128_1, Wi<u128, 1>, 1, read_uint128, write_uint128);
+    qc_byte_order_wi!(prop_uint128_2, Wi<u128, 2>, 2, read_uint128, write_uint128);
+    qc_byte_order_wi!(prop_uint128_3, Wi<u128, 3>, 3, read_uint128, write_uint128);
+    qc_byte_order_wi!(prop_uint128_4, Wi<u128, 4>, 4, read_uint128, write_uint128);
+    qc_byte_order_wi!(prop_uint128_5, Wi<u128, 5>, 5, read_uint128, write_uint128);
+    qc_byte_order_wi!(prop_uint128_6, Wi<u128, 6>, 6, read_uint128, write_uint128);
+    qc_byte_order_wi!(prop_uint128_7, Wi<u128, 7>, 7, read_uint128, write_uint128);
+    qc_byte_order_wi!(prop_uint128_8, Wi<u128, 8>, 8, read_uint128, write_uint128);
+    qc_byte_order_wi!(prop_uint128_9, Wi<u128, 9>, 9, read_uint128, write_uint128);
+    qc_byte_order_wi!(prop_uint128_10, Wi<u128, 10>, 10, read_uint128, write_uint128);
+    qc_byte_order_wi!(prop_uint128_11, Wi<u128, 11>, 11, read_uint128, write_uint128);
+    qc_byte_order_wi!(prop_uint128_12, Wi<u128, 12>, 12, read_uint128, write_uint128);
+    qc_byte_order_wi!(prop_uint128_13, Wi<u128, 13>, 13, read_uint128, write_uint128);
+    qc_byte_order_wi!(prop_uint128_14, Wi<u128, 14>, 14, read_uint128, write_uint128);
+    qc_byte_order_wi!(prop_uint128_15, Wi<u128, 15>, 15, read_uint128, write_uint128);
+    qc_byte_order_wi!(prop_uint128_16, Wi<u128, 16>, 16, read_uint128, write_uint128);
 
-    qc_byte_order!(
-        prop_uint128_1,
-        Wi128<u128>,
-        1,
-        1,
-        read_uint128,
-        write_uint128
-    );
-    qc_byte_order!(
-        prop_uint128_2,
-        Wi128<u128>,
-        2,
-        2,
-        read_uint128,
-        write_uint128
-    );
-    qc_byte_order!(
-        prop_uint128_3,
-        Wi128<u128>,
-        3,
-        3,
-        read_uint128,
-        write_uint128
-    );
-    qc_byte_order!(
-        prop_uint128_4,
-        Wi128<u128>,
-        4,
-        4,
-        read_uint128,
-        write_uint128
-    );
-    qc_byte_order!(
-        prop_uint128_5,
-        Wi128<u128>,
-        5,
-        5,
-        read_uint128,
-        write_uint128
-    );
-    qc_byte_order!(
-        prop_uint128_6,
-        Wi128<u128>,
-        6,
-        6,
-        read_uint128,
-        write_uint128
-    );
-    qc_byte_order!(
-        prop_uint128_7,
-        Wi128<u128>,
-        7,
-        7,
-        read_uint128,
-        write_uint128
-    );
-    qc_byte_order!(
-        prop_uint128_8,
-        Wi128<u128>,
-        8,
-        8,
-        read_uint128,
-        write_uint128
-    );
-    qc_byte_order!(
-        prop_uint128_9,
-        Wi128<u128>,
-        9,
-        9,
-        read_uint128,
-        write_uint128
-    );
-    qc_byte_order!(
-        prop_uint128_10,
-        Wi128<u128>,
-        10,
-        10,
-        read_uint128,
-        write_uint128
-    );
-    qc_byte_order!(
-        prop_uint128_11,
-        Wi128<u128>,
-        11,
-        11,
-        read_uint128,
-        write_uint128
-    );
-    qc_byte_order!(
-        prop_uint128_12,
-        Wi128<u128>,
-        12,
-        12,
-        read_uint128,
-        write_uint128
-    );
-    qc_byte_order!(
-        prop_uint128_13,
-        Wi128<u128>,
-        13,
-        13,
-        read_uint128,
-        write_uint128
-    );
-    qc_byte_order!(
-        prop_uint128_14,
-        Wi128<u128>,
-        14,
-        14,
-        read_uint128,
-        write_uint128
-    );
-    qc_byte_order!(
-        prop_uint128_15,
-        Wi128<u128>,
-        15,
-        15,
-        read_uint128,
-        write_uint128
-    );
-    qc_byte_order!(
-        prop_uint128_16,
-        Wi128<u128>,
-        16,
-        16,
-        read_uint128,
-        write_uint128
-    );
+    qc_byte_order_wi!(prop_int_1, Wi<i64, 1>, 1, read_int, write_int);
+    qc_byte_order_wi!(prop_int_2, Wi<i64, 2>, 2, read_int, write_int);
+    qc_byte_order_wi!(prop_int_3, Wi<i64, 3>, 3, read_int, write_int);
+    qc_byte_order_wi!(prop_int_4, Wi<i64, 4>, 4, read_int, write_int);
+    qc_byte_order_wi!(prop_int_5, Wi<i64, 5>, 5, read_int, write_int);
+    qc_byte_order_wi!(prop_int_6, Wi<i64, 6>, 6, read_int, write_int);
+    qc_byte_order_wi!(prop_int_7, Wi<i64, 7>, 7, read_int, write_int);
+    qc_byte_order_wi!(prop_int_8, Wi<i64, 8>, 8, read_int, write_int);
 
-    qc_byte_order!(
-        prop_int_1,
-        i64,
-        calc_max!(super::I64_MAX, 1),
-        1,
-        read_int,
-        write_int
-    );
-    qc_byte_order!(
-        prop_int_2,
-        i64,
-        calc_max!(super::I64_MAX, 2),
-        2,
-        read_int,
-        write_int
-    );
-    qc_byte_order!(
-        prop_int_3,
-        i64,
-        calc_max!(super::I64_MAX, 3),
-        3,
-        read_int,
-        write_int
-    );
-    qc_byte_order!(
-        prop_int_4,
-        i64,
-        calc_max!(super::I64_MAX, 4),
-        4,
-        read_int,
-        write_int
-    );
-    qc_byte_order!(
-        prop_int_5,
-        i64,
-        calc_max!(super::I64_MAX, 5),
-        5,
-        read_int,
-        write_int
-    );
-    qc_byte_order!(
-        prop_int_6,
-        i64,
-        calc_max!(super::I64_MAX, 6),
-        6,
-        read_int,
-        write_int
-    );
-    qc_byte_order!(
-        prop_int_7,
-        i64,
-        calc_max!(super::I64_MAX, 7),
-        7,
-        read_int,
-        write_int
-    );
-    qc_byte_order!(
-        prop_int_8,
-        i64,
-        calc_max!(super::I64_MAX, 8),
-        8,
-        read_int,
-        write_int
-    );
-
-    qc_byte_order!(
-        prop_int128_1,
-        Wi128<i128>,
-        1,
-        1,
-        read_int128,
-        write_int128
-    );
-    qc_byte_order!(
-        prop_int128_2,
-        Wi128<i128>,
-        2,
-        2,
-        read_int128,
-        write_int128
-    );
-    qc_byte_order!(
-        prop_int128_3,
-        Wi128<i128>,
-        3,
-        3,
-        read_int128,
-        write_int128
-    );
-    qc_byte_order!(
-        prop_int128_4,
-        Wi128<i128>,
-        4,
-        4,
-        read_int128,
-        write_int128
-    );
-    qc_byte_order!(
-        prop_int128_5,
-        Wi128<i128>,
-        5,
-        5,
-        read_int128,
-        write_int128
-    );
-    qc_byte_order!(
-        prop_int128_6,
-        Wi128<i128>,
-        6,
-        6,
-        read_int128,
-        write_int128
-    );
-    qc_byte_order!(
-        prop_int128_7,
-        Wi128<i128>,
-        7,
-        7,
-        read_int128,
-        write_int128
-    );
-    qc_byte_order!(
-        prop_int128_8,
-        Wi128<i128>,
-        8,
-        8,
-        read_int128,
-        write_int128
-    );
-    qc_byte_order!(
-        prop_int128_9,
-        Wi128<i128>,
-        9,
-        9,
-        read_int128,
-        write_int128
-    );
-    qc_byte_order!(
-        prop_int128_10,
-        Wi128<i128>,
-        10,
-        10,
-        read_int128,
-        write_int128
-    );
-    qc_byte_order!(
-        prop_int128_11,
-        Wi128<i128>,
-        11,
-        11,
-        read_int128,
-        write_int128
-    );
-    qc_byte_order!(
-        prop_int128_12,
-        Wi128<i128>,
-        12,
-        12,
-        read_int128,
-        write_int128
-    );
-    qc_byte_order!(
-        prop_int128_13,
-        Wi128<i128>,
-        13,
-        13,
-        read_int128,
-        write_int128
-    );
-    qc_byte_order!(
-        prop_int128_14,
-        Wi128<i128>,
-        14,
-        14,
-        read_int128,
-        write_int128
-    );
-    qc_byte_order!(
-        prop_int128_15,
-        Wi128<i128>,
-        15,
-        15,
-        read_int128,
-        write_int128
-    );
-    qc_byte_order!(
-        prop_int128_16,
-        Wi128<i128>,
-        16,
-        16,
-        read_int128,
-        write_int128
-    );
+    qc_byte_order_wi!(prop_int128_1, Wi<i128, 1>, 1, read_int128, write_int128);
+    qc_byte_order_wi!(prop_int128_2, Wi<i128, 2>, 2, read_int128, write_int128);
+    qc_byte_order_wi!(prop_int128_3, Wi<i128, 3>, 3, read_int128, write_int128);
+    qc_byte_order_wi!(prop_int128_4, Wi<i128, 4>, 4, read_int128, write_int128);
+    qc_byte_order_wi!(prop_int128_5, Wi<i128, 5>, 5, read_int128, write_int128);
+    qc_byte_order_wi!(prop_int128_6, Wi<i128, 6>, 6, read_int128, write_int128);
+    qc_byte_order_wi!(prop_int128_7, Wi<i128, 7>, 7, read_int128, write_int128);
+    qc_byte_order_wi!(prop_int128_8, Wi<i128, 8>, 8, read_int128, write_int128);
+    qc_byte_order_wi!(prop_int128_9, Wi<i128, 9>, 9, read_int128, write_int128);
+    qc_byte_order_wi!(prop_int128_10, Wi<i128, 10>, 10, read_int128, write_int128);
+    qc_byte_order_wi!(prop_int128_11, Wi<i128, 11>, 11, read_int128, write_int128);
+    qc_byte_order_wi!(prop_int128_12, Wi<i128, 12>, 12, read_int128, write_int128);
+    qc_byte_order_wi!(prop_int128_13, Wi<i128, 13>, 13, read_int128, write_int128);
+    qc_byte_order_wi!(prop_int128_14, Wi<i128, 14>, 14, read_int128, write_int128);
+    qc_byte_order_wi!(prop_int128_15, Wi<i128, 15>, 15, read_int128, write_int128);
+    qc_byte_order_wi!(prop_int128_16, Wi<i128, 16>, 16, read_int128, write_int128);
 
     // Test that all of the byte conversion functions panic when given a
     // buffer that is too small.
@@ -3383,31 +3128,23 @@ mod test {
 #[cfg(feature = "std")]
 mod stdtests {
     extern crate quickcheck;
-    extern crate rand;
 
-    use self::quickcheck::{QuickCheck, StdGen, Testable};
-    use self::rand::thread_rng;
+    use self::quickcheck::{Arbitrary, Gen, QuickCheck, Testable};
 
     fn qc_unsized<A: Testable>(f: A) {
+        let gen = Gen::from_seed(12345);
         QuickCheck::new()
-            .gen(StdGen::new(thread_rng(), 16))
+            .gen(gen)
             .tests(1_00)
             .max_tests(10_000)
             .quickcheck(f);
     }
 
-    macro_rules! calc_max {
-        ($max:expr, $bytes:expr) => {
-            ($max - 1) >> (8 * (8 - $bytes))
-        };
-    }
-
-    macro_rules! qc_bytes_ext {
-        ($name:ident, $ty_int:ty, $max:expr,
-         $bytes:expr, $read:ident, $write:ident) => {
+    macro_rules! qc_bytes_ext_wi {
+        ($name:ident, $ty_int:ty, $bytes:expr, $read:ident, $write:ident) => {
             mod $name {
                 #[allow(unused_imports)]
-                use crate::test::{qc_sized, Wi128};
+                use crate::test::{qc_sized, Wi, U24, I24, U48, I48};
                 use crate::{
                     BigEndian, LittleEndian, NativeEndian, ReadBytesExt,
                     WriteBytesExt,
@@ -3423,7 +3160,7 @@ mod stdtests {
                         let mut rdr = Cursor::new(&mut wtr[offset..]);
                         n == rdr.$read::<BigEndian>($bytes).unwrap()
                     }
-                    qc_sized(prop as fn($ty_int) -> bool, $max);
+                    qc_sized(prop as fn($ty_int) -> bool);
                 }
 
                 #[test]
@@ -3434,7 +3171,7 @@ mod stdtests {
                         let mut rdr = Cursor::new(wtr);
                         n == rdr.$read::<LittleEndian>($bytes).unwrap()
                     }
-                    qc_sized(prop as fn($ty_int) -> bool, $max);
+                    qc_sized(prop as fn($ty_int) -> bool);
                 }
 
                 #[test]
@@ -3450,14 +3187,17 @@ mod stdtests {
                         let mut rdr = Cursor::new(&mut wtr[offset..]);
                         n == rdr.$read::<NativeEndian>($bytes).unwrap()
                     }
-                    qc_sized(prop as fn($ty_int) -> bool, $max);
+                    qc_sized(prop as fn($ty_int) -> bool);
                 }
             }
         };
-        ($name:ident, $ty_int:ty, $max:expr, $read:ident, $write:ident) => {
+    }
+
+    macro_rules! qc_bytes_ext {
+        ($name:ident, $ty_int:ty, $read:ident, $write:ident) => {
             mod $name {
                 #[allow(unused_imports)]
-                use crate::test::{qc_sized, Wi128};
+                use crate::test::{qc_sized, Wi};
                 use crate::{
                     BigEndian, LittleEndian, NativeEndian, ReadBytesExt,
                     WriteBytesExt,
@@ -3472,7 +3212,7 @@ mod stdtests {
                         let mut rdr = Cursor::new(wtr);
                         n == rdr.$read::<BigEndian>().unwrap()
                     }
-                    qc_sized(prop as fn($ty_int) -> bool, $max - 1);
+                    qc_sized(prop as fn($ty_int) -> bool);
                 }
 
                 #[test]
@@ -3483,7 +3223,7 @@ mod stdtests {
                         let mut rdr = Cursor::new(wtr);
                         n == rdr.$read::<LittleEndian>().unwrap()
                     }
-                    qc_sized(prop as fn($ty_int) -> bool, $max - 1);
+                    qc_sized(prop as fn($ty_int) -> bool);
                 }
 
                 #[test]
@@ -3494,459 +3234,131 @@ mod stdtests {
                         let mut rdr = Cursor::new(wtr);
                         n == rdr.$read::<NativeEndian>().unwrap()
                     }
-                    qc_sized(prop as fn($ty_int) -> bool, $max - 1);
+                    qc_sized(prop as fn($ty_int) -> bool);
                 }
             }
         };
     }
 
-    qc_bytes_ext!(
-        prop_ext_u16,
-        u16,
-        ::std::u16::MAX as u64,
-        read_u16,
-        write_u16
-    );
-    qc_bytes_ext!(
-        prop_ext_i16,
-        i16,
-        ::std::i16::MAX as u64,
-        read_i16,
-        write_i16
-    );
-    qc_bytes_ext!(
-        prop_ext_u32,
-        u32,
-        ::std::u32::MAX as u64,
-        read_u32,
-        write_u32
-    );
-    qc_bytes_ext!(
-        prop_ext_i32,
-        i32,
-        ::std::i32::MAX as u64,
-        read_i32,
-        write_i32
-    );
-    qc_bytes_ext!(
-        prop_ext_u64,
-        u64,
-        ::std::u64::MAX as u64,
-        read_u64,
-        write_u64
-    );
-    qc_bytes_ext!(
-        prop_ext_i64,
-        i64,
-        ::std::i64::MAX as u64,
-        read_i64,
-        write_i64
-    );
-    qc_bytes_ext!(
-        prop_ext_f32,
-        f32,
-        ::std::u64::MAX as u64,
-        read_f32,
-        write_f32
-    );
-    qc_bytes_ext!(
-        prop_ext_f64,
-        f64,
-        ::std::i64::MAX as u64,
-        read_f64,
-        write_f64
-    );
+    qc_bytes_ext!(prop_ext_u16, u16, read_u16, write_u16);
+    qc_bytes_ext!(prop_ext_i16, i16, read_i16, write_i16);
+    qc_bytes_ext!(prop_ext_u32, u32, read_u32, write_u32);
+    qc_bytes_ext!(prop_ext_i32, i32, read_i32, write_i32);
+    qc_bytes_ext!(prop_ext_u64, u64, read_u64, write_u64);
+    qc_bytes_ext!(prop_ext_i64, i64, read_i64, write_i64);
+    qc_bytes_ext!(prop_ext_f32, f32, read_f32, write_f32);
+    qc_bytes_ext!(prop_ext_f64, f64, read_f64, write_f64);
 
-    qc_bytes_ext!(prop_ext_u128, Wi128<u128>, 16 + 1, read_u128, write_u128);
-    qc_bytes_ext!(prop_ext_i128, Wi128<i128>, 16 + 1, read_i128, write_i128);
+    qc_bytes_ext!(prop_ext_u128, u128, read_u128, write_u128);
+    qc_bytes_ext!(prop_ext_i128, i128, read_i128, write_i128);
 
-    qc_bytes_ext!(
-        prop_ext_uint_1,
-        u64,
-        calc_max!(crate::test::U64_MAX, 1),
-        1,
-        read_uint,
-        write_u64
-    );
-    qc_bytes_ext!(
-        prop_ext_uint_2,
-        u64,
-        calc_max!(crate::test::U64_MAX, 2),
-        2,
-        read_uint,
-        write_u64
-    );
-    qc_bytes_ext!(
-        prop_ext_uint_3,
-        u64,
-        calc_max!(crate::test::U64_MAX, 3),
-        3,
-        read_uint,
-        write_u64
-    );
-    qc_bytes_ext!(
-        prop_ext_uint_4,
-        u64,
-        calc_max!(crate::test::U64_MAX, 4),
-        4,
-        read_uint,
-        write_u64
-    );
-    qc_bytes_ext!(
-        prop_ext_uint_5,
-        u64,
-        calc_max!(crate::test::U64_MAX, 5),
-        5,
-        read_uint,
-        write_u64
-    );
-    qc_bytes_ext!(
-        prop_ext_uint_6,
-        u64,
-        calc_max!(crate::test::U64_MAX, 6),
-        6,
-        read_uint,
-        write_u64
-    );
-    qc_bytes_ext!(
-        prop_ext_uint_7,
-        u64,
-        calc_max!(crate::test::U64_MAX, 7),
-        7,
-        read_uint,
-        write_u64
-    );
-    qc_bytes_ext!(
-        prop_ext_uint_8,
-        u64,
-        calc_max!(crate::test::U64_MAX, 8),
-        8,
-        read_uint,
-        write_u64
-    );
+    qc_bytes_ext_wi!(prop_ext_uint_1, Wi<u64, 1>, 1, read_uint, write_u64);
+    qc_bytes_ext_wi!(prop_ext_uint_2, Wi<u64, 2>, 2, read_uint, write_u64);
+    qc_bytes_ext_wi!(prop_ext_uint_3, Wi<u64, 3>, 3, read_uint, write_u64);
+    qc_bytes_ext_wi!(prop_ext_uint_4, Wi<u64, 4>, 4, read_uint, write_u64);
+    qc_bytes_ext_wi!(prop_ext_uint_5, Wi<u64, 5>, 5, read_uint, write_u64);
+    qc_bytes_ext_wi!(prop_ext_uint_6, Wi<u64, 6>, 6, read_uint, write_u64);
+    qc_bytes_ext_wi!(prop_ext_uint_7, Wi<u64, 7>, 7, read_uint, write_u64);
+    qc_bytes_ext_wi!(prop_ext_uint_8, Wi<u64, 8>, 8, read_uint, write_u64);
 
-    qc_bytes_ext!(
-        prop_ext_uint128_1,
-        Wi128<u128>,
-        1,
-        1,
-        read_uint128,
-        write_u128
-    );
-    qc_bytes_ext!(
-        prop_ext_uint128_2,
-        Wi128<u128>,
-        2,
-        2,
-        read_uint128,
-        write_u128
-    );
-    qc_bytes_ext!(
-        prop_ext_uint128_3,
-        Wi128<u128>,
-        3,
-        3,
-        read_uint128,
-        write_u128
-    );
-    qc_bytes_ext!(
-        prop_ext_uint128_4,
-        Wi128<u128>,
-        4,
-        4,
-        read_uint128,
-        write_u128
-    );
-    qc_bytes_ext!(
-        prop_ext_uint128_5,
-        Wi128<u128>,
-        5,
-        5,
-        read_uint128,
-        write_u128
-    );
-    qc_bytes_ext!(
-        prop_ext_uint128_6,
-        Wi128<u128>,
-        6,
-        6,
-        read_uint128,
-        write_u128
-    );
-    qc_bytes_ext!(
-        prop_ext_uint128_7,
-        Wi128<u128>,
-        7,
-        7,
-        read_uint128,
-        write_u128
-    );
-    qc_bytes_ext!(
-        prop_ext_uint128_8,
-        Wi128<u128>,
-        8,
-        8,
-        read_uint128,
-        write_u128
-    );
-    qc_bytes_ext!(
-        prop_ext_uint128_9,
-        Wi128<u128>,
-        9,
-        9,
-        read_uint128,
-        write_u128
-    );
-    qc_bytes_ext!(
-        prop_ext_uint128_10,
-        Wi128<u128>,
-        10,
-        10,
-        read_uint128,
-        write_u128
-    );
-    qc_bytes_ext!(
-        prop_ext_uint128_11,
-        Wi128<u128>,
-        11,
-        11,
-        read_uint128,
-        write_u128
-    );
-    qc_bytes_ext!(
-        prop_ext_uint128_12,
-        Wi128<u128>,
-        12,
-        12,
-        read_uint128,
-        write_u128
-    );
-    qc_bytes_ext!(
-        prop_ext_uint128_13,
-        Wi128<u128>,
-        13,
-        13,
-        read_uint128,
-        write_u128
-    );
-    qc_bytes_ext!(
-        prop_ext_uint128_14,
-        Wi128<u128>,
-        14,
-        14,
-        read_uint128,
-        write_u128
-    );
-    qc_bytes_ext!(
-        prop_ext_uint128_15,
-        Wi128<u128>,
-        15,
-        15,
-        read_uint128,
-        write_u128
-    );
-    qc_bytes_ext!(
-        prop_ext_uint128_16,
-        Wi128<u128>,
-        16,
-        16,
-        read_uint128,
-        write_u128
-    );
+    qc_bytes_ext_wi!(prop_ext_uint128_1, Wi<u128, 1>, 1, read_uint128, write_u128);
+    qc_bytes_ext_wi!(prop_ext_uint128_2, Wi<u128, 2>, 2, read_uint128, write_u128);
+    qc_bytes_ext_wi!(prop_ext_uint128_3, Wi<u128, 3>, 3, read_uint128, write_u128);
+    qc_bytes_ext_wi!(prop_ext_uint128_4, Wi<u128, 4>, 4, read_uint128, write_u128);
+    qc_bytes_ext_wi!(prop_ext_uint128_5, Wi<u128, 5>, 5, read_uint128, write_u128);
+    qc_bytes_ext_wi!(prop_ext_uint128_6, Wi<u128, 6>, 6, read_uint128, write_u128);
+    qc_bytes_ext_wi!(prop_ext_uint128_7, Wi<u128, 7>, 7, read_uint128, write_u128);
+    qc_bytes_ext_wi!(prop_ext_uint128_8, Wi<u128, 8>, 8, read_uint128, write_u128);
+    qc_bytes_ext_wi!(prop_ext_uint128_9, Wi<u128, 9>, 9, read_uint128, write_u128);
+    qc_bytes_ext_wi!(prop_ext_uint128_10, Wi<u128, 10>, 10, read_uint128, write_u128);
+    qc_bytes_ext_wi!(prop_ext_uint128_11, Wi<u128, 11>, 11, read_uint128, write_u128);
+    qc_bytes_ext_wi!(prop_ext_uint128_12, Wi<u128, 12>, 12, read_uint128, write_u128);
+    qc_bytes_ext_wi!(prop_ext_uint128_13, Wi<u128, 13>, 13, read_uint128, write_u128);
+    qc_bytes_ext_wi!(prop_ext_uint128_14, Wi<u128, 14>, 14, read_uint128, write_u128);
+    qc_bytes_ext_wi!(prop_ext_uint128_15, Wi<u128, 15>, 15, read_uint128, write_u128);
+    qc_bytes_ext_wi!(prop_ext_uint128_16, Wi<u128, 16>, 16, read_uint128, write_u128);
 
-    qc_bytes_ext!(
-        prop_ext_int_1,
-        i64,
-        calc_max!(crate::test::I64_MAX, 1),
-        1,
-        read_int,
-        write_i64
-    );
-    qc_bytes_ext!(
-        prop_ext_int_2,
-        i64,
-        calc_max!(crate::test::I64_MAX, 2),
-        2,
-        read_int,
-        write_i64
-    );
-    qc_bytes_ext!(
-        prop_ext_int_3,
-        i64,
-        calc_max!(crate::test::I64_MAX, 3),
-        3,
-        read_int,
-        write_i64
-    );
-    qc_bytes_ext!(
-        prop_ext_int_4,
-        i64,
-        calc_max!(crate::test::I64_MAX, 4),
-        4,
-        read_int,
-        write_i64
-    );
-    qc_bytes_ext!(
-        prop_ext_int_5,
-        i64,
-        calc_max!(crate::test::I64_MAX, 5),
-        5,
-        read_int,
-        write_i64
-    );
-    qc_bytes_ext!(
-        prop_ext_int_6,
-        i64,
-        calc_max!(crate::test::I64_MAX, 6),
-        6,
-        read_int,
-        write_i64
-    );
-    qc_bytes_ext!(
-        prop_ext_int_7,
-        i64,
-        calc_max!(crate::test::I64_MAX, 1),
-        7,
-        read_int,
-        write_i64
-    );
-    qc_bytes_ext!(
-        prop_ext_int_8,
-        i64,
-        calc_max!(crate::test::I64_MAX, 8),
-        8,
-        read_int,
-        write_i64
-    );
+    qc_bytes_ext_wi!(prop_ext_int_1, Wi<i64, 1>, 1, read_int, write_i64);
+    qc_bytes_ext_wi!(prop_ext_int_2, Wi<i64, 2>, 2, read_int, write_i64);
+    qc_bytes_ext_wi!(prop_ext_int_3, Wi<i64, 3>, 3, read_int, write_i64);
+    qc_bytes_ext_wi!(prop_ext_int_4, Wi<i64, 4>, 4, read_int, write_i64);
+    qc_bytes_ext_wi!(prop_ext_int_5, Wi<i64, 5>, 5, read_int, write_i64);
+    qc_bytes_ext_wi!(prop_ext_int_6, Wi<i64, 6>, 6, read_int, write_i64);
+    qc_bytes_ext_wi!(prop_ext_int_7, Wi<i64, 7>, 7, read_int, write_i64);
+    qc_bytes_ext_wi!(prop_ext_int_8, Wi<i64, 8>, 8, read_int, write_i64);
 
-    qc_bytes_ext!(
-        prop_ext_int128_1,
-        Wi128<i128>,
-        1,
-        1,
-        read_int128,
-        write_i128
-    );
-    qc_bytes_ext!(
-        prop_ext_int128_2,
-        Wi128<i128>,
-        2,
-        2,
-        read_int128,
-        write_i128
-    );
-    qc_bytes_ext!(
-        prop_ext_int128_3,
-        Wi128<i128>,
-        3,
-        3,
-        read_int128,
-        write_i128
-    );
-    qc_bytes_ext!(
-        prop_ext_int128_4,
-        Wi128<i128>,
-        4,
-        4,
-        read_int128,
-        write_i128
-    );
-    qc_bytes_ext!(
-        prop_ext_int128_5,
-        Wi128<i128>,
-        5,
-        5,
-        read_int128,
-        write_i128
-    );
-    qc_bytes_ext!(
-        prop_ext_int128_6,
-        Wi128<i128>,
-        6,
-        6,
-        read_int128,
-        write_i128
-    );
-    qc_bytes_ext!(
-        prop_ext_int128_7,
-        Wi128<i128>,
-        7,
-        7,
-        read_int128,
-        write_i128
-    );
-    qc_bytes_ext!(
-        prop_ext_int128_8,
-        Wi128<i128>,
-        8,
-        8,
-        read_int128,
-        write_i128
-    );
-    qc_bytes_ext!(
-        prop_ext_int128_9,
-        Wi128<i128>,
-        9,
-        9,
-        read_int128,
-        write_i128
-    );
-    qc_bytes_ext!(
-        prop_ext_int128_10,
-        Wi128<i128>,
-        10,
-        10,
-        read_int128,
-        write_i128
-    );
-    qc_bytes_ext!(
-        prop_ext_int128_11,
-        Wi128<i128>,
-        11,
-        11,
-        read_int128,
-        write_i128
-    );
-    qc_bytes_ext!(
-        prop_ext_int128_12,
-        Wi128<i128>,
-        12,
-        12,
-        read_int128,
-        write_i128
-    );
-    qc_bytes_ext!(
-        prop_ext_int128_13,
-        Wi128<i128>,
-        13,
-        13,
-        read_int128,
-        write_i128
-    );
-    qc_bytes_ext!(
-        prop_ext_int128_14,
-        Wi128<i128>,
-        14,
-        14,
-        read_int128,
-        write_i128
-    );
-    qc_bytes_ext!(
-        prop_ext_int128_15,
-        Wi128<i128>,
-        15,
-        15,
-        read_int128,
-        write_i128
-    );
-    qc_bytes_ext!(
-        prop_ext_int128_16,
-        Wi128<i128>,
-        16,
-        16,
-        read_int128,
-        write_i128
-    );
+    qc_bytes_ext_wi!(prop_ext_int128_1, Wi<i128, 1>, 1, read_int128, write_i128);
+    qc_bytes_ext_wi!(prop_ext_int128_2, Wi<i128, 2>, 2, read_int128, write_i128);
+    qc_bytes_ext_wi!(prop_ext_int128_3, Wi<i128, 3>, 3, read_int128, write_i128);
+    qc_bytes_ext_wi!(prop_ext_int128_4, Wi<i128, 4>, 4, read_int128, write_i128);
+    qc_bytes_ext_wi!(prop_ext_int128_5, Wi<i128, 5>, 5, read_int128, write_i128);
+    qc_bytes_ext_wi!(prop_ext_int128_6, Wi<i128, 6>, 6, read_int128, write_i128);
+    qc_bytes_ext_wi!(prop_ext_int128_7, Wi<i128, 7>, 7, read_int128, write_i128);
+    qc_bytes_ext_wi!(prop_ext_int128_8, Wi<i128, 8>, 8, read_int128, write_i128);
+    qc_bytes_ext_wi!(prop_ext_int128_9, Wi<i128, 9>, 9, read_int128, write_i128);
+    qc_bytes_ext_wi!(prop_ext_int128_10, Wi<i128, 10>, 10, read_int128, write_i128);
+    qc_bytes_ext_wi!(prop_ext_int128_11, Wi<i128, 11>, 11, read_int128, write_i128);
+    qc_bytes_ext_wi!(prop_ext_int128_12, Wi<i128, 12>, 12, read_int128, write_i128);
+    qc_bytes_ext_wi!(prop_ext_int128_13, Wi<i128, 13>, 13, read_int128, write_i128);
+    qc_bytes_ext_wi!(prop_ext_int128_14, Wi<i128, 14>, 14, read_int128, write_i128);
+    qc_bytes_ext_wi!(prop_ext_int128_15, Wi<i128, 15>, 15, read_int128, write_i128);
+    qc_bytes_ext_wi!(prop_ext_int128_16, Wi<i128, 16>, 16, read_int128, write_i128);
+
+    pub trait Zero {
+        fn zero() -> Self;
+    }
+
+    impl Zero for f32 {
+        fn zero() -> Self { 0.0 }
+    }
+
+    impl Zero for f64 {
+        fn zero() -> Self { 0.0 }
+    }
+
+    pub trait IsNan {
+        fn is_nan(&self) -> bool;
+    }
+
+    impl IsNan for f32 {
+        fn is_nan(&self) -> bool {
+            self != self
+        }
+    }
+
+    impl IsNan for f64 {
+        fn is_nan(&self) -> bool {
+            self != self
+        }
+    }
+
+    #[derive(Clone, Debug)]
+    pub struct ArbitraryFloat<T: Zero + IsNan + Arbitrary>(T);
+
+    impl<T: Zero + IsNan + Arbitrary> ArbitraryFloat<T> {
+        fn clone(&self) -> T {
+            self.0.clone()
+        }
+    }
+
+    impl<T: Zero + IsNan + Arbitrary> Arbitrary for ArbitraryFloat<T> {
+        fn arbitrary(g: &mut Gen) -> Self {
+            let mut value: T = <T>::arbitrary(g);
+            // If the value is NaN or infinity, replace it with a default value
+            if value.is_nan() {
+                value = T::zero();
+            }
+            ArbitraryFloat(value)
+        }
+
+        fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {
+            Box::new(
+                self.0
+                    .shrink()
+                    .map(ArbitraryFloat)
+            )
+        }
+    }
 
     // Test slice serialization/deserialization.
     macro_rules! qc_slice {
@@ -3954,7 +3366,9 @@ mod stdtests {
             mod $name {
                 use super::qc_unsized;
                 #[allow(unused_imports)]
-                use crate::test::Wi128;
+                use super::ArbitraryFloat;
+                #[allow(unused_imports)]
+                use crate::test::Wi;
                 use crate::{
                     BigEndian, ByteOrder, LittleEndian, NativeEndian,
                 };
@@ -4034,19 +3448,19 @@ mod stdtests {
     qc_slice!(prop_slice_i64, i64, read_i64_into, write_i64_into, 0);
     qc_slice!(
         prop_slice_u128,
-        Wi128<u128>,
+        u128,
         read_u128_into,
         write_u128_into,
         0
     );
     qc_slice!(
         prop_slice_i128,
-        Wi128<i128>,
+        i128,
         read_i128_into,
         write_i128_into,
         0
     );
 
-    qc_slice!(prop_slice_f32, f32, read_f32_into, write_f32_into, 0.0);
-    qc_slice!(prop_slice_f64, f64, read_f64_into, write_f64_into, 0.0);
+    qc_slice!(prop_slice_f32, ArbitraryFloat<f32>, read_f32_into, write_f32_into, 0.0);
+    qc_slice!(prop_slice_f64, ArbitraryFloat<f64>, read_f64_into, write_f64_into, 0.0);
 }
