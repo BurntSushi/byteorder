@@ -1990,32 +1990,20 @@ impl ByteOrder for BigEndian {
 
     #[inline]
     fn read_uint(buf: &[u8], nbytes: usize) -> u64 {
-        assert!(1 <= nbytes && nbytes <= 8 && nbytes <= buf.len());
-        let mut out = 0u64;
-        let ptr_out = &mut out as *mut u64 as *mut u8;
-        unsafe {
-            copy_nonoverlapping(
-                buf.as_ptr(),
-                ptr_out.offset((8 - nbytes) as isize),
-                nbytes,
-            );
-        }
-        out.to_be()
+        let mut out = [0; 8];
+        assert!(1 <= nbytes && nbytes <= out.len() && nbytes <= buf.len());
+        let start = out.len() - nbytes;
+        out[start..].copy_from_slice(&buf[..nbytes]);
+        u64::from_be_bytes(out)
     }
 
     #[inline]
     fn read_uint128(buf: &[u8], nbytes: usize) -> u128 {
-        assert!(1 <= nbytes && nbytes <= 16 && nbytes <= buf.len());
-        let mut out: u128 = 0;
-        let ptr_out = &mut out as *mut u128 as *mut u8;
-        unsafe {
-            copy_nonoverlapping(
-                buf.as_ptr(),
-                ptr_out.offset((16 - nbytes) as isize),
-                nbytes,
-            );
-        }
-        out.to_be()
+        let mut out = [0; 16];
+        assert!(1 <= nbytes && nbytes <= out.len() && nbytes <= buf.len());
+        let start = out.len() - nbytes;
+        out[start..].copy_from_slice(&buf[..nbytes]);
+        u128::from_be_bytes(out)
     }
 
     #[inline]
@@ -2206,24 +2194,18 @@ impl ByteOrder for LittleEndian {
 
     #[inline]
     fn read_uint(buf: &[u8], nbytes: usize) -> u64 {
-        assert!(1 <= nbytes && nbytes <= 8 && nbytes <= buf.len());
-        let mut out = 0u64;
-        let ptr_out = &mut out as *mut u64 as *mut u8;
-        unsafe {
-            copy_nonoverlapping(buf.as_ptr(), ptr_out, nbytes);
-        }
-        out.to_le()
+        let mut out = [0; 8];
+        assert!(1 <= nbytes && nbytes <= out.len() && nbytes <= buf.len());
+        out[..nbytes].copy_from_slice(&buf[..nbytes]);
+        u64::from_le_bytes(out)
     }
 
     #[inline]
     fn read_uint128(buf: &[u8], nbytes: usize) -> u128 {
-        assert!(1 <= nbytes && nbytes <= 16 && nbytes <= buf.len());
-        let mut out: u128 = 0;
-        let ptr_out = &mut out as *mut u128 as *mut u8;
-        unsafe {
-            copy_nonoverlapping(buf.as_ptr(), ptr_out, nbytes);
-        }
-        out.to_le()
+        let mut out = [0; 16];
+        assert!(1 <= nbytes && nbytes <= out.len() && nbytes <= buf.len());
+        out[..nbytes].copy_from_slice(&buf[..nbytes]);
+        u128::from_le_bytes(out)
     }
 
     #[inline]
