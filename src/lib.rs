@@ -1929,13 +1929,19 @@ macro_rules! read_slice {
     }};
 }
 
+/// Copies a &[$ty] $src into a &mut [u8] $dst for the endianness given by
+/// $from_bytes (must be either from_be_bytes or from_le_bytes).
+///
+/// Panics if $src.len() * size_of::<$ty>() != $dst.len().
 macro_rules! write_slice {
-    ($src:expr, $dst:expr, $ty:ty, $size:expr, $write:expr) => {{
-        assert!($size == ::core::mem::size_of::<$ty>());
-        assert_eq!($size * $src.len(), $dst.len());
-
-        for (&n, chunk) in $src.iter().zip($dst.chunks_mut($size)) {
-            $write(chunk, n);
+    ($src:expr, $dst:expr, $ty:ty, $to_bytes:ident) => {{
+        const SIZE: usize = core::mem::size_of::<$ty>();
+        // Check types:
+        let src: &[$ty] = $src;
+        let dst: &mut [u8] = $dst;
+        assert_eq!(src.len() * SIZE, dst.len());
+        for (src, dst) in src.iter().zip(dst.chunks_exact_mut(SIZE)) {
+            dst.copy_from_slice(&src.$to_bytes());
         }
     }};
 }
@@ -2061,22 +2067,22 @@ impl ByteOrder for BigEndian {
 
     #[inline]
     fn write_u16_into(src: &[u16], dst: &mut [u8]) {
-        write_slice!(src, dst, u16, 2, Self::write_u16);
+        write_slice!(src, dst, u16, to_be_bytes);
     }
 
     #[inline]
     fn write_u32_into(src: &[u32], dst: &mut [u8]) {
-        write_slice!(src, dst, u32, 4, Self::write_u32);
+        write_slice!(src, dst, u32, to_be_bytes);
     }
 
     #[inline]
     fn write_u64_into(src: &[u64], dst: &mut [u8]) {
-        write_slice!(src, dst, u64, 8, Self::write_u64);
+        write_slice!(src, dst, u64, to_be_bytes);
     }
 
     #[inline]
     fn write_u128_into(src: &[u128], dst: &mut [u8]) {
-        write_slice!(src, dst, u128, 16, Self::write_u128);
+        write_slice!(src, dst, u128, to_be_bytes);
     }
 
     #[inline]
@@ -2245,22 +2251,22 @@ impl ByteOrder for LittleEndian {
 
     #[inline]
     fn write_u16_into(src: &[u16], dst: &mut [u8]) {
-        write_slice!(src, dst, u16, 2, Self::write_u16);
+        write_slice!(src, dst, u16, to_le_bytes);
     }
 
     #[inline]
     fn write_u32_into(src: &[u32], dst: &mut [u8]) {
-        write_slice!(src, dst, u32, 4, Self::write_u32);
+        write_slice!(src, dst, u32, to_le_bytes);
     }
 
     #[inline]
     fn write_u64_into(src: &[u64], dst: &mut [u8]) {
-        write_slice!(src, dst, u64, 8, Self::write_u64);
+        write_slice!(src, dst, u64, to_le_bytes);
     }
 
     #[inline]
     fn write_u128_into(src: &[u128], dst: &mut [u8]) {
-        write_slice!(src, dst, u128, 16, Self::write_u128);
+        write_slice!(src, dst, u128, to_le_bytes);
     }
 
     #[inline]
