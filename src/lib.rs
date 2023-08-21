@@ -1898,23 +1898,6 @@ pub type NativeEndian = LittleEndian;
 #[cfg(target_endian = "big")]
 pub type NativeEndian = BigEndian;
 
-/// Copies $size bytes from a number $n to a &mut [u8] $dst. $ty represents the
-/// numeric type of $n and $which must be either to_be or to_le, depending on
-/// which endianness one wants to use when writing to $dst.
-///
-/// This macro is only safe to call when $ty is a numeric type and $size ==
-/// size_of::<$ty>() and where $dst is a &mut [u8].
-macro_rules! unsafe_write_num_bytes {
-    ($ty:ty, $size:expr, $n:expr, $dst:expr, $which:ident) => {{
-        assert!($size <= $dst.len());
-        unsafe {
-            // N.B. https://github.com/rust-lang/rust/issues/22776
-            let bytes = *(&$n.$which() as *const _ as *const [u8; $size]);
-            copy_nonoverlapping((&bytes).as_ptr(), $dst.as_mut_ptr(), $size);
-        }
-    }};
-}
-
 /// Copies a &[u8] $src into a &mut [$ty] $dst for the endianness given by
 /// $from_bytes (must be either from_be_bytes or from_le_bytes).
 ///
@@ -2002,22 +1985,22 @@ impl ByteOrder for BigEndian {
 
     #[inline]
     fn write_u16(buf: &mut [u8], n: u16) {
-        unsafe_write_num_bytes!(u16, 2, n, buf, to_be);
+        buf[..2].copy_from_slice(&n.to_be_bytes());
     }
 
     #[inline]
     fn write_u32(buf: &mut [u8], n: u32) {
-        unsafe_write_num_bytes!(u32, 4, n, buf, to_be);
+        buf[..4].copy_from_slice(&n.to_be_bytes());
     }
 
     #[inline]
     fn write_u64(buf: &mut [u8], n: u64) {
-        unsafe_write_num_bytes!(u64, 8, n, buf, to_be);
+        buf[..8].copy_from_slice(&n.to_be_bytes());
     }
 
     #[inline]
     fn write_u128(buf: &mut [u8], n: u128) {
-        unsafe_write_num_bytes!(u128, 16, n, buf, to_be);
+        buf[..16].copy_from_slice(&n.to_be_bytes());
     }
 
     #[inline]
@@ -2194,22 +2177,22 @@ impl ByteOrder for LittleEndian {
 
     #[inline]
     fn write_u16(buf: &mut [u8], n: u16) {
-        unsafe_write_num_bytes!(u16, 2, n, buf, to_le);
+        buf[..2].copy_from_slice(&n.to_le_bytes());
     }
 
     #[inline]
     fn write_u32(buf: &mut [u8], n: u32) {
-        unsafe_write_num_bytes!(u32, 4, n, buf, to_le);
+        buf[..4].copy_from_slice(&n.to_le_bytes());
     }
 
     #[inline]
     fn write_u64(buf: &mut [u8], n: u64) {
-        unsafe_write_num_bytes!(u64, 8, n, buf, to_le);
+        buf[..8].copy_from_slice(&n.to_le_bytes());
     }
 
     #[inline]
     fn write_u128(buf: &mut [u8], n: u128) {
-        unsafe_write_num_bytes!(u128, 16, n, buf, to_le);
+        buf[..16].copy_from_slice(&n.to_le_bytes());
     }
 
     #[inline]
