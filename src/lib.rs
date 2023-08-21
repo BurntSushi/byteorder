@@ -1932,27 +1932,6 @@ macro_rules! read_slice {
     }};
 }
 
-/// Copies a &[$ty] $src into a &mut [u8] $dst, where $ty must be a numeric
-/// type. This panics if size_of::<$ty>() * $src.len() != $dst.len().
-///
-/// This macro is only safe to call when $src is a slice of numeric types and
-/// $dst is a &mut [u8] and where $ty represents the type of the integers in
-/// $src.
-macro_rules! unsafe_write_slice_native {
-    ($src:expr, $dst:expr, $ty:ty) => {{
-        let size = core::mem::size_of::<$ty>();
-        assert_eq!(size * $src.len(), $dst.len());
-
-        unsafe {
-            copy_nonoverlapping(
-                $src.as_ptr() as *const u8,
-                $dst.as_mut_ptr(),
-                $dst.len(),
-            );
-        }
-    }};
-}
-
 macro_rules! write_slice {
     ($src:expr, $dst:expr, $ty:ty, $size:expr, $write:expr) => {{
         assert!($size == ::core::mem::size_of::<$ty>());
@@ -2085,38 +2064,22 @@ impl ByteOrder for BigEndian {
 
     #[inline]
     fn write_u16_into(src: &[u16], dst: &mut [u8]) {
-        if cfg!(target_endian = "big") {
-            unsafe_write_slice_native!(src, dst, u16);
-        } else {
-            write_slice!(src, dst, u16, 2, Self::write_u16);
-        }
+        write_slice!(src, dst, u16, 2, Self::write_u16);
     }
 
     #[inline]
     fn write_u32_into(src: &[u32], dst: &mut [u8]) {
-        if cfg!(target_endian = "big") {
-            unsafe_write_slice_native!(src, dst, u32);
-        } else {
-            write_slice!(src, dst, u32, 4, Self::write_u32);
-        }
+        write_slice!(src, dst, u32, 4, Self::write_u32);
     }
 
     #[inline]
     fn write_u64_into(src: &[u64], dst: &mut [u8]) {
-        if cfg!(target_endian = "big") {
-            unsafe_write_slice_native!(src, dst, u64);
-        } else {
-            write_slice!(src, dst, u64, 8, Self::write_u64);
-        }
+        write_slice!(src, dst, u64, 8, Self::write_u64);
     }
 
     #[inline]
     fn write_u128_into(src: &[u128], dst: &mut [u8]) {
-        if cfg!(target_endian = "big") {
-            unsafe_write_slice_native!(src, dst, u128);
-        } else {
-            write_slice!(src, dst, u128, 16, Self::write_u128);
-        }
+        write_slice!(src, dst, u128, 16, Self::write_u128);
     }
 
     #[inline]
@@ -2285,38 +2248,22 @@ impl ByteOrder for LittleEndian {
 
     #[inline]
     fn write_u16_into(src: &[u16], dst: &mut [u8]) {
-        if cfg!(target_endian = "little") {
-            unsafe_write_slice_native!(src, dst, u16);
-        } else {
-            write_slice!(src, dst, u16, 2, Self::write_u16);
-        }
+        write_slice!(src, dst, u16, 2, Self::write_u16);
     }
 
     #[inline]
     fn write_u32_into(src: &[u32], dst: &mut [u8]) {
-        if cfg!(target_endian = "little") {
-            unsafe_write_slice_native!(src, dst, u32);
-        } else {
-            write_slice!(src, dst, u32, 4, Self::write_u32);
-        }
+        write_slice!(src, dst, u32, 4, Self::write_u32);
     }
 
     #[inline]
     fn write_u64_into(src: &[u64], dst: &mut [u8]) {
-        if cfg!(target_endian = "little") {
-            unsafe_write_slice_native!(src, dst, u64);
-        } else {
-            write_slice!(src, dst, u64, 8, Self::write_u64);
-        }
+        write_slice!(src, dst, u64, 8, Self::write_u64);
     }
 
     #[inline]
     fn write_u128_into(src: &[u128], dst: &mut [u8]) {
-        if cfg!(target_endian = "little") {
-            unsafe_write_slice_native!(src, dst, u128);
-        } else {
-            write_slice!(src, dst, u128, 16, Self::write_u128);
-        }
+        write_slice!(src, dst, u128, 16, Self::write_u128);
     }
 
     #[inline]
