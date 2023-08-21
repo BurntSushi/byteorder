@@ -1915,25 +1915,19 @@ macro_rules! unsafe_write_num_bytes {
     }};
 }
 
-/// Copies a &[u8] $src into a &mut [<numeric>] $dst for the endianness given
-/// by $which (must be either to_be or to_le).
+/// Copies a &[u8] $src into a &mut [$ty] $dst for the endianness given by
+/// $from_bytes (must be either from_be_bytes or from_le_bytes).
 ///
-/// This macro is only safe to call when $src and $dst are &[u8] and &mut [u8],
-/// respectively. The macro will panic if $src.len() != $size * $dst.len(),
-/// where $size represents the size of the integers encoded in $src.
-macro_rules! unsafe_read_slice {
-    ($src:expr, $dst:expr, $size:expr, $which:ident) => {{
-        assert_eq!($src.len(), $size * $dst.len());
-
-        unsafe {
-            copy_nonoverlapping(
-                $src.as_ptr(),
-                $dst.as_mut_ptr() as *mut u8,
-                $src.len(),
-            );
-        }
-        for v in $dst.iter_mut() {
-            *v = v.$which();
+/// Panics if $src.len() != $dst.len() * size_of::<$ty>().
+macro_rules! read_slice {
+    ($src:expr, $dst:expr, $ty:ty, $from_bytes:ident) => {{
+        const SIZE: usize = core::mem::size_of::<$ty>();
+        // Check types:
+        let src: &[u8] = $src;
+        let dst: &mut [$ty] = $dst;
+        assert_eq!(src.len(), dst.len() * SIZE);
+        for (src, dst) in src.chunks_exact(SIZE).zip(dst.iter_mut()) {
+            *dst = <$ty>::$from_bytes(src.try_into().unwrap());
         }
     }};
 }
@@ -2071,22 +2065,22 @@ impl ByteOrder for BigEndian {
 
     #[inline]
     fn read_u16_into(src: &[u8], dst: &mut [u16]) {
-        unsafe_read_slice!(src, dst, 2, to_be);
+        read_slice!(src, dst, u16, from_be_bytes);
     }
 
     #[inline]
     fn read_u32_into(src: &[u8], dst: &mut [u32]) {
-        unsafe_read_slice!(src, dst, 4, to_be);
+        read_slice!(src, dst, u32, from_be_bytes);
     }
 
     #[inline]
     fn read_u64_into(src: &[u8], dst: &mut [u64]) {
-        unsafe_read_slice!(src, dst, 8, to_be);
+        read_slice!(src, dst, u64, from_be_bytes);
     }
 
     #[inline]
     fn read_u128_into(src: &[u8], dst: &mut [u128]) {
-        unsafe_read_slice!(src, dst, 16, to_be);
+        read_slice!(src, dst, u128, from_be_bytes);
     }
 
     #[inline]
@@ -2271,22 +2265,22 @@ impl ByteOrder for LittleEndian {
 
     #[inline]
     fn read_u16_into(src: &[u8], dst: &mut [u16]) {
-        unsafe_read_slice!(src, dst, 2, to_le);
+        read_slice!(src, dst, u16, from_le_bytes);
     }
 
     #[inline]
     fn read_u32_into(src: &[u8], dst: &mut [u32]) {
-        unsafe_read_slice!(src, dst, 4, to_le);
+        read_slice!(src, dst, u32, from_le_bytes);
     }
 
     #[inline]
     fn read_u64_into(src: &[u8], dst: &mut [u64]) {
-        unsafe_read_slice!(src, dst, 8, to_le);
+        read_slice!(src, dst, u64, from_le_bytes);
     }
 
     #[inline]
     fn read_u128_into(src: &[u8], dst: &mut [u128]) {
-        unsafe_read_slice!(src, dst, 16, to_le);
+        read_slice!(src, dst, u128, from_le_bytes);
     }
 
     #[inline]
