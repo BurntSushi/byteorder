@@ -71,7 +71,7 @@ cases.
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use core::{
-    convert::TryInto, fmt::Debug, hash::Hash, ptr::copy_nonoverlapping, slice,
+    convert::TryInto, fmt::Debug, hash::Hash, mem::align_of, ptr::copy_nonoverlapping, slice,
 };
 
 #[cfg(feature = "std")]
@@ -1202,6 +1202,7 @@ pub trait ByteOrder:
     #[inline]
     fn read_f32_into(src: &[u8], dst: &mut [f32]) {
         let dst = unsafe {
+            const _: () = assert!(align_of::<u32>() <= align_of::<f32>());
             slice::from_raw_parts_mut(dst.as_mut_ptr() as *mut u32, dst.len())
         };
         Self::read_u32_into(src, dst);
@@ -1263,6 +1264,7 @@ pub trait ByteOrder:
     #[inline]
     fn read_f64_into(src: &[u8], dst: &mut [f64]) {
         let dst = unsafe {
+            const _: () = assert!(align_of::<u64>() <= align_of::<f64>());
             slice::from_raw_parts_mut(dst.as_mut_ptr() as *mut u64, dst.len())
         };
         Self::read_u64_into(src, dst);
