@@ -1915,7 +1915,7 @@ macro_rules! unsafe_write_num_bytes {
 /// Copies a &[u8] $src into a &mut [<numeric>] $dst for the endianness given
 /// by $which (must be either to_be or to_le).
 ///
-/// This macro is only safe to call when $src and $dst are &[u8] and &mut [u8],
+/// This macro is only safe to call when $src and $dst are &[u8] and &mut [<numeric>],
 /// respectively. The macro will panic if $src.len() != $size * $dst.len(),
 /// where $size represents the size of the integers encoded in $src.
 macro_rules! unsafe_read_slice {
