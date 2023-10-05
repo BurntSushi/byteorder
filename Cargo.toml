@@ -11,7 +11,8 @@ categories = ["encoding", "parsing", "no-std"]
 keywords = ["byte", "endian", "big-endian", "little-endian", "binary"]
 license = "Unlicense OR MIT"
 exclude = ["/ci/*"]
-edition = "2018"
+edition = "2021"
+rust-version = "1.60"
 
 [lib]
 name = "byteorder"
