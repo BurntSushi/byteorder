@@ -69,6 +69,9 @@ cases.
 
 #![deny(missing_docs)]
 #![cfg_attr(not(feature = "std"), no_std)]
+// When testing under miri, we disable tests that take too long. But this
+// provokes lots of dead code warnings. So we just squash them.
+#![cfg_attr(miri, allow(dead_code, unused_macros))]
 
 use core::{
     convert::TryInto, fmt::Debug, hash::Hash, ptr::copy_nonoverlapping, slice,
@@ -2449,6 +2452,7 @@ mod test {
     macro_rules! qc_byte_order {
         ($name:ident, $ty_int:ty, $max:expr,
          $bytes:expr, $read:ident, $write:ident) => {
+            #[cfg(not(miri))]
             mod $name {
                 #[allow(unused_imports)]
                 use super::{qc_sized, Wi128};
@@ -2489,6 +2493,7 @@ mod test {
         };
         ($name:ident, $ty_int:ty, $max:expr,
          $read:ident, $write:ident) => {
+            #[cfg(not(miri))]
             mod $name {
                 #[allow(unused_imports)]
                 use super::{qc_sized, Wi128};
@@ -3405,6 +3410,7 @@ mod stdtests {
     macro_rules! qc_bytes_ext {
         ($name:ident, $ty_int:ty, $max:expr,
          $bytes:expr, $read:ident, $write:ident) => {
+            #[cfg(not(miri))]
             mod $name {
                 #[allow(unused_imports)]
                 use crate::test::{qc_sized, Wi128};
@@ -3455,6 +3461,7 @@ mod stdtests {
             }
         };
         ($name:ident, $ty_int:ty, $max:expr, $read:ident, $write:ident) => {
+            #[cfg(not(miri))]
             mod $name {
                 #[allow(unused_imports)]
                 use crate::test::{qc_sized, Wi128};
@@ -3951,6 +3958,7 @@ mod stdtests {
     // Test slice serialization/deserialization.
     macro_rules! qc_slice {
         ($name:ident, $ty_int:ty, $read:ident, $write:ident, $zero:expr) => {
+            #[cfg(not(miri))]
             mod $name {
                 use super::qc_unsized;
                 #[allow(unused_imports)]
