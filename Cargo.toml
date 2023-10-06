@@ -1,6 +1,6 @@
 [package]
 name = "byteorder"
-version = "1.4.3"  #:version
+version = "1.5.0"  #:version
 authors = ["Andrew Gallant <jamslam@gmail.com>"]
 description = "Library for reading/writing numbers in big-endian and little-endian."
 documentation = "https://docs.rs/byteorder"
