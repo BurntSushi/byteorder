@@ -10,8 +10,7 @@ readme = "README.md"
 categories = ["encoding", "parsing", "no-std"]
 keywords = ["byte", "endian", "big-endian", "little-endian", "binary"]
 license = "Unlicense OR MIT"
-edition = "2021"
-rust-version = "1.60"
+edition = "2018"
 
 [lib]
 name = "byteorder"

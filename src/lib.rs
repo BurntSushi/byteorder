@@ -1206,7 +1206,8 @@ pub trait ByteOrder:
     #[inline]
     fn read_f32_into(src: &[u8], dst: &mut [f32]) {
         let dst = unsafe {
-            const _: () = assert!(align_of::<u32>() <= align_of::<f32>());
+            // Asserts `align_of::<u32>() <= align_of::<f32>()`
+            const _: () = [(); align_of::<f32>() + 1][align_of::<u32>()];
             slice::from_raw_parts_mut(dst.as_mut_ptr() as *mut u32, dst.len())
         };
         Self::read_u32_into(src, dst);
@@ -1268,7 +1269,8 @@ pub trait ByteOrder:
     #[inline]
     fn read_f64_into(src: &[u8], dst: &mut [f64]) {
         let dst = unsafe {
-            const _: () = assert!(align_of::<u64>() <= align_of::<f64>());
+            // Asserts `align_of::<u64>() <= align_of::<f64>()`
+            const _: () = [(); align_of::<f64>() + 1][align_of::<u64>()];
             slice::from_raw_parts_mut(dst.as_mut_ptr() as *mut u64, dst.len())
         };
         Self::read_u64_into(src, dst);
