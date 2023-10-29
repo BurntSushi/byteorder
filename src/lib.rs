@@ -110,60 +110,12 @@ fn unextend_sign128(val: i128, nbytes: usize) -> u128 {
 
 #[inline]
 fn pack_size(n: u64) -> usize {
-    if n < 1 << 8 {
-        1
-    } else if n < 1 << 16 {
-        2
-    } else if n < 1 << 24 {
-        3
-    } else if n < 1 << 32 {
-        4
-    } else if n < 1 << 40 {
-        5
-    } else if n < 1 << 48 {
-        6
-    } else if n < 1 << 56 {
-        7
-    } else {
-        8
-    }
+    (8 - ((n | 1).leading_zeros() >> 3)) as usize
 }
 
 #[inline]
 fn pack_size128(n: u128) -> usize {
-    if n < 1 << 8 {
-        1
-    } else if n < 1 << 16 {
-        2
-    } else if n < 1 << 24 {
-        3
-    } else if n < 1 << 32 {
-        4
-    } else if n < 1 << 40 {
-        5
-    } else if n < 1 << 48 {
-        6
-    } else if n < 1 << 56 {
-        7
-    } else if n < 1 << 64 {
-        8
-    } else if n < 1 << 72 {
-        9
-    } else if n < 1 << 80 {
-        10
-    } else if n < 1 << 88 {
-        11
-    } else if n < 1 << 96 {
-        12
-    } else if n < 1 << 104 {
-        13
-    } else if n < 1 << 112 {
-        14
-    } else if n < 1 << 120 {
-        15
-    } else {
-        16
-    }
+    (16 - ((n | 1).leading_zeros() >> 3)) as usize
 }
 
 mod private {
@@ -2182,7 +2134,7 @@ impl ByteOrder for LittleEndian {
 
     #[inline]
     fn write_uint(buf: &mut [u8], n: u64, nbytes: usize) {
-        assert!(pack_size(n as u64) <= nbytes && nbytes <= 8);
+        assert!(pack_size(n) <= nbytes && nbytes <= 8);
         assert!(nbytes <= buf.len());
         unsafe {
             let bytes = *(&n.to_le() as *const u64 as *const [u8; 8]);
@@ -2192,7 +2144,7 @@ impl ByteOrder for LittleEndian {
 
     #[inline]
     fn write_uint128(buf: &mut [u8], n: u128, nbytes: usize) {
-        assert!(pack_size128(n as u128) <= nbytes && nbytes <= 16);
+        assert!(pack_size128(n) <= nbytes && nbytes <= 16);
         assert!(nbytes <= buf.len());
         unsafe {
             let bytes = *(&n.to_le() as *const u128 as *const [u8; 16]);
