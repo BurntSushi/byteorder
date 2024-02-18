@@ -73,10 +73,7 @@ cases.
 // provokes lots of dead code warnings. So we just squash them.
 #![cfg_attr(miri, allow(dead_code, unused_macros))]
 
-use core::{
-    convert::TryInto, fmt::Debug, hash::Hash, mem::align_of,
-    ptr::copy_nonoverlapping, slice,
-};
+use core::{convert::TryInto, fmt::Debug, hash::Hash, mem::align_of, slice};
 
 #[cfg(feature = "std")]
 pub use crate::io::{ReadBytesExt, WriteBytesExt};
@@ -1950,28 +1947,16 @@ impl ByteOrder for BigEndian {
     fn write_uint(buf: &mut [u8], n: u64, nbytes: usize) {
         assert!(pack_size(n) <= nbytes && nbytes <= 8);
         assert!(nbytes <= buf.len());
-        unsafe {
-            let bytes = *(&n.to_be() as *const u64 as *const [u8; 8]);
-            copy_nonoverlapping(
-                bytes.as_ptr().offset((8 - nbytes) as isize),
-                buf.as_mut_ptr(),
-                nbytes,
-            );
-        }
+
+        buf[..nbytes].copy_from_slice(&n.to_be_bytes()[(8 - nbytes)..]);
     }
 
     #[inline]
     fn write_uint128(buf: &mut [u8], n: u128, nbytes: usize) {
         assert!(pack_size128(n) <= nbytes && nbytes <= 16);
         assert!(nbytes <= buf.len());
-        unsafe {
-            let bytes = *(&n.to_be() as *const u128 as *const [u8; 16]);
-            copy_nonoverlapping(
-                bytes.as_ptr().offset((16 - nbytes) as isize),
-                buf.as_mut_ptr(),
-                nbytes,
-            );
-        }
+
+        buf[..nbytes].copy_from_slice(&n.to_be_bytes()[(16 - nbytes)..]);
     }
 
     #[inline]
@@ -2136,20 +2121,16 @@ impl ByteOrder for LittleEndian {
     fn write_uint(buf: &mut [u8], n: u64, nbytes: usize) {
         assert!(pack_size(n) <= nbytes && nbytes <= 8);
         assert!(nbytes <= buf.len());
-        unsafe {
-            let bytes = *(&n.to_le() as *const u64 as *const [u8; 8]);
-            copy_nonoverlapping(bytes.as_ptr(), buf.as_mut_ptr(), nbytes);
-        }
+
+        buf[..nbytes].copy_from_slice(&n.to_le_bytes()[..nbytes]);
     }
 
     #[inline]
     fn write_uint128(buf: &mut [u8], n: u128, nbytes: usize) {
         assert!(pack_size128(n) <= nbytes && nbytes <= 16);
         assert!(nbytes <= buf.len());
-        unsafe {
-            let bytes = *(&n.to_le() as *const u128 as *const [u8; 16]);
-            copy_nonoverlapping(bytes.as_ptr(), buf.as_mut_ptr(), nbytes);
-        }
+
+        buf[..nbytes].copy_from_slice(&n.to_le_bytes()[..nbytes]);
     }
 
     #[inline]
