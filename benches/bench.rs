@@ -3,7 +3,7 @@
 extern crate test;
 
 macro_rules! bench_num {
-    ($name:ident, $read:ident, $bytes:expr, $data:expr) => {
+    ($name:ident, $ty:ident, $max:ident, $read:ident, $write:ident, $bytes:expr, $data:expr) => {
         mod $name {
             use byteorder::{
                 BigEndian, ByteOrder, LittleEndian, NativeEndian,
@@ -18,7 +18,7 @@ macro_rules! bench_num {
                 let buf = $data;
                 b.iter(|| {
                     for _ in 0..NITER {
-                        bb(BigEndian::$read(&buf, $bytes));
+                        bb(BigEndian::$read(&buf, bb($bytes)));
                     }
                 });
             }
@@ -28,7 +28,7 @@ macro_rules! bench_num {
                 let buf = $data;
                 b.iter(|| {
                     for _ in 0..NITER {
-                        bb(LittleEndian::$read(&buf, $bytes));
+                        bb(LittleEndian::$read(&buf, bb($bytes)));
                     }
                 });
             }
@@ -38,14 +38,47 @@ macro_rules! bench_num {
                 let buf = $data;
                 b.iter(|| {
                     for _ in 0..NITER {
-                        bb(NativeEndian::$read(&buf, $bytes));
+                        bb(NativeEndian::$read(&buf, bb($bytes)));
+                    }
+                });
+            }
+
+            #[bench]
+            fn write_big_endian(b: &mut Bencher) {
+                let mut buf = $data;
+                let n = $ty::$max >> (1 + $ty::$max.count_ones() - $bytes * 8);
+                b.iter(|| {
+                    for _ in 0..NITER {
+                        bb(BigEndian::$write(&mut buf, n, bb($bytes)));
+                    }
+                });
+            }
+
+            #[bench]
+            fn write_little_endian(b: &mut Bencher) {
+                let mut buf = $data;
+                let n = $ty::$max >> (1 + $ty::$max.count_ones() - $bytes * 8);
+                b.iter(|| {
+                    for _ in 0..NITER {
+                        bb(LittleEndian::$write(&mut buf, n, bb($bytes)));
+                    }
+                });
+            }
+
+            #[bench]
+            fn write_native_endian(b: &mut Bencher) {
+                let mut buf = $data;
+                let n = $ty::$max >> (1 + $ty::$max.count_ones() - $bytes * 8);
+                b.iter(|| {
+                    for _ in 0..NITER {
+                        bb(NativeEndian::$write(&mut buf, n, bb($bytes)));
                     }
                 });
             }
         }
     };
     ($ty:ident, $max:ident,
-     $read:ident, $write:ident, $size:expr, $data:expr) => {
+     $read:ident, $write:ident, $data:expr) => {
         mod $ty {
             use byteorder::{
                 BigEndian, ByteOrder, LittleEndian, NativeEndian,
@@ -122,39 +155,46 @@ macro_rules! bench_num {
     };
 }
 
-bench_num!(u16, MAX, read_u16, write_u16, 2, [1, 2]);
-bench_num!(i16, MAX, read_i16, write_i16, 2, [1, 2]);
-bench_num!(u32, MAX, read_u32, write_u32, 4, [1, 2, 3, 4]);
-bench_num!(i32, MAX, read_i32, write_i32, 4, [1, 2, 3, 4]);
-bench_num!(u64, MAX, read_u64, write_u64, 8, [1, 2, 3, 4, 5, 6, 7, 8]);
-bench_num!(i64, MAX, read_i64, write_i64, 8, [1, 2, 3, 4, 5, 6, 7, 8]);
-bench_num!(f32, MAX, read_f32, write_f32, 4, [1, 2, 3, 4]);
-bench_num!(f64, MAX, read_f64, write_f64, 8, [1, 2, 3, 4, 5, 6, 7, 8]);
+bench_num!(u16, MAX, read_u16, write_u16, [1, 2]);
+bench_num!(i16, MAX, read_i16, write_i16, [1, 2]);
+bench_num!(u32, MAX, read_u32, write_u32, [1, 2, 3, 4]);
+bench_num!(i32, MAX, read_i32, write_i32, [1, 2, 3, 4]);
+bench_num!(u64, MAX, read_u64, write_u64, [1, 2, 3, 4, 5, 6, 7, 8]);
+bench_num!(i64, MAX, read_i64, write_i64, [1, 2, 3, 4, 5, 6, 7, 8]);
+bench_num!(f32, MAX, read_f32, write_f32, [1, 2, 3, 4]);
+bench_num!(f64, MAX, read_f64, write_f64, [1, 2, 3, 4, 5, 6, 7, 8]);
 
-bench_num!(uint_1, read_uint, 1, [1]);
-bench_num!(uint_2, read_uint, 2, [1, 2]);
-bench_num!(uint_3, read_uint, 3, [1, 2, 3]);
-bench_num!(uint_4, read_uint, 4, [1, 2, 3, 4]);
-bench_num!(uint_5, read_uint, 5, [1, 2, 3, 4, 5]);
-bench_num!(uint_6, read_uint, 6, [1, 2, 3, 4, 5, 6]);
-bench_num!(uint_7, read_uint, 7, [1, 2, 3, 4, 5, 6, 7]);
-bench_num!(uint_8, read_uint, 8, [1, 2, 3, 4, 5, 6, 7, 8]);
+bench_num!(uint_1, u64, MAX, read_uint, write_uint, 1, [1]);
+bench_num!(uint_2, u64, MAX, read_uint, write_uint, 2, [1, 2]);
+bench_num!(uint_3, u64, MAX, read_uint, write_uint, 3, [1, 2, 3]);
+bench_num!(uint_4, u64, MAX, read_uint, write_uint, 4, [1, 2, 3, 4]);
+bench_num!(uint_5, u64, MAX, read_uint, write_uint, 5, [1, 2, 3, 4, 5]);
+bench_num!(uint_6, u64, MAX, read_uint, write_uint, 6, [1, 2, 3, 4, 5, 6]);
+bench_num!(uint_7, u64, MAX, read_uint, write_uint, 7, [1, 2, 3, 4, 5, 6, 7]);
+bench_num!(
+    uint_8,
+    u64,
+    MAX,
+    read_uint,
+    write_uint,
+    8,
+    [1, 2, 3, 4, 5, 6, 7, 8]
+);
 
-bench_num!(int_1, read_int, 1, [1]);
-bench_num!(int_2, read_int, 2, [1, 2]);
-bench_num!(int_3, read_int, 3, [1, 2, 3]);
-bench_num!(int_4, read_int, 4, [1, 2, 3, 4]);
-bench_num!(int_5, read_int, 5, [1, 2, 3, 4, 5]);
-bench_num!(int_6, read_int, 6, [1, 2, 3, 4, 5, 6]);
-bench_num!(int_7, read_int, 7, [1, 2, 3, 4, 5, 6, 7]);
-bench_num!(int_8, read_int, 8, [1, 2, 3, 4, 5, 6, 7, 8]);
+bench_num!(int_1, i64, MAX, read_int, write_int, 1, [1]);
+bench_num!(int_2, i64, MAX, read_int, write_int, 2, [1, 2]);
+bench_num!(int_3, i64, MAX, read_int, write_int, 3, [1, 2, 3]);
+bench_num!(int_4, i64, MAX, read_int, write_int, 4, [1, 2, 3, 4]);
+bench_num!(int_5, i64, MAX, read_int, write_int, 5, [1, 2, 3, 4, 5]);
+bench_num!(int_6, i64, MAX, read_int, write_int, 6, [1, 2, 3, 4, 5, 6]);
+bench_num!(int_7, i64, MAX, read_int, write_int, 7, [1, 2, 3, 4, 5, 6, 7]);
+bench_num!(int_8, i64, MAX, read_int, write_int, 8, [1, 2, 3, 4, 5, 6, 7, 8]);
 
 bench_num!(
     u128,
     MAX,
     read_u128,
     write_u128,
-    16,
     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
 );
 bench_num!(
@@ -162,90 +202,223 @@ bench_num!(
     MAX,
     read_i128,
     write_i128,
-    16,
     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
 );
 
-bench_num!(uint128_1, read_uint128, 1, [1]);
-bench_num!(uint128_2, read_uint128, 2, [1, 2]);
-bench_num!(uint128_3, read_uint128, 3, [1, 2, 3]);
-bench_num!(uint128_4, read_uint128, 4, [1, 2, 3, 4]);
-bench_num!(uint128_5, read_uint128, 5, [1, 2, 3, 4, 5]);
-bench_num!(uint128_6, read_uint128, 6, [1, 2, 3, 4, 5, 6]);
-bench_num!(uint128_7, read_uint128, 7, [1, 2, 3, 4, 5, 6, 7]);
-bench_num!(uint128_8, read_uint128, 8, [1, 2, 3, 4, 5, 6, 7, 8]);
-bench_num!(uint128_9, read_uint128, 9, [1, 2, 3, 4, 5, 6, 7, 8, 9]);
-bench_num!(uint128_10, read_uint128, 10, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-bench_num!(uint128_11, read_uint128, 11, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+bench_num!(uint128_1, u128, MAX, read_uint128, write_uint128, 1, [1]);
+bench_num!(uint128_2, u128, MAX, read_uint128, write_uint128, 2, [1, 2]);
+bench_num!(uint128_3, u128, MAX, read_uint128, write_uint128, 3, [1, 2, 3]);
+bench_num!(uint128_4, u128, MAX, read_uint128, write_uint128, 4, [1, 2, 3, 4]);
+bench_num!(
+    uint128_5,
+    u128,
+    MAX,
+    read_uint128,
+    write_uint128,
+    5,
+    [1, 2, 3, 4, 5]
+);
+bench_num!(
+    uint128_6,
+    u128,
+    MAX,
+    read_uint128,
+    write_uint128,
+    6,
+    [1, 2, 3, 4, 5, 6]
+);
+bench_num!(
+    uint128_7,
+    u128,
+    MAX,
+    read_uint128,
+    write_uint128,
+    7,
+    [1, 2, 3, 4, 5, 6, 7]
+);
+bench_num!(
+    uint128_8,
+    u128,
+    MAX,
+    read_uint128,
+    write_uint128,
+    8,
+    [1, 2, 3, 4, 5, 6, 7, 8]
+);
+bench_num!(
+    uint128_9,
+    u128,
+    MAX,
+    read_uint128,
+    write_uint128,
+    9,
+    [1, 2, 3, 4, 5, 6, 7, 8, 9]
+);
+bench_num!(
+    uint128_10,
+    u128,
+    MAX,
+    read_uint128,
+    write_uint128,
+    10,
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+);
+bench_num!(
+    uint128_11,
+    u128,
+    MAX,
+    read_uint128,
+    write_uint128,
+    11,
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+);
 bench_num!(
     uint128_12,
+    u128,
+    MAX,
     read_uint128,
+    write_uint128,
     12,
     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 );
 bench_num!(
     uint128_13,
+    u128,
+    MAX,
     read_uint128,
+    write_uint128,
     13,
     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
 );
 bench_num!(
     uint128_14,
+    u128,
+    MAX,
     read_uint128,
+    write_uint128,
     14,
     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
 );
 bench_num!(
     uint128_15,
+    u128,
+    MAX,
     read_uint128,
+    write_uint128,
     15,
     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
 );
 bench_num!(
     uint128_16,
+    u128,
+    MAX,
     read_uint128,
+    write_uint128,
     16,
     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
 );
 
-bench_num!(int128_1, read_int128, 1, [1]);
-bench_num!(int128_2, read_int128, 2, [1, 2]);
-bench_num!(int128_3, read_int128, 3, [1, 2, 3]);
-bench_num!(int128_4, read_int128, 4, [1, 2, 3, 4]);
-bench_num!(int128_5, read_int128, 5, [1, 2, 3, 4, 5]);
-bench_num!(int128_6, read_int128, 6, [1, 2, 3, 4, 5, 6]);
-bench_num!(int128_7, read_int128, 7, [1, 2, 3, 4, 5, 6, 7]);
-bench_num!(int128_8, read_int128, 8, [1, 2, 3, 4, 5, 6, 7, 8]);
-bench_num!(int128_9, read_int128, 9, [1, 2, 3, 4, 5, 6, 7, 8, 9]);
-bench_num!(int128_10, read_int128, 10, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-bench_num!(int128_11, read_int128, 11, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+bench_num!(int128_1, i128, MAX, read_int128, write_int128, 1, [1]);
+bench_num!(int128_2, i128, MAX, read_int128, write_int128, 2, [1, 2]);
+bench_num!(int128_3, i128, MAX, read_int128, write_int128, 3, [1, 2, 3]);
+bench_num!(int128_4, i128, MAX, read_int128, write_int128, 4, [1, 2, 3, 4]);
+bench_num!(int128_5, i128, MAX, read_int128, write_int128, 5, [1, 2, 3, 4, 5]);
+bench_num!(
+    int128_6,
+    i128,
+    MAX,
+    read_int128,
+    write_int128,
+    6,
+    [1, 2, 3, 4, 5, 6]
+);
+bench_num!(
+    int128_7,
+    i128,
+    MAX,
+    read_int128,
+    write_int128,
+    7,
+    [1, 2, 3, 4, 5, 6, 7]
+);
+bench_num!(
+    int128_8,
+    i128,
+    MAX,
+    read_int128,
+    write_int128,
+    8,
+    [1, 2, 3, 4, 5, 6, 7, 8]
+);
+bench_num!(
+    int128_9,
+    i128,
+    MAX,
+    read_int128,
+    write_int128,
+    9,
+    [1, 2, 3, 4, 5, 6, 7, 8, 9]
+);
+bench_num!(
+    int128_10,
+    i128,
+    MAX,
+    read_int128,
+    write_int128,
+    10,
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+);
+bench_num!(
+    int128_11,
+    i128,
+    MAX,
+    read_int128,
+    write_int128,
+    11,
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+);
 bench_num!(
     int128_12,
+    i128,
+    MAX,
     read_int128,
+    write_int128,
     12,
     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 );
 bench_num!(
     int128_13,
+    i128,
+    MAX,
     read_int128,
+    write_int128,
     13,
     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
 );
 bench_num!(
     int128_14,
+    i128,
+    MAX,
     read_int128,
+    write_int128,
     14,
     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
 );
 bench_num!(
     int128_15,
+    i128,
+    MAX,
     read_int128,
+    write_int128,
     15,
     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
 );
 bench_num!(
     int128_16,
+    i128,
+    MAX,
     read_int128,
+    write_int128,
     16,
     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
 );
