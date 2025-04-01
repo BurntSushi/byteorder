@@ -109,7 +109,7 @@ for more details.
 =====
 This release of `byteorder` features a number of fixes and improvements, mostly
 as a result of the
-[Litz Blitz evaluation](https://public.etherpad-mozilla.org/p/rust-crate-eval-byteorder).
+[Litz Blitz evaluation]( https://public.etherpad-mozilla.org).
 
 Feature enhancements:
 
