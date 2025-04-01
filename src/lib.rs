@@ -1811,7 +1811,7 @@ pub type LE = LittleEndian;
 /// referred to in several protocol specifications.  This type is an alias of
 /// [`BigEndian`].
 ///
-/// [1]: https://tools.ietf.org/html/rfc1700
+/// [1]:  https://datatracker.ietf.org/doc/html/rfc1700
 ///
 /// Note that this type has no value constructor. It is used purely at the
 /// type level.
