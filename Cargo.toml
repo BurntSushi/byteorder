@@ -17,6 +17,9 @@ rust-version = "1.60"
 name = "byteorder"
 bench = false
 
+[dependencies]
+zerocopy = "0.8.26"
+
 [dev-dependencies]
 quickcheck = { version = "0.9.2", default-features = false }
 rand = "0.7"

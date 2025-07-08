@@ -1,7 +1,6 @@
-use std::{
-    io::{self, Result},
-    slice,
-};
+use std::io::{self, Result};
+
+use zerocopy::IntoBytes;
 
 use crate::ByteOrder;
 
@@ -560,10 +559,7 @@ pub trait ReadBytesExt: io::Read {
     /// ```
     #[inline]
     fn read_u16_into<T: ByteOrder>(&mut self, dst: &mut [u16]) -> Result<()> {
-        {
-            let buf = unsafe { slice_to_u8_mut(dst) };
-            self.read_exact(buf)?;
-        }
+        self.read_exact(dst.as_mut_bytes())?;
         T::from_slice_u16(dst);
         Ok(())
     }
@@ -595,10 +591,7 @@ pub trait ReadBytesExt: io::Read {
     /// ```
     #[inline]
     fn read_u32_into<T: ByteOrder>(&mut self, dst: &mut [u32]) -> Result<()> {
-        {
-            let buf = unsafe { slice_to_u8_mut(dst) };
-            self.read_exact(buf)?;
-        }
+        self.read_exact(dst.as_mut_bytes())?;
         T::from_slice_u32(dst);
         Ok(())
     }
@@ -633,10 +626,7 @@ pub trait ReadBytesExt: io::Read {
     /// ```
     #[inline]
     fn read_u64_into<T: ByteOrder>(&mut self, dst: &mut [u64]) -> Result<()> {
-        {
-            let buf = unsafe { slice_to_u8_mut(dst) };
-            self.read_exact(buf)?;
-        }
+        self.read_exact(dst.as_mut_bytes())?;
         T::from_slice_u64(dst);
         Ok(())
     }
@@ -674,10 +664,7 @@ pub trait ReadBytesExt: io::Read {
         &mut self,
         dst: &mut [u128],
     ) -> Result<()> {
-        {
-            let buf = unsafe { slice_to_u8_mut(dst) };
-            self.read_exact(buf)?;
-        }
+        self.read_exact(dst.as_mut_bytes())?;
         T::from_slice_u128(dst);
         Ok(())
     }
@@ -714,8 +701,7 @@ pub trait ReadBytesExt: io::Read {
     /// ```
     #[inline]
     fn read_i8_into(&mut self, dst: &mut [i8]) -> Result<()> {
-        let buf = unsafe { slice_to_u8_mut(dst) };
-        self.read_exact(buf)
+        self.read_exact(dst.as_mut_bytes())
     }
 
     /// Reads a sequence of signed 16 bit integers from the underlying
@@ -745,10 +731,7 @@ pub trait ReadBytesExt: io::Read {
     /// ```
     #[inline]
     fn read_i16_into<T: ByteOrder>(&mut self, dst: &mut [i16]) -> Result<()> {
-        {
-            let buf = unsafe { slice_to_u8_mut(dst) };
-            self.read_exact(buf)?;
-        }
+        self.read_exact(dst.as_mut_bytes())?;
         T::from_slice_i16(dst);
         Ok(())
     }
@@ -780,10 +763,7 @@ pub trait ReadBytesExt: io::Read {
     /// ```
     #[inline]
     fn read_i32_into<T: ByteOrder>(&mut self, dst: &mut [i32]) -> Result<()> {
-        {
-            let buf = unsafe { slice_to_u8_mut(dst) };
-            self.read_exact(buf)?;
-        }
+        self.read_exact(dst.as_mut_bytes())?;
         T::from_slice_i32(dst);
         Ok(())
     }
@@ -818,10 +798,7 @@ pub trait ReadBytesExt: io::Read {
     /// ```
     #[inline]
     fn read_i64_into<T: ByteOrder>(&mut self, dst: &mut [i64]) -> Result<()> {
-        {
-            let buf = unsafe { slice_to_u8_mut(dst) };
-            self.read_exact(buf)?;
-        }
+        self.read_exact(dst.as_mut_bytes())?;
         T::from_slice_i64(dst);
         Ok(())
     }
@@ -859,10 +836,7 @@ pub trait ReadBytesExt: io::Read {
         &mut self,
         dst: &mut [i128],
     ) -> Result<()> {
-        {
-            let buf = unsafe { slice_to_u8_mut(dst) };
-            self.read_exact(buf)?;
-        }
+        self.read_exact(dst.as_mut_bytes())?;
         T::from_slice_i128(dst);
         Ok(())
     }
@@ -900,10 +874,7 @@ pub trait ReadBytesExt: io::Read {
     /// ```
     #[inline]
     fn read_f32_into<T: ByteOrder>(&mut self, dst: &mut [f32]) -> Result<()> {
-        {
-            let buf = unsafe { slice_to_u8_mut(dst) };
-            self.read_exact(buf)?;
-        }
+        self.read_exact(dst.as_mut_bytes())?;
         T::from_slice_f32(dst);
         Ok(())
     }
@@ -985,10 +956,7 @@ pub trait ReadBytesExt: io::Read {
     /// ```
     #[inline]
     fn read_f64_into<T: ByteOrder>(&mut self, dst: &mut [f64]) -> Result<()> {
-        {
-            let buf = unsafe { slice_to_u8_mut(dst) };
-            self.read_exact(buf)?;
-        }
+        self.read_exact(dst.as_mut_bytes())?;
         T::from_slice_f64(dst);
         Ok(())
     }
@@ -1577,16 +1545,3 @@ pub trait WriteBytesExt: io::Write {
 /// All types that implement `Write` get methods defined in `WriteBytesExt`
 /// for free.
 impl<W: io::Write + ?Sized> WriteBytesExt for W {}
-
-/// Convert a slice of T (where T is plain old data) to its mutable binary
-/// representation.
-///
-/// This function is wildly unsafe because it permits arbitrary modification of
-/// the binary representation of any `Copy` type. Use with care. It's intended
-/// to be called only where `T` is a numeric type.
-unsafe fn slice_to_u8_mut<T: Copy>(slice: &mut [T]) -> &mut [u8] {
-    use std::mem::size_of;
-
-    let len = size_of::<T>() * slice.len();
-    slice::from_raw_parts_mut(slice.as_mut_ptr() as *mut u8, len)
-}
