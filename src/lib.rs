@@ -173,6 +173,13 @@ pub trait ByteOrder:
     + PartialOrd
     + private::Sealed
 {
+    /// Reads an unsigned 8 bit integer from `buf`.
+    ///
+    /// # Panics
+    ///
+    /// Panics when `buf.len() < 1`.
+    fn read_u8(buf: &[u8]) -> u8;
+
     /// Reads an unsigned 16 bit integer from `buf`.
     ///
     /// # Panics
@@ -318,6 +325,25 @@ pub trait ByteOrder:
     /// assert_eq!(1_000_000, LittleEndian::read_uint128(&buf, 3));
     /// ```
     fn read_uint128(buf: &[u8], nbytes: usize) -> u128;
+
+    /// Writes an unsigned 8 bit integer `n` to `buf`.
+    ///
+    /// # Panics
+    ///
+    /// Panics when `buf.len() < 1`.
+    ///
+    /// # Examples
+    ///
+    /// Write and read `u8` numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut buf = [0; 1];
+    /// LittleEndian::write_u8(&mut buf, 225);
+    /// assert_eq!(225, LittleEndian::read_u8(&buf));
+    /// ```
+    fn write_u8(buf: &mut [u8], n: u8);
 
     /// Writes an unsigned 16 bit integer `n` to `buf`.
     ///
@@ -476,6 +502,28 @@ pub trait ByteOrder:
     /// assert_eq!(1_000_000, LittleEndian::read_uint128(&buf, 3));
     /// ```
     fn write_uint128(buf: &mut [u8], n: u128, nbytes: usize);
+
+    /// Reads a signed 8 bit integer from `buf`.
+    ///
+    /// # Panics
+    ///
+    /// Panics when `buf.len() < 1`.
+    ///
+    /// # Examples
+    ///
+    /// Write and read `i8` numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut buf = [0; 1];
+    /// LittleEndian::write_i8(&mut buf, -100);
+    /// assert_eq!(-100, LittleEndian::read_i8(&buf));
+    /// ```
+    #[inline]
+    fn read_i8(buf: &[u8]) -> i8 {
+        Self::read_u8(buf) as i8
+    }
 
     /// Reads a signed 16 bit integer from `buf`.
     ///
@@ -699,6 +747,28 @@ pub trait ByteOrder:
     #[inline]
     fn read_f64(buf: &[u8]) -> f64 {
         f64::from_bits(Self::read_u64(buf))
+    }
+
+    /// Writes a signed 8 bit integer `n` to `buf`.
+    ///
+    /// # Panics
+    ///
+    /// Panics when `buf.len() < 1`.
+    ///
+    /// # Examples
+    ///
+    /// Write and read `i8` numbers in little endian order:
+    ///
+    /// ```rust
+    /// use byteorder::{ByteOrder, LittleEndian};
+    ///
+    /// let mut buf = [0; 1];
+    /// LittleEndian::write_i8(&mut buf, -100);
+    /// assert_eq!(-100, LittleEndian::read_i8(&buf));
+    /// ```
+    #[inline]
+    fn write_i8(buf: &mut [u8], n: i8) {
+        Self::write_u8(buf, n as u8)
     }
 
     /// Writes a signed 16 bit integer `n` to `buf`.
@@ -1889,6 +1959,11 @@ macro_rules! write_slice {
 
 impl ByteOrder for BigEndian {
     #[inline]
+    fn read_u8(buf: &[u8]) -> u8 {
+        buf[0]
+    }
+
+    #[inline]
     fn read_u16(buf: &[u8]) -> u16 {
         u16::from_be_bytes(buf[..2].try_into().unwrap())
     }
@@ -1924,6 +1999,11 @@ impl ByteOrder for BigEndian {
         let start = out.len() - nbytes;
         out[start..].copy_from_slice(&buf[..nbytes]);
         u128::from_be_bytes(out)
+    }
+
+    #[inline]
+    fn write_u8(buf: &mut [u8], n: u8) {
+        buf[0] = n;
     }
 
     #[inline]
@@ -2071,6 +2151,11 @@ impl ByteOrder for BigEndian {
 
 impl ByteOrder for LittleEndian {
     #[inline]
+    fn read_u8(buf: &[u8]) -> u8 {
+        buf[0]
+    }
+
+    #[inline]
     fn read_u16(buf: &[u8]) -> u16 {
         u16::from_le_bytes(buf[..2].try_into().unwrap())
     }
@@ -2104,6 +2189,11 @@ impl ByteOrder for LittleEndian {
         assert!(1 <= nbytes && nbytes <= out.len() && nbytes <= buf.len());
         out[..nbytes].copy_from_slice(&buf[..nbytes]);
         u128::from_le_bytes(out)
+    }
+
+    #[inline]
+    fn write_u8(buf: &mut [u8], n: u8) {
+        buf[0] = n;
     }
 
     #[inline]
