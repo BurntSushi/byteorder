@@ -1219,11 +1219,26 @@ pub trait ByteOrder:
     /// ```
     #[inline]
     fn read_f64_into(src: &[u8], dst: &mut [f64]) {
-        let dst = unsafe {
-            const _: () = assert!(align_of::<u64>() <= align_of::<f64>());
-            slice::from_raw_parts_mut(dst.as_mut_ptr() as *mut u64, dst.len())
-        };
-        Self::read_u64_into(src, dst);
+        #[cfg(not(target_os = "aix"))]
+        {
+            let dst = unsafe {
+                const _: () = assert!(align_of::<u64>() <= align_of::<f64>());
+                slice::from_raw_parts_mut(
+                    dst.as_mut_ptr() as *mut u64,
+                    dst.len(),
+                )
+            };
+            Self::read_u64_into(src, dst);
+        }
+        #[cfg(target_os = "aix")]
+        {
+            // On AIX, `f64` may be less aligned than `u64`, so we cannot safely
+            // reinterpret `dst` as `&mut [u64]`.
+            const _: () = assert!(align_of::<f64>() <= align_of::<u64>());
+            for (s, d) in src.chunks_exact(8).zip(dst.iter_mut()) {
+                *d = Self::read_f64(s);
+            }
+        }
     }
 
     /// **DEPRECATED**.
