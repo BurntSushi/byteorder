@@ -1585,8 +1585,6 @@ impl<W: io::Write + ?Sized> WriteBytesExt for W {}
 /// the binary representation of any `Copy` type. Use with care. It's intended
 /// to be called only where `T` is a numeric type.
 unsafe fn slice_to_u8_mut<T: Copy>(slice: &mut [T]) -> &mut [u8] {
-    use std::mem::size_of;
-
-    let len = size_of::<T>() * slice.len();
+    let len = std::mem::size_of_val(slice);
     slice::from_raw_parts_mut(slice.as_mut_ptr() as *mut u8, len)
 }

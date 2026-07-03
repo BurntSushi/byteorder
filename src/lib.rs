@@ -238,7 +238,7 @@ pub trait ByteOrder:
     /// assert_eq!(1_000_000_000_000, LittleEndian::read_u48(&buf));
     /// ```
     fn read_u48(buf: &[u8]) -> u64 {
-        Self::read_uint(buf, 6) as u64
+        Self::read_uint(buf, 6)
     }
 
     /// Reads an unsigned 64 bit integer from `buf`.
@@ -396,7 +396,7 @@ pub trait ByteOrder:
     /// assert_eq!(1_000_000_000_000, LittleEndian::read_u48(&buf));
     /// ```
     fn write_u48(buf: &mut [u8], n: u64) {
-        Self::write_uint(buf, n as u64, 6)
+        Self::write_uint(buf, n, 6)
     }
 
     /// Writes an unsigned 64 bit integer `n` to `buf`.
@@ -562,7 +562,7 @@ pub trait ByteOrder:
     /// ```
     #[inline]
     fn read_i48(buf: &[u8]) -> i64 {
-        Self::read_int(buf, 6) as i64
+        Self::read_int(buf, 6)
     }
 
     /// Reads a signed 64 bit integer from `buf`.
@@ -786,7 +786,7 @@ pub trait ByteOrder:
     /// ```
     #[inline]
     fn write_i48(buf: &mut [u8], n: i64) {
-        Self::write_int(buf, n as i64, 6)
+        Self::write_int(buf, n, 6)
     }
 
     /// Writes a signed 64 bit integer `n` to `buf`.
@@ -1953,7 +1953,7 @@ impl ByteOrder for BigEndian {
         unsafe {
             let bytes = *(&n.to_be() as *const u64 as *const [u8; 8]);
             copy_nonoverlapping(
-                bytes.as_ptr().offset((8 - nbytes) as isize),
+                bytes.as_ptr().add(8 - nbytes),
                 buf.as_mut_ptr(),
                 nbytes,
             );
@@ -1967,7 +1967,7 @@ impl ByteOrder for BigEndian {
         unsafe {
             let bytes = *(&n.to_be() as *const u128 as *const [u8; 16]);
             copy_nonoverlapping(
-                bytes.as_ptr().offset((16 - nbytes) as isize),
+                bytes.as_ptr().add(16 - nbytes),
                 buf.as_mut_ptr(),
                 nbytes,
             );
