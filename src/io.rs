@@ -1,9 +1,10 @@
-use std::{
-    io::{self, Result},
-    slice,
-};
+use core::io::{Result, Write};
+use core::slice;
 
 use crate::ByteOrder;
+
+#[cfg(feature = "alloc")]
+use alloc::io::Read;
 
 /// Extends [`Read`] with methods for reading numbers. (For `std::io`.)
 ///
@@ -27,7 +28,8 @@ use crate::ByteOrder;
 /// [`BigEndian`]: enum.BigEndian.html
 /// [`LittleEndian`]: enum.LittleEndian.html
 /// [`Read`]: https://doc.rust-lang.org/std/io/trait.Read.html
-pub trait ReadBytesExt: io::Read {
+#[cfg(feature = "alloc")]
+pub trait ReadBytesExt: Read {
     /// Reads an unsigned 8 bit integer from the underlying reader.
     ///
     /// Note that since this reads a single byte, no byte order conversions
@@ -1046,7 +1048,8 @@ pub trait ReadBytesExt: io::Read {
 
 /// All types that implement `Read` get methods defined in `ReadBytesExt`
 /// for free.
-impl<R: io::Read + ?Sized> ReadBytesExt for R {}
+#[cfg(feature = "alloc")]
+impl<R: Read + ?Sized> ReadBytesExt for R {}
 
 /// Extends [`Write`] with methods for writing numbers. (For `std::io`.)
 ///
@@ -1070,7 +1073,7 @@ impl<R: io::Read + ?Sized> ReadBytesExt for R {}
 /// [`BigEndian`]: enum.BigEndian.html
 /// [`LittleEndian`]: enum.LittleEndian.html
 /// [`Write`]: https://doc.rust-lang.org/std/io/trait.Write.html
-pub trait WriteBytesExt: io::Write {
+pub trait WriteBytesExt: Write {
     /// Writes an unsigned 8 bit integer to the underlying writer.
     ///
     /// Note that since this writes a single byte, no byte order conversions
@@ -1576,7 +1579,7 @@ pub trait WriteBytesExt: io::Write {
 
 /// All types that implement `Write` get methods defined in `WriteBytesExt`
 /// for free.
-impl<W: io::Write + ?Sized> WriteBytesExt for W {}
+impl<W: Write + ?Sized> WriteBytesExt for W {}
 
 /// Convert a slice of T (where T is plain old data) to its mutable binary
 /// representation.
@@ -1584,8 +1587,9 @@ impl<W: io::Write + ?Sized> WriteBytesExt for W {}
 /// This function is wildly unsafe because it permits arbitrary modification of
 /// the binary representation of any `Copy` type. Use with care. It's intended
 /// to be called only where `T` is a numeric type.
+#[cfg_attr(not(feature = "alloc"), expect(dead_code))]
 unsafe fn slice_to_u8_mut<T: Copy>(slice: &mut [T]) -> &mut [u8] {
-    use std::mem::size_of;
+    use core::mem::size_of;
 
     let len = size_of::<T>() * slice.len();
     slice::from_raw_parts_mut(slice.as_mut_ptr() as *mut u8, len)

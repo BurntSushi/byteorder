@@ -68,20 +68,25 @@ cases.
 */
 
 #![deny(missing_docs)]
-#![cfg_attr(not(feature = "std"), no_std)]
+#![no_std]
 // When testing under miri, we disable tests that take too long. But this
 // provokes lots of dead code warnings. So we just squash them.
 #![cfg_attr(miri, allow(dead_code, unused_macros))]
+#![feature(core_io)]
+#![cfg_attr(feature = "alloc", feature(alloc_io))]
+
+#[cfg(feature = "alloc")]
+extern crate alloc;
 
 use core::{
     convert::TryInto, fmt::Debug, hash::Hash, mem::align_of,
     ptr::copy_nonoverlapping, slice,
 };
 
-#[cfg(feature = "std")]
-pub use crate::io::{ReadBytesExt, WriteBytesExt};
+#[cfg(feature = "alloc")]
+pub use crate::io::ReadBytesExt;
+pub use crate::io::WriteBytesExt;
 
-#[cfg(feature = "std")]
 mod io;
 
 #[inline]
@@ -3273,7 +3278,8 @@ mod stdtests {
                     BigEndian, LittleEndian, NativeEndian, ReadBytesExt,
                     WriteBytesExt,
                 };
-                use std::io::Cursor;
+                use alloc::vec;
+                use core::io::Cursor;
 
                 #[test]
                 fn big_endian() {
@@ -3324,7 +3330,8 @@ mod stdtests {
                     BigEndian, LittleEndian, NativeEndian, ReadBytesExt,
                     WriteBytesExt,
                 };
-                use std::io::Cursor;
+                use alloc::vec;
+                use core::io::Cursor;
 
                 #[test]
                 fn big_endian() {
@@ -3365,56 +3372,56 @@ mod stdtests {
     qc_bytes_ext!(
         prop_ext_u16,
         u16,
-        ::std::u16::MAX as u64,
+        ::core::u16::MAX as u64,
         read_u16,
         write_u16
     );
     qc_bytes_ext!(
         prop_ext_i16,
         i16,
-        ::std::i16::MAX as u64,
+        ::core::i16::MAX as u64,
         read_i16,
         write_i16
     );
     qc_bytes_ext!(
         prop_ext_u32,
         u32,
-        ::std::u32::MAX as u64,
+        ::core::u32::MAX as u64,
         read_u32,
         write_u32
     );
     qc_bytes_ext!(
         prop_ext_i32,
         i32,
-        ::std::i32::MAX as u64,
+        ::core::i32::MAX as u64,
         read_i32,
         write_i32
     );
     qc_bytes_ext!(
         prop_ext_u64,
         u64,
-        ::std::u64::MAX as u64,
+        ::core::u64::MAX as u64,
         read_u64,
         write_u64
     );
     qc_bytes_ext!(
         prop_ext_i64,
         i64,
-        ::std::i64::MAX as u64,
+        ::core::i64::MAX as u64,
         read_i64,
         write_i64
     );
     qc_bytes_ext!(
         prop_ext_f32,
         f32,
-        ::std::u64::MAX as u64,
+        ::core::u64::MAX as u64,
         read_f32,
         write_f32
     );
     qc_bytes_ext!(
         prop_ext_f64,
         f64,
-        ::std::i64::MAX as u64,
+        ::core::i64::MAX as u64,
         read_f64,
         write_f64
     );
@@ -3821,6 +3828,8 @@ mod stdtests {
                 use crate::{
                     BigEndian, ByteOrder, LittleEndian, NativeEndian,
                 };
+                use alloc::vec;
+                use alloc::vec::Vec;
                 use core::mem::size_of;
 
                 #[test]
