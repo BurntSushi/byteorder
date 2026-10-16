@@ -42,6 +42,49 @@ wtr.write_u16::<LittleEndian>(768).unwrap();
 assert_eq!(wtr, vec![5, 2, 0, 3]);
 ```
 
+# Choosing a buffer or an I/O interface
+
+Use [`ByteOrder`] directly when converting numbers in an existing byte slice.
+It does not maintain a position: each call reads or writes at the beginning of
+the slice you pass. Its examples show conversions without heap allocation or
+an I/O wrapper.
+
+Use [`ReadBytesExt`] and [`WriteBytesExt`] when working with a reader or writer,
+such as a file or socket. These traits also work with in-memory buffers:
+`Vec<u8>` implements [`Write`] by appending bytes, `&mut [u8]` implements
+[`Write`] into a fixed-size buffer, and `&[u8]` implements [`Read`]. A slice
+reader or writer advances by shortening the slice; it does not change the
+size of the underlying buffer.
+
+For example, write into an array and then read it through a fresh slice:
+
+```rust
+use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
+
+let mut bytes = [0; 4];
+{
+    let mut writer = &mut bytes[..];
+    writer.write_u16::<BigEndian>(517).unwrap();
+    writer.write_u16::<BigEndian>(768).unwrap();
+    assert!(writer.is_empty());
+}
+assert_eq!(bytes, [2, 5, 3, 0]);
+
+let mut reader = &bytes[..];
+assert_eq!(517, reader.read_u16::<BigEndian>().unwrap());
+assert_eq!(768, reader.read_u16::<BigEndian>().unwrap());
+assert!(reader.is_empty());
+```
+
+The explicit `[..]` borrows above produce slices rather than references to
+arrays. A `Vec<u8>` itself is not a reader; borrow it as a slice to read its
+contents in the same way.
+
+A [`std::io::Cursor`] is useful when you need to seek within an in-memory
+buffer. Reads and writes both advance its position. To read back bytes just
+written through a cursor, first reset its position with `set_position(0)`;
+writing does not rewind it automatically.
+
 # Optional Features
 
 This crate optionally provides support for 128 bit values (`i128` and `u128`)

@@ -11,6 +11,9 @@ use crate::ByteOrder;
 /// must be explicitly instantiated. Typically, it is instantiated with either
 /// the [`BigEndian`] or [`LittleEndian`] types defined in this crate.
 ///
+/// For slice-backed buffers and the choice of interface, see the
+/// [crate-level guide](index.html#choosing-a-buffer-or-an-io-interface).
+///
 /// # Examples
 ///
 /// Read unsigned 16 bit big-endian integers from a [`Read`]:
@@ -1053,6 +1056,9 @@ impl<R: io::Read + ?Sized> ReadBytesExt for R {}
 /// Most of the methods defined here have an unconstrained type parameter that
 /// must be explicitly instantiated. Typically, it is instantiated with either
 /// the [`BigEndian`] or [`LittleEndian`] types defined in this crate.
+///
+/// For slice-backed buffers and the choice of interface, see the
+/// [crate-level guide](index.html#choosing-a-buffer-or-an-io-interface).
 ///
 /// # Examples
 ///
