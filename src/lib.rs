@@ -853,6 +853,13 @@ pub trait ByteOrder:
     /// ```
     #[inline]
     fn write_int(buf: &mut [u8], n: i64, nbytes: usize) {
+        assert!(nbytes <= 8);
+        // If `n` is not representable in `nbytes` bytes, writing it would
+        // silently truncate the value, so honor the documented panic.
+        if 0 < nbytes && nbytes < 8 {
+            let shift = nbytes * 8 - 1;
+            assert!(n >> shift == 0 || n >> shift == -1);
+        }
         Self::write_uint(buf, unextend_sign(n, nbytes), nbytes)
     }
 
@@ -876,6 +883,11 @@ pub trait ByteOrder:
     /// ```
     #[inline]
     fn write_int128(buf: &mut [u8], n: i128, nbytes: usize) {
+        assert!(nbytes <= 16);
+        if 0 < nbytes && nbytes < 16 {
+            let shift = nbytes * 8 - 1;
+            assert!(n >> shift == 0 || n >> shift == -1);
+        }
         Self::write_uint128(buf, unextend_sign128(n, nbytes), nbytes)
     }
 
@@ -3012,6 +3024,41 @@ mod test {
     too_small!(small_int128_12, 12, read_int128);
     too_small!(small_int128_13, 13, read_int128);
     too_small!(small_int128_14, 14, read_int128);
+    #[test]
+    #[should_panic]
+    fn write_int_panics_on_out_of_range_positive() {
+        let mut buf = [0; 8];
+        BigEndian::write_int(&mut buf, 99_999_999, 1);
+    }
+
+    #[test]
+    #[should_panic]
+    fn write_int_panics_on_out_of_range_negative() {
+        let mut buf = [0; 8];
+        LittleEndian::write_int(&mut buf, -99_999_999, 1);
+    }
+
+    #[test]
+    #[should_panic]
+    fn write_int_panics_when_nbytes_exceeds_eight() {
+        let mut buf = [0; 16];
+        NativeEndian::write_int(&mut buf, 1, 9);
+    }
+
+    #[test]
+    #[should_panic]
+    fn write_int128_panics_on_out_of_range() {
+        let mut buf = [0; 16];
+        BigEndian::write_int128(&mut buf, 1 << 100, 12);
+    }
+
+    #[test]
+    #[should_panic]
+    fn write_int128_panics_when_nbytes_exceeds_sixteen() {
+        let mut buf = [0; 32];
+        BigEndian::write_int128(&mut buf, 1, 17);
+    }
+
     too_small!(small_int128_15, 15, read_int128);
 
     // Test that reading/writing slices enforces the correct lengths.
