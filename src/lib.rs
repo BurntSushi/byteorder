@@ -441,8 +441,8 @@ pub trait ByteOrder:
     ///
     /// # Panics
     ///
-    /// If `n` is not representable in `nbytes`, or if `nbytes` is `> 8`, then
-    /// this method panics.
+    /// Panics when `n` is not representable in `nbytes`, `nbytes` is `> 8`, or
+    /// `buf.len() < nbytes`.
     ///
     /// # Examples
     ///
@@ -461,8 +461,8 @@ pub trait ByteOrder:
     ///
     /// # Panics
     ///
-    /// If `n` is not representable in `nbytes`, or if `nbytes` is `> 16`, then
-    /// this method panics.
+    /// Panics when `n` is not representable in `nbytes`, `nbytes` is `> 16`, or
+    /// `buf.len() < nbytes`.
     ///
     /// # Examples
     ///
@@ -837,8 +837,8 @@ pub trait ByteOrder:
     ///
     /// # Panics
     ///
-    /// If `n` is not representable in `nbytes`, or if `nbytes` is `> 8`, then
-    /// this method panics.
+    /// Panics when `n` is not representable in `nbytes`, `nbytes` is `> 8`, or
+    /// `buf.len() < nbytes`.
     ///
     /// # Examples
     ///
@@ -860,8 +860,8 @@ pub trait ByteOrder:
     ///
     /// # Panics
     ///
-    /// If `n` is not representable in `nbytes`, or if `nbytes` is `> 16`, then
-    /// this method panics.
+    /// Panics when `n` is not representable in `nbytes`, `nbytes` is `> 16`, or
+    /// `buf.len() < nbytes`.
     ///
     /// # Examples
     ///
