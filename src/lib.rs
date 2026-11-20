@@ -853,6 +853,11 @@ pub trait ByteOrder:
     /// ```
     #[inline]
     fn write_int(buf: &mut [u8], n: i64, nbytes: usize) {
+        assert!(
+            nbytes >= 1
+                && nbytes <= 8
+                && extend_sign(unextend_sign(n, nbytes), nbytes) == n
+        );
         Self::write_uint(buf, unextend_sign(n, nbytes), nbytes)
     }
 
@@ -876,6 +881,11 @@ pub trait ByteOrder:
     /// ```
     #[inline]
     fn write_int128(buf: &mut [u8], n: i128, nbytes: usize) {
+        assert!(
+            nbytes >= 1
+                && nbytes <= 16
+                && extend_sign128(unextend_sign128(n, nbytes), nbytes) == n
+        );
         Self::write_uint128(buf, unextend_sign128(n, nbytes), nbytes)
     }
 
@@ -3912,4 +3922,69 @@ mod stdtests {
 
     qc_slice!(prop_slice_f32, f32, read_f32_into, write_f32_into, 0.0);
     qc_slice!(prop_slice_f64, f64, read_f64_into, write_f64_into, 0.0);
+
+    #[test]
+    #[should_panic]
+    fn test_write_int_out_of_range_positive() {
+        use crate::ByteOrder;
+        let mut buf = [0; 8];
+        crate::BigEndian::write_int(&mut buf, 99999999, 1);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_write_int_out_of_range_negative() {
+        use crate::ByteOrder;
+        let mut buf = [0; 8];
+        crate::BigEndian::write_int(&mut buf, -99999999, 1);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_write_int_nbytes_zero() {
+        use crate::ByteOrder;
+        let mut buf = [0; 8];
+        crate::BigEndian::write_int(&mut buf, 0, 0);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_write_int_nbytes_too_large() {
+        use crate::ByteOrder;
+        let mut buf = [0; 16];
+        crate::BigEndian::write_int(&mut buf, 0, 9);
+    }
+
+    #[test]
+    fn test_write_int_valid_boundaries() {
+        use crate::ByteOrder;
+        let mut buf = [0; 8];
+        crate::BigEndian::write_int(&mut buf, 127, 1);
+        assert_eq!(crate::BigEndian::read_int(&buf[..1], 1), 127);
+
+        crate::BigEndian::write_int(&mut buf, -128, 1);
+        assert_eq!(crate::BigEndian::read_int(&buf[..1], 1), -128);
+
+        crate::LittleEndian::write_int(&mut buf, 127, 1);
+        assert_eq!(crate::LittleEndian::read_int(&buf[..1], 1), 127);
+
+        crate::LittleEndian::write_int(&mut buf, -128, 1);
+        assert_eq!(crate::LittleEndian::read_int(&buf[..1], 1), -128);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_write_int128_out_of_range_positive() {
+        use crate::ByteOrder;
+        let mut buf = [0; 16];
+        crate::BigEndian::write_int128(&mut buf, 99999999, 1);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_write_int128_out_of_range_negative() {
+        use crate::ByteOrder;
+        let mut buf = [0; 16];
+        crate::BigEndian::write_int128(&mut buf, -99999999, 1);
+    }
 }
